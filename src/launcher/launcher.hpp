@@ -4,7 +4,7 @@
 #include <string>
 
 #include "launcher/util/xml.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 #include "libgcm/util/areas/Area.hpp"
 #include "libgcm/linal/Vector3.hpp"
 #include "libgcm/node/CalcNode.hpp"

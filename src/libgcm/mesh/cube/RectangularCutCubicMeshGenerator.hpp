@@ -6,7 +6,7 @@
 
 #include "libgcm/mesh/cube/RectangularCutCubicMesh.hpp"
 #include "libgcm/Exception.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 #include "libgcm/util/Singleton.hpp"
 #include "libgcm/GCMDispatcher.hpp"
 

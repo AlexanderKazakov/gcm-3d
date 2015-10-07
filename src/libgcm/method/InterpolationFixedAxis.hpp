@@ -9,7 +9,7 @@
 ////#include "libgcm/util/ElasticMatrix3D.hpp"
 #include "libgcm/util/Types.hpp"
 #include "libgcm/node/CalcNode.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 #include "libgcm/Exception.hpp"
 
 

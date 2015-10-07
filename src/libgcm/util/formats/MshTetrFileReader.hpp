@@ -12,7 +12,7 @@
 #include <fstream>
 #include <limits>
 
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 
 namespace gcm {

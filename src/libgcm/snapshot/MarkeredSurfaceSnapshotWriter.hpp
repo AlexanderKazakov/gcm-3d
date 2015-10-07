@@ -2,7 +2,7 @@
 #define GCM_MARKERED_SURFACE_SNAPSHOT_WRITER
 
 #include "libgcm/snapshot/SnapshotWriter.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 #include "libgcm/util/Singleton.hpp"
 
 namespace gcm

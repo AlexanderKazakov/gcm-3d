@@ -213,4 +213,3 @@ const Material::FailureProperties& Material::getFailureProperties() const
 {
     return failureProps;
 }
-

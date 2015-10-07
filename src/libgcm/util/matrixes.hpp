@@ -14,7 +14,7 @@
 
 #include "libgcm/Math.hpp"
 #include "libgcm/Exception.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 #define GCM_MATRIX_SIZE 9
 

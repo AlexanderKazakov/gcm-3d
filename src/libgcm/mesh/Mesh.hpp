@@ -32,6 +32,16 @@ namespace gcm {
          * Mesh type. Used in runtime to determine mesh type.
          */
         std::string type;
+		// Rheology model used in the mesh
+		RheologyModel* rheologyModel;
+        // List of mesh nodes on current time layer
+        std::vector<Node> nodes;
+		// Pointer to memory for nodal data
+		real *valuesInNodes;
+		// List of mesh nodes on next time layer
+        std::vector<Node> newNodes;
+		// Pointer to memory for nodal data
+		real *valuesInNewNodes;
         /*
          * Calculatable flag.
          */
@@ -231,6 +241,8 @@ namespace gcm {
         void setInitialState(Area* area, std::function<void(CalcNode& node)> setter);
 		void setBorderCondition(Area* area, unsigned int num);
 		void setContactCondition(Area* area, unsigned int num);
+		void setRheologyModel(RheologyModel *_model);
+		RheologyModel *getRheologyModel();
         void setRheology(unsigned char matId);
         void setRheology(unsigned char matId, Area* area);
 

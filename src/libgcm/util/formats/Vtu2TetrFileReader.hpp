@@ -20,7 +20,7 @@
 #include <vtkCellData.h>
 
 #include "libgcm/mesh/tetr/TetrMeshSecondOrder.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 
 namespace gcm {

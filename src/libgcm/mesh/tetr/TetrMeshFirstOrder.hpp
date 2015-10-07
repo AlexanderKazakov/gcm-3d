@@ -11,7 +11,7 @@
 #include "libgcm/elem/TriangleFirstOrder.hpp"
 #include "libgcm/util/AABB.hpp"
 #include "libgcm/method/NumericalMethod.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 #include "libgcm/Exception.hpp"
 #include "libgcm/Math.hpp"
 #include "libgcm/interpolator/TetrFirstOrderInterpolator.hpp"

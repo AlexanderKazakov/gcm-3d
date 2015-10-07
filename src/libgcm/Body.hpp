@@ -6,7 +6,7 @@
 #include <functional>
 
 #include "libgcm/mesh/Mesh.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 
 namespace gcm {

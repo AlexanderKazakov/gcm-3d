@@ -4,7 +4,7 @@
 #include "launcher/util/FileFolderLookupService.hpp"
 #include "libgcm/node/CalcNode.hpp"
 #include "libgcm/Math.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 #include <iostream>
 #include <vector>

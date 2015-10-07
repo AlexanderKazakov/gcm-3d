@@ -5,7 +5,7 @@
 
 #include "libgcm/util/Singleton.hpp"
 #include "libgcm/util/Types.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 #include "libgcm/mesh/euler/markers/MarkeredSurface.hpp"
 

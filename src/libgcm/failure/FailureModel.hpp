@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "libgcm/Math.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 #include "libgcm/node/ICalcNode.hpp"
 #include "libgcm/failure/criteria/FailureCriterion.hpp"

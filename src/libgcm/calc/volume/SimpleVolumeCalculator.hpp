@@ -3,7 +3,7 @@
 
 #include "libgcm/calc/volume/VolumeCalculator.hpp"
 #include "libgcm/rheology/RheologyMatrix.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 
 namespace gcm

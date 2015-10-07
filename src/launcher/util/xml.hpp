@@ -8,7 +8,7 @@
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 namespace xml {
 

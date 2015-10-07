@@ -44,7 +44,7 @@
 #include "libgcm/BorderCondition.hpp"
 #include "libgcm/ContactCondition.hpp"
 #include "libgcm/CollisionDetector.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 #include "libgcm/Body.hpp"
 #include "libgcm/util/Singleton.hpp"
 

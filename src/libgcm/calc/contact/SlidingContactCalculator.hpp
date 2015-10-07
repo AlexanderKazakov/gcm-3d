@@ -6,7 +6,7 @@
 #include "libgcm/calc/contact/ContactCalculator.hpp"
 #include "libgcm/calc/border/FreeBorderCalculator.hpp"
 #include "libgcm/Math.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 namespace gcm
 {

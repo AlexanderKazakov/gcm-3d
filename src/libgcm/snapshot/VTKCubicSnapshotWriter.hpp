@@ -6,7 +6,7 @@
 #include "libgcm/util/Singleton.hpp"
 #include "libgcm/snapshot/AbstractVTKSnapshotWriter.hpp"
 #include "libgcm/node/CalcNode.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 namespace gcm {
     class BasicCubicMesh;

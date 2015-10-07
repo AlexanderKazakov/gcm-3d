@@ -4,7 +4,7 @@
 #include <string>
 
 #include "libgcm/Math.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 #include "libgcm/interpolator/TetrInterpolator.hpp"
 
 

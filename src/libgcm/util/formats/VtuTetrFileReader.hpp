@@ -19,7 +19,7 @@
 #include <vtkPointData.h>
 
 #include "libgcm/mesh/tetr/TetrMeshFirstOrder.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 
 namespace gcm {

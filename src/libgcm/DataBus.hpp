@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "libgcm/GCMDispatcher.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 #include <mpi.h>
 

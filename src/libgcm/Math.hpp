@@ -15,7 +15,7 @@
 
 #include "libgcm/util/Types.hpp"
 #include "libgcm/Exception.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 #include "libgcm/util/Assertion.hpp"
 #include "libgcm/config.hpp"
 

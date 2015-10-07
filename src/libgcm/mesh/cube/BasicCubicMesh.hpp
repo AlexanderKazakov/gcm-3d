@@ -3,7 +3,7 @@
 
 #include "libgcm/mesh/Mesh.hpp"
 #include "libgcm/Math.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 #include "libgcm/Exception.hpp"
 
 #include "libgcm/interpolator/LineFirstOrderInterpolator.hpp"

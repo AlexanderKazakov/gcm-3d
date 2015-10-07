@@ -7,7 +7,7 @@
 #include "libgcm/util/AABB.hpp"
 #include "libgcm/mesh/Mesh.hpp"
 #include "libgcm/mesh/cube/BasicCubicMesh.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 
 namespace gcm {
 

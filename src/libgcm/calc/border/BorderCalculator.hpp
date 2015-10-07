@@ -12,7 +12,7 @@
 #include <vector>
 #include <initializer_list>
 
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 #include "libgcm/rheology/RheologyMatrix.hpp"
 
 #include <boost/lexical_cast.hpp>

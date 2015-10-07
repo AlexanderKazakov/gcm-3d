@@ -8,7 +8,7 @@
 #include "libgcm/snapshot/VTK2SnapshotWriter.hpp"
 #include "libgcm/util/formats/Vtu2TetrFileReader.hpp"
 #include "libgcm/Exception.hpp"
-#include "libgcm/Logging.hpp"
+#include "libgcm/util/Logging.hpp"
 #include "libgcm/util/Singleton.hpp"
 #include "libgcm/DummyDispatcher.hpp"
 
