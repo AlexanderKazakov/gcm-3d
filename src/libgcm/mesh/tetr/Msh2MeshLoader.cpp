@@ -23,8 +23,8 @@ void Msh2MeshLoader::cleanUp() {
 void Msh2MeshLoader::loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispatcher, const string& fileName)
 {
     auto body = mesh->getBody();
-    auto& engine = Engine::getInstance();
-    if( engine.getRank() == 0 )
+//    auto& engine = Engine::getInstance();
+//    if( engine.getRank() == 0 )
     {
         LOG_DEBUG("Worker 0 started generating second order mesh");
         TetrMeshFirstOrder* foMesh = new TetrMeshFirstOrder();
@@ -41,7 +41,7 @@ void Msh2MeshLoader::loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispatch
 
         MshTetrFileReader* reader = new MshTetrFileReader();
         reader->readFile(fileName,
-                            foMesh, myDispatcher, engine.getRank(), true);
+                            foMesh, myDispatcher, 0, true); //engine.getRank(), true);
         soMesh->copyMesh(foMesh);
         soMesh->preProcess();
 
@@ -56,11 +56,11 @@ void Msh2MeshLoader::loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispatch
         LOG_DEBUG("Worker 0 completed generating second order mesh");
     }
 
-    MPI::COMM_WORLD.Barrier();
+    //MPI::COMM_WORLD.Barrier();
 
     LOG_DEBUG("Starting reading mesh");
     Vtu2TetrFileReader* reader = new Vtu2TetrFileReader();
-    reader->readFile(getVtkFileName(fileName), mesh, dispatcher, engine.getRank());
+    reader->readFile(getVtkFileName(fileName), mesh, dispatcher, 0); //engine.getRank());
     delete reader;
     LOG_DEBUG("Deleting generated file: " << getVtkFileName(fileName));
     remove( getVtkFileName(fileName).c_str() );

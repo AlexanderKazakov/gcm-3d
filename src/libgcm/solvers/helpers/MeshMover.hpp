@@ -3,7 +3,7 @@
 
 #include "libgcm/util/matrixes.hpp"
 #include "libgcm/rheology/Material.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 namespace gcm
 {
@@ -11,7 +11,7 @@ namespace gcm
     {
         public:
             virtual ~MeshMover() = 0;
-            virtual void move(const CalcNode& curNode, CalcNode& newNode, const gcm::real tau) = 0;
+            virtual void move(const Node& curNode, Node& newNode, const gcm::real tau) = 0;
     };
 }
 #endif /* MeshMover_HPP */

@@ -2,8 +2,8 @@
 #define GCM_TETR_MESH_H_
 
 #include "libgcm/mesh/Mesh.hpp"
-#include "libgcm/elem/TetrFirstOrder.hpp"
-#include "libgcm/elem/TriangleFirstOrder.hpp"
+#include "libgcm/elements/TetrahedronFirstOrder.hpp"
+#include "libgcm/elements/TriangleFirstOrder.hpp"
 
 
 namespace gcm
@@ -17,11 +17,11 @@ namespace gcm
         virtual int getTetrsNumber() = 0;
         virtual int getTriangleNumber() = 0;
 
-        virtual void addTetr(TetrFirstOrder& tetr) = 0;
+        virtual void addTetr(TetrahedronFirstOrder& tetr) = 0;
 
-        virtual TetrFirstOrder& getTetr(unsigned int index) = 0;
+        virtual TetrahedronFirstOrder& getTetr(unsigned int index) = 0;
 
-        virtual TetrFirstOrder& getTetrByLocalIndex(unsigned int index) = 0;
+        virtual TetrahedronFirstOrder& getTetrByLocalIndex(unsigned int index) = 0;
 
         virtual TriangleFirstOrder& getTriangle(int index) = 0;
 

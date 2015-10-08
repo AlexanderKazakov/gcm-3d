@@ -11,8 +11,9 @@
 #include "libgcm/rheology/RheologyCalculator.hpp"
 #include "libgcm/node/Node.hpp"
 #include "libgcm/snapshot/SnapshotWriter.hpp"
+#include "libgcm/rheology/models/RheologyModel.hpp"
 
-#include "libgcm/failure/FailureModel.hpp"
+//#include "libgcm/failure/FailureModel.hpp"
 
 #define STORAGE_OVERCOMMIT_RATIO 1.0
 #define STORAGE_ONDEMAND_GROW_RATE 1.25
@@ -21,7 +22,7 @@
 typedef std::unordered_map<int, int>::const_iterator MapIter;
 
 namespace gcm {
-    class CalcNode;
+    class Node;
     class Body;
     /*
      * Base class for all meshes
@@ -34,8 +35,6 @@ namespace gcm {
         std::string type;
 		// Rheology model used in the mesh
 		RheologyModel* rheologyModel;
-        // List of mesh nodes on current time layer
-        std::vector<Node> nodes;
 		// Pointer to memory for nodal data
 		real *valuesInNodes;
 		// List of mesh nodes on next time layer
@@ -72,8 +71,8 @@ namespace gcm {
         /*
          * List of mesh nodes.
          */
-        std::vector<CalcNode> nodes;
-        std::vector<CalcNode> new_nodes;
+        std::vector<Node> nodes;
+        std::vector<Node> new_nodes;
         std::unordered_map<int, int> nodesMap;
         int nodesNumber;
         int nodesStorageSize;
@@ -155,15 +154,15 @@ namespace gcm {
          * Sets 'isInnerPoint' flag.
          * If returns 'false', targetNode is undefined.
          */
-        virtual bool interpolateNode(CalcNode& origin, float dx, float dy, float dz, bool debug,
-                                CalcNode& targetNode, bool& isInnerPoint) = 0;
+        virtual bool interpolateNode(Node& origin, float dx, float dy, float dz, bool debug,
+                                Node& targetNode, bool& isInnerPoint) = 0;
 
         /*
-         * Interpolates given point, returns values in the node itself.
+         * Interpolates given point, returns PDE in the node itself.
          * Returns 'true' if interpolated successfully
          * and 'false' if the node can not be interpolated with this mesh.
          */
-        virtual bool interpolateNode(CalcNode& node) = 0;
+        virtual bool interpolateNode(Node& node) = 0;
         
         /*
          * Takes vector from (x; y; z) with length (dx; dy; dz) and
@@ -174,9 +173,9 @@ namespace gcm {
          * Returns 'false' if vector does not intersect mesh border.
          */
         virtual bool interpolateBorderNode(real x, real y, real z, 
-                                real dx, real dy, real dz, CalcNode& node) = 0;
+                                real dx, real dy, real dz, Node& node) = 0;
 
-        virtual void findBorderNodeNormal(const CalcNode& node, float* x, float* y, float* z, bool debug) = 0;
+        virtual void findBorderNodeNormal(const Node& node, float* x, float* y, float* z, bool debug) = 0;
 
 
         std::string snapshot(int number);
@@ -190,11 +189,11 @@ namespace gcm {
         int getNumberOfLocalNodes();
         void createNodes(int number);
         bool hasNode(int index);
-        CalcNode& getNode(int index);
-        CalcNode& getNewNode(int index);
+        Node& getNode(int index);
+        Node& getNewNode(int index);
         int getNodeLocalIndex(int index) const;
-        CalcNode& getNodeByLocalIndex(unsigned int index);
-        void addNode(CalcNode& node);
+        Node& getNodeByLocalIndex(unsigned int index);
+        void addNode(Node& node);
 
         /*
          * Sets mesh id.
@@ -237,8 +236,8 @@ namespace gcm {
 
         void preProcess();
 
-        void setInitialState(Area* area, float* values);
-        void setInitialState(Area* area, std::function<void(CalcNode& node)> setter);
+        void setInitialState(Area* area, float* PDE);
+        void setInitialState(Area* area, std::function<void(Node& node)> setter);
 		void setBorderCondition(Area* area, unsigned int num);
 		void setContactCondition(Area* area, unsigned int num);
 		void setRheologyModel(RheologyModel *_model);
@@ -252,8 +251,7 @@ namespace gcm {
         void applyRheology(RheologyCalculator* rc);
         void clearContactState();
         void clearNodesState();
-        void processStressState();
-        void processMaterialFailure(FailureModel* failureModel, const float tau);
+//        void processMaterialFailure(FailureModel* failureModel, const float tau);
         void applyCorrectors();
         virtual void moveCoords(float tau);
 

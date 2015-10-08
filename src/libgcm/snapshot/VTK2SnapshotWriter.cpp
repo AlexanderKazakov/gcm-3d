@@ -16,8 +16,8 @@
 
 #include "libgcm/mesh/tetr/TetrMeshFirstOrder.hpp"
 #include "libgcm/mesh/tetr/TetrMeshSecondOrder.hpp"
-#include "libgcm/node/CalcNode.hpp"
-#include "libgcm/elem/TetrFirstOrder.hpp"
+#include "libgcm/node/Node.hpp"
+#include "libgcm/elements/TetrahedronFirstOrder.hpp"
 
 using namespace gcm;
 using std::map;
@@ -49,7 +49,7 @@ void VTK2SnapshotWriter::dumpMeshSpecificData(TetrMeshSecondOrder* mesh, vtkSmar
     int snapNodeCount = 0;
 
     for(int i = 0; i < mesh->getNodesNumber(); i++) {
-        CalcNode& node = mesh->getNodeByLocalIndex(i);
+        Node& node = mesh->getNodeByLocalIndex(i);
 
         snapNodeMap[node.number] = snapNodeCount++;
 
@@ -67,17 +67,17 @@ void VTK2SnapshotWriter::dumpMeshSpecificData(TetrMeshSecondOrder* mesh, vtkSmar
     auto tetra=vtkSmartPointer<vtkTetra>::New();
 
     for(int i = 0; i < mesh->getTetrsNumber(); i++) {
-        TetrSecondOrder& tetr = mesh->getTetr2ByLocalIndex(i);
+        TetrahedronSecondOrder& tetr = mesh->getTetr2ByLocalIndex(i);
         bool shouldSnapshotTetr = true;
         for( int z = 0; z < 4; z++)
         {
-            CalcNode& node = mesh->getNode( tetr.verts[z] );
+            Node& node = mesh->getNode( tetr.vertices[z] );
             if(!node.isUsed())
                 shouldSnapshotTetr = false;
         }
         for( int z = 0; z < 6; z++)
         {
-            CalcNode& node = mesh->getNode( tetr.addVerts[z] );
+            Node& node = mesh->getNode( tetr.addVerts[z] );
             if(!node.isUsed())
                 shouldSnapshotTetr = false;
         }
@@ -86,12 +86,12 @@ void VTK2SnapshotWriter::dumpMeshSpecificData(TetrMeshSecondOrder* mesh, vtkSmar
 
         for( int z = 0; z < 4; z++)
         {
-            int snapIndex = snapNodeMap[ tetr.verts[z] ];
+            int snapIndex = snapNodeMap[ tetr.vertices[z] ];
             tetra->GetPointIds()->SetId( z, snapIndex );
         }
         grid->InsertNextCell(tetra->GetCellType(),tetra->GetPointIds());
 
-        tetr1stOrderNodes->InsertNextTupleValue (tetr.verts);
+        tetr1stOrderNodes->InsertNextTupleValue (tetr.vertices);
         tetr2ndOrderNodes->InsertNextTupleValue (tetr.addVerts);
         tetrNumber->InsertNextValue (tetr.number);
     }

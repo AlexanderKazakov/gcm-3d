@@ -16,19 +16,19 @@
 
 
 namespace gcm {
-    class CalcNode;
+    class Node;
 
     class TetrSecondOrderMinMaxInterpolator : public TetrInterpolator {
     public:
         TetrSecondOrderMinMaxInterpolator();
         ~TetrSecondOrderMinMaxInterpolator();
-        void interpolate( CalcNode& node,
-                CalcNode& node0, CalcNode& node1, CalcNode& node2, CalcNode& node3,
-                CalcNode& addNode0, CalcNode& addNode1, CalcNode& addNode2,
-                CalcNode& addNode3, CalcNode& addNode4, CalcNode& addNode5 );
+        void interpolate( Node& node,
+                Node& node0, Node& node1, Node& node2, Node& node3,
+                Node& addNode0, Node& addNode1, Node& addNode2,
+                Node& addNode3, Node& addNode4, Node& addNode5 );
     private:
-        CalcNode* baseNodes[4];
-        CalcNode* addNodes[6];
+        Node* baseNodes[4];
+        Node* addNodes[6];
         USE_LOGGER;
     };
 }

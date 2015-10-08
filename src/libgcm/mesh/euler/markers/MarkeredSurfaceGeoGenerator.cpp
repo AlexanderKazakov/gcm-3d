@@ -1,7 +1,7 @@
 #include "libgcm/mesh/euler/markers/MarkeredSurfaceGeoGenerator.hpp"
 
 #include "libgcm/Engine.hpp"
-#include "libgcm/elem/TriangleFirstOrder.hpp"
+#include "libgcm/elements/TriangleFirstOrder.hpp"
 #include "libgcm/util/Assertion.hpp"
 
 #include <gmsh/Gmsh.h>
@@ -74,7 +74,7 @@ MarkeredSurface MarkeredSurfaceGeoGenerator::generate(string fileName, real size
 
     auto nverts = gmshModel.getNumMeshVertices();
 
-    vector<CalcNode> markers;
+    vector<Node> markers;
     vector<TriangleFirstOrder> faces;
     vector<int> regions;
 
@@ -84,7 +84,7 @@ MarkeredSurface MarkeredSurfaceGeoGenerator::generate(string fileName, real size
         newVertNums[i] = -1;
 
 
-    MVertex* verts[3];
+    MVertex* vertices[3];
 
     int nf = 0;
     int nv = 0;
@@ -102,18 +102,18 @@ MarkeredSurface MarkeredSurfaceGeoGenerator::generate(string fileName, real size
                 auto face = elem->getFace(0);
 
                 for (int j = 0; j < 3; j++)
-                    verts[j] = face.getVertex(j);
+                    vertices[j] = face.getVertex(j);
 
-                int v[3];
+                uint v[3];
                 for (int j = 0; j < 3; j++)
                 {
-                    if (newVertNums[verts[j]->getNum()] == -1)
+                    if (newVertNums[vertices[j]->getNum()] == -1)
                     {
-                        newVertNums[verts[j]->getNum()] = nv;
-                        markers.push_back(CalcNode(nv, vector3r(verts[j]->x(), verts[j]->y(), verts[j]->z())));
+                        newVertNums[vertices[j]->getNum()] = nv;
+                        markers.push_back(Node(nv, vector3r(vertices[j]->x(), vertices[j]->y(), vertices[j]->z())));
                         nv++;
                     }
-                    v[j] = newVertNums[verts[j]->getNum()];
+                    v[j] = newVertNums[vertices[j]->getNum()];
                 }
                 faces.push_back(TriangleFirstOrder(nf++, v));
             }

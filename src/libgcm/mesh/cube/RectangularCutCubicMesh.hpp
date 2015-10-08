@@ -13,7 +13,7 @@ namespace gcm
 		
         void preProcessGeometry() override;
 		
-		int findNeighbourPoint(CalcNode& node, float dx, float dy, float dz, 
+		int findNeighbourPoint(Node& node, float dx, float dy, float dz, 
 		                       bool debug, float* coords, bool* innerPoint) override;
         USE_LOGGER;
 
@@ -22,9 +22,9 @@ namespace gcm
     public:
 		RectangularCutCubicMesh();
 		
-		void findBorderNodeNormal(const CalcNode& node, float* x, float* y, float* z, bool debug) override;
+		void findBorderNodeNormal(const Node& node, float* x, float* y, float* z, bool debug) override;
         bool interpolateBorderNode(real x, real y, real z, 
-                                real dx, real dy, real dz, CalcNode& node) override;
+                                real dx, real dy, real dz, Node& node) override;
         
 		void transfer(float x, float y, float z) override;
 		

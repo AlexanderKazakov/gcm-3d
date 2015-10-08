@@ -4,7 +4,7 @@
 #include "libgcm/util/Types.hpp"
 #include "libgcm/util/NodeTypes.hpp"
 #include "libgcm/node/Node.hpp"
-#include "libgcm/util/Math.hpp"
+#include "libgcm/Math.hpp"
 #include "libgcm/util/Assertion.hpp"
 
 
@@ -80,6 +80,7 @@ namespace gcm {
         gcm::real getSzz() const;
         
         // Read-write access. These methods are slower than get-ters above.
+		gcm::real* velocity();
         gcm::real& vx();
         gcm::real& vy();
         gcm::real& vz();
@@ -93,7 +94,7 @@ namespace gcm {
         /**
          * Density
          */
-        // FIXME@avasyukov - return it back after getMaterial() is back in CalcNode
+        // FIXME@avasyukov - return it back after getMaterial() is back in Node
         //gcm::real getRho() const;
 
         /**

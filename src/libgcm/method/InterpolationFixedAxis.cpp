@@ -29,7 +29,7 @@ int InterpolationFixedAxis::getNumberOfStages()
     return 3;
 }
 
-void InterpolationFixedAxis::__doNextPartStep(CalcNode& cur_node, CalcNode& new_node, float time_step, int stage, Mesh* mesh)
+void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node, float time_step, int stage, Mesh* mesh)
 {
     assert_ge(stage, 0);
     assert_le(stage, 2);
@@ -51,7 +51,7 @@ void InterpolationFixedAxis::__doNextPartStep(CalcNode& cur_node, CalcNode& new_
     // We will store interpolated nodes on previous time layer here
     // We know that we need five nodes for each direction (corresponding to Lambdas -C1, -C2, 0, C2, C1)
     // TODO  - We can  deal with (lambda == 0) separately
-    vector<CalcNode> previous_nodes;
+    vector<Node> previous_nodes;
     previous_nodes.resize(9);
 
     // Outer normal at current point
@@ -110,7 +110,7 @@ void InterpolationFixedAxis::__doNextPartStep(CalcNode& cur_node, CalcNode& new_
             // Contact
             else
             {
-                CalcNode& virt_node = engine.getVirtNode(cur_node.contactNodeNum);
+                Node& virt_node = engine.getVirtNode(cur_node.contactNodeNum);
 
                 // FIXME - WA
                 Mesh* virtMesh = (Mesh*) engine.getBody(virt_node.contactNodeNum)->getMeshes();
@@ -140,7 +140,7 @@ void InterpolationFixedAxis::__doNextPartStep(CalcNode& cur_node, CalcNode& new_
                 // We will store interpolated nodes on previous time layer here
                 // We know that we need five nodes for each direction (corresponding to Lambdas -C1, -C2, 0, C2, C1)
                 // TODO  - We can  deal with (lambda == 0) separately
-                vector<CalcNode> virt_previous_nodes;
+                vector<Node> virt_previous_nodes;
                 virt_previous_nodes.resize(9);
 
                 // Outer normal at current point
@@ -284,22 +284,22 @@ void InterpolationFixedAxis::__doNextPartStep(CalcNode& cur_node, CalcNode& new_
     }
 }
 
-void InterpolationFixedAxis::doNextPartStep(CalcNode& cur_node, CalcNode& new_node, float time_step, int stage, Mesh* mesh)
+void InterpolationFixedAxis::doNextPartStep(Node& cur_node, Node& new_node, float time_step, int stage, Mesh* mesh)
 {
     TRACE_ON_EXCEPTION(__doNextPartStep(cur_node, new_node, time_step, stage, mesh));
 }
 
-int InterpolationFixedAxis::prepare_node(CalcNode& cur_node, RheologyMatrixPtr rheologyMatrix,
+int InterpolationFixedAxis::prepare_node(Node& cur_node, RheologyMatrixPtr rheologyMatrix,
                                               float time_step, int stage, Mesh* mesh,
-                                              float* dksi, bool* inner, vector<CalcNode>& previous_nodes,
+                                              float* dksi, bool* inner, vector<Node>& previous_nodes,
                                               float* outer_normal)
 {
     return prepare_node(cur_node, rheologyMatrix, time_step, stage, mesh, dksi, inner, previous_nodes, outer_normal, false);
 }
 
-int InterpolationFixedAxis::prepare_node(CalcNode& cur_node, RheologyMatrixPtr rheologyMatrix,
+int InterpolationFixedAxis::prepare_node(Node& cur_node, RheologyMatrixPtr rheologyMatrix,
                                               float time_step, int stage, Mesh* mesh,
-                                              float* dksi, bool* inner, vector<CalcNode>& previous_nodes,
+                                              float* dksi, bool* inner, vector<Node>& previous_nodes,
                                               float* outer_normal, bool debug)
 {
     assert_ge(stage, 0);
@@ -329,15 +329,15 @@ int InterpolationFixedAxis::prepare_node(CalcNode& cur_node, RheologyMatrixPtr r
     return find_nodes_on_previous_time_layer(cur_node, stage, mesh, dksi, inner, previous_nodes, outer_normal, debug);
 }
 
-int InterpolationFixedAxis::find_nodes_on_previous_time_layer(CalcNode& cur_node, int stage, Mesh* mesh,
-                                                                   float dksi[], bool inner[], vector<CalcNode>& previous_nodes,
+int InterpolationFixedAxis::find_nodes_on_previous_time_layer(Node& cur_node, int stage, Mesh* mesh,
+                                                                   float dksi[], bool inner[], vector<Node>& previous_nodes,
                                                                    float outer_normal[])
 {
     return find_nodes_on_previous_time_layer(cur_node, stage, mesh, dksi, inner, previous_nodes, outer_normal, false);
 }
 
-int InterpolationFixedAxis::find_nodes_on_previous_time_layer(CalcNode& cur_node, int stage, Mesh* mesh,
-                                                                   float dksi[], bool inner[], vector<CalcNode>& previous_nodes,
+int InterpolationFixedAxis::find_nodes_on_previous_time_layer(Node& cur_node, int stage, Mesh* mesh,
+                                                                   float dksi[], bool inner[], vector<Node>& previous_nodes,
                                                                    float outer_normal[], bool debug)
 {
     LOG_TRACE("Start looking for nodes on previous time layer");

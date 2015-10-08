@@ -2,8 +2,8 @@
 #define RightHandSideSetter_HPP 
 
 #include "libgcm/rheology/Material.hpp"
-#include "libgcm/nodes/IdealElasticNode.hpp"
-#include "libgcm/nodes/Node.hpp"
+#include "libgcm/node/IdealElasticNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 namespace gcm
 {

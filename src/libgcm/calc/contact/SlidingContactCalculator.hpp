@@ -15,9 +15,9 @@ namespace gcm
     public:
         SlidingContactCalculator();
         ~SlidingContactCalculator();
-        void doCalc(CalcNode& cur_node, CalcNode& new_node, CalcNode& virt_node,
-                                RheologyMatrixPtr matrix, std::vector<CalcNode>& previousNodes, bool inner[],
-                                RheologyMatrixPtr virt_matrix, std::vector<CalcNode>& virtPreviousNodes, bool virt_inner[],
+        void doCalc(Node& cur_node, Node& new_node, Node& virt_node,
+                                RheologyMatrixPtr matrix, std::vector<Node>& previousNodes, bool inner[],
+                                RheologyMatrixPtr virt_matrix, std::vector<Node>& virtPreviousNodes, bool virt_inner[],
                                 float outer_normal[], float scale);
     private:
         USE_LOGGER;
@@ -27,7 +27,7 @@ namespace gcm
         gsl_vector *om_gsl;
         gsl_vector *x_gsl;
         gsl_permutation *p_gsl;
-		bool isFreeBorder(CalcNode& node, CalcNode& virt_node, float outer_normal[]);
+		bool isFreeBorder(Node& node, Node& virt_node, float outer_normal[]);
     };
 }
 

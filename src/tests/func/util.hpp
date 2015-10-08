@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "libgcm/mesh/tetr/TetrMesh.hpp"
-#include "libgcm/elem/TetrFirstOrder.hpp"
+#include "libgcm/elements/TetrahedronFirstOrder.hpp"
 #include "libgcm/Engine.hpp"
 
 #include <gtest/gtest.h>
@@ -32,13 +32,13 @@ bfs::path getDataFileName(int stepNum);
 
 gcm::Engine& loadTaskScenario(std::string taskFile);
 
-void dumpPoint(gcm::CalcNode& analytical, gcm::CalcNode& numerical, SnapshotLine line, int stepNum);
+void dumpPoint(gcm::Node& analytical, gcm::Node& numerical, SnapshotLine line, int stepNum);
 
 bool shouldDraw(std::string value, std::vector<std::string> valuesToDraw);
 
 void drawValues(std::vector<std::string> valuesToDraw, int stepNum, std::vector<ValueLimit> *valueLimits);
 
-void runTaskAsTest(std::string taskFile, void(*setAnalytical)(gcm::CalcNode&, float, gcm::Engine&),
+void runTaskAsTest(std::string taskFile, void(*setAnalytical)(gcm::Node&, float, gcm::Engine&),
                         int stepsNum, SnapshotLine line, std::vector<std::string> valuesToDraw,
                         float ALLOWED_VALUE_DEVIATION_PERCENT, int ALLOWED_NUMBER_OF_BAD_NODES );
 

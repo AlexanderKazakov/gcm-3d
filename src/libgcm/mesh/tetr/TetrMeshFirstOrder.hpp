@@ -7,8 +7,8 @@
 #include <gsl/gsl_linalg.h>
 
 #include "libgcm/mesh/tetr/TetrMesh.hpp"
-#include "libgcm/elem/TetrFirstOrder.hpp"
-#include "libgcm/elem/TriangleFirstOrder.hpp"
+#include "libgcm/elements/TetrahedronFirstOrder.hpp"
+#include "libgcm/elements/TriangleFirstOrder.hpp"
 #include "libgcm/util/AABB.hpp"
 #include "libgcm/method/NumericalMethod.hpp"
 #include "libgcm/util/Logging.hpp"
@@ -21,14 +21,13 @@
 
 namespace gcm
 {
-    class CalcNode;
+    class Node;
     /*
      * Tetrahedral 1st order mesh.
      */
     class TetrMeshFirstOrder: public TetrMesh {
 
     friend class VTKSnapshotWriter;
-    friend class DataBus;
     friend class CollisionDetector;
     friend class BruteforceCollisionDetector;
 
@@ -40,9 +39,9 @@ namespace gcm
 
         // Cache for characteristics hits
         bool charactCacheAvailable();
-        bool checkCharactCache(const CalcNode& node, float dx, float dy, float dz, int& tetrNum);
-        void updateCharactCache(const CalcNode& node, float dx, float dy, float dz, int tetrNum);
-        int getCharactCacheIndex(const CalcNode& node, float dx, float dy, float dz);
+        bool checkCharactCache(const Node& node, float dx, float dy, float dz, int& tetrNum);
+        void updateCharactCache(const Node& node, float dx, float dy, float dz, int tetrNum);
+        int getCharactCacheIndex(const Node& node, float dx, float dy, float dz);
         std::unordered_map<int, int> charactCache[18];
         // Spatial index based on KD-Tree
         struct kdtree* kdtree;
@@ -53,7 +52,7 @@ namespace gcm
         /*
          * List of mesh tetrahedrons.
          */
-        std::vector<TetrFirstOrder> tetrs1;
+        std::vector<TetrahedronFirstOrder> tetrs1;
         std::vector<TriangleFirstOrder> border1;
 
         int tetrsNumber;
@@ -102,14 +101,14 @@ namespace gcm
 
         USE_LOGGER;
 
-        int expandingScanForOwnerTetr(const CalcNode& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
-		int orientedExpandingScanForOwnerTetr (const CalcNode& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
-		int virtExpandingScanForOwnerTetr(const CalcNode& _node, float _dx, float _dy, float _dz, bool debug, float* coords, bool* innerPoint);
-        int newExpandingScanForOwnerTetr(const CalcNode& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
+        int expandingScanForOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
+		int orientedExpandingScanForOwnerTetr (const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
+		int virtExpandingScanForOwnerTetr(const Node& _node, float _dx, float _dy, float _dz, bool debug, float* coords, bool* innerPoint);
+        int newExpandingScanForOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
 		void getPotentialOwnerTetrs(float x, float y, float z, std::vector<int>& tetrs);
-        int fastScanForOwnerTetr(const CalcNode& node, float dx, float dy, float dz, bool debug);
-        int findOwnerTetr(const CalcNode& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
-        bool isInnerPoint(const CalcNode& node, float dx, float dy, float dz, bool debug);
+        int fastScanForOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug);
+        int findOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
+        bool isInnerPoint(const Node& node, float dx, float dy, float dz, bool debug);
 
         gsl_matrix *T;
         gsl_matrix *S;
@@ -126,13 +125,13 @@ namespace gcm
         int getTetrsNumber();
         int getTriangleNumber();
 
-        void addTetr(TetrFirstOrder& tetr);
+        void addTetr(TetrahedronFirstOrder& tetr);
         /*
          * Returns tetr by its index.
          */
-        TetrFirstOrder& getTetr(unsigned int index);
+        TetrahedronFirstOrder& getTetr(unsigned int index);
 
-        TetrFirstOrder& getTetrByLocalIndex(unsigned int index);
+        TetrahedronFirstOrder& getTetrByLocalIndex(unsigned int index);
 
         bool hasTetr(unsigned int index);
 
@@ -159,16 +158,16 @@ namespace gcm
 
         void doNextPartStep(float tau, int stage);
 
-        void findBorderNodeNormal(const CalcNode& _node, float* x, float* y, float* z, bool debug);
+        void findBorderNodeNormal(const Node& _node, float* x, float* y, float* z, bool debug);
         void checkTopology(float tau);
 
-        bool interpolateNode(CalcNode& origin, float dx, float dy, float dz, bool debug,
-                                CalcNode& targetNode, bool& isInnerPoint);
+        bool interpolateNode(Node& origin, float dx, float dy, float dz, bool debug,
+                                Node& targetNode, bool& isInnerPoint);
 
-        bool interpolateNode(CalcNode& node);
+        bool interpolateNode(Node& node);
 		
         bool interpolateBorderNode(real x, real y, real z, 
-                                real dx, real dy, real dz, CalcNode& node);
+                                real dx, real dy, real dz, Node& node);
 		
 		bool belongsToTetr(int nodeNum, int tetrNum, int faceNum);
 

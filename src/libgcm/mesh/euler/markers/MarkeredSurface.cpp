@@ -9,7 +9,7 @@ using std::move;
 MarkeredSurface::MarkeredSurface()
 {
 }
-MarkeredSurface::MarkeredSurface(vector<CalcNode>& markers, vector<TriangleFirstOrder>& faces, vector<int>& regions)
+MarkeredSurface::MarkeredSurface(vector<Node>& markers, vector<TriangleFirstOrder>& faces, vector<int>& regions)
 {
     this->markers = move(markers);
     this->faces = move(faces);
@@ -18,7 +18,7 @@ MarkeredSurface::MarkeredSurface(vector<CalcNode>& markers, vector<TriangleFirst
     updateAABB();
 }
 
-const vector<CalcNode>& MarkeredSurface::getMarkerNodes() const
+const vector<Node>& MarkeredSurface::getMarkerNodes() const
 {
     return markers;
 }

@@ -1,6 +1,6 @@
 #include "libgcm/CollisionDetector.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 using std::vector;
@@ -49,11 +49,11 @@ bool CollisionDetector::find_intersection(AABB &outline1, AABB &outline2, AABB &
     return true;
 }
 
-void CollisionDetector::find_nodes_in_intersection(Mesh* mesh, AABB& intersection, vector<CalcNode>& result)
+void CollisionDetector::find_nodes_in_intersection(Mesh* mesh, AABB& intersection, vector<Node>& result)
 {
     for(int i = 0; i < mesh->getNodesNumber(); i++)
     {
-        CalcNode& node = mesh->getNodeByLocalIndex(i);
+        Node& node = mesh->getNodeByLocalIndex(i);
         // FIXME
         // only local nodes?
         if ( (node.isLocal ()) && (node.isBorder ()) )
@@ -64,7 +64,7 @@ void CollisionDetector::find_nodes_in_intersection(Mesh* mesh, AABB& intersectio
     }
 }
 
-void CollisionDetector::find_nodes_in_intersection(BasicCubicMesh* mesh, AABB& intersection, vector<CalcNode>& result)
+void CollisionDetector::find_nodes_in_intersection(BasicCubicMesh* mesh, AABB& intersection, vector<Node>& result)
 {
 	int numX = mesh->getNumX();
 	int numY = mesh->getNumY();
@@ -86,7 +86,7 @@ void CollisionDetector::find_nodes_in_intersection(BasicCubicMesh* mesh, AABB& i
 	        {
 				num = i * (numY + 1) * (numZ + 1) + j * (numZ + 1) + k 
 				      + mesh->getNodeByLocalIndex(0).number;
-				CalcNode& node = mesh->getNode(num);
+				Node& node = mesh->getNode(num);
 		        if ( (node.isLocal ()) && (node.isBorder ()) )
 		        {
 		            if(intersection.isInAABB(node))
@@ -99,7 +99,7 @@ void CollisionDetector::find_nodes_in_intersection(Mesh* mesh, AABB& intersectio
 {
     for(int i = 0; i < mesh->getNodesNumber(); i++)
     {
-        CalcNode& node = mesh->getNodeByLocalIndex(i);
+        Node& node = mesh->getNodeByLocalIndex(i);
         // FIXME
         // only local nodes?
         if ( (node.isLocal ()) && (node.isBorder ()) )
@@ -110,7 +110,7 @@ void CollisionDetector::find_nodes_in_intersection(Mesh* mesh, AABB& intersectio
     }
 }
 
-/*void CollisionDetector::renumber_surface(vector<Triangle> &faces, vector<CalcNode> &nodes)
+/*void CollisionDetector::renumber_surface(vector<Triangle> &faces, vector<Node> &nodes)
 {
     if (!faces.size() || !nodes.size())
         return;
@@ -138,7 +138,7 @@ void CollisionDetector::find_nodes_in_intersection(Mesh* mesh, AABB& intersectio
     delete[] renum;
 }
 
-void CollisionDetector::renumber_volume(vector<Tetrahedron_1st_order> &tetrs, vector<CalcNode> &nodes)
+void CollisionDetector::renumber_volume(vector<Tetrahedron_1st_order> &tetrs, vector<Node> &nodes)
 {
     if (!tetrs.size() || !nodes.size())
         return;

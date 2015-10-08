@@ -5,7 +5,7 @@
 #include <iostream>
 #include <mpi.h>
 
-#include "libgcm/meshes/Mesh.hpp"
+#include "libgcm/mesh/Mesh.hpp"
 #include "libgcm/rheology/models/RheologyModel.hpp"
 
 //#include "libgcm/calc/volume/VolumeCalculator.hpp"

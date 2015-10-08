@@ -13,8 +13,8 @@ namespace gcm
     public:
         ExternalForceCalculator();
         ~ExternalForceCalculator();
-        void doCalc(CalcNode& cur_node, CalcNode& new_node, RheologyMatrixPtr matrix,
-                                std::vector<CalcNode>& previousNodes, bool inner[],
+        void doCalc(Node& cur_node, Node& new_node, RheologyMatrixPtr matrix,
+                                std::vector<Node>& previousNodes, bool inner[],
                                 float outer_normal[], float scale);
         inline std::string getType() {
             return "ExternalForceCalculator";

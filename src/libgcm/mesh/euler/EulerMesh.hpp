@@ -101,17 +101,17 @@ public:
      */
     const SnapshotWriter& getDumper() const override;
     /**
-     * Interpolates node values at specified point.
+     * Interpolates node PDE at specified point.
      * @param origin Origin node that used to calculate specified point coords using offset.
      * @param dx X offset.
      * @param dy Y offset.
      * @param dz Z offset.
      * @param debug Debug flag.
-     * @param targetNode Node to store interpolated values at.
+     * @param targetNode Node to store interpolated PDE at.
      * @param isInnerPoint Variable to store boolean value that indicates if point is inner or not,
      * @return True if point is inner ant false otherwise.
      */
-    bool interpolateNode(CalcNode& origin, float dx, float dy, float dz, bool debug, CalcNode& targetNode, bool& isInnerPoint) override;
+    bool interpolateNode(Node& origin, float dx, float dy, float dz, bool debug, Node& targetNode, bool& isInnerPoint) override;
     /**
      * Interpolates border node.
      * @param x X coord of point outside of mesh.
@@ -120,17 +120,17 @@ public:
      * @param dx X offset.
      * @param dy Y offset.
      * @param dz Z offset
-     * @param node Node to store interpolated values at
+     * @param node Node to store interpolated PDE at
      * @return True if interpolated and false otherwise.
      */
-    bool interpolateBorderNode(real x, real y, real z, real dx, real dy, real dz, CalcNode& node) override;
+    bool interpolateBorderNode(real x, real y, real z, real dx, real dy, real dz, Node& node) override;
     /**
-     * Interpolates values at an arbitrary point.
+     * Interpolates PDE at an arbitrary point.
      * @param node Point to interpolate at.
      * @return True if interpolated and false otherwise
      */
-    bool interpolateNode(CalcNode& node) override;
-    bool interpolateNode(CalcNode& node, const vector3u& index);
+    bool interpolateNode(Node& node) override;
+    bool interpolateNode(Node& node, const vector3u& index);
     /**
      * Returns normal for border node.
      * @param border_node_index Border node index.
@@ -139,7 +139,7 @@ public:
      * @param z Z normal component.
      * @param debug Debug flag.
      */
-    void findBorderNodeNormal(const CalcNode& node, float* x, float* y, float* z, bool debug) override;
+    void findBorderNodeNormal(const Node& node, float* x, float* y, float* z, bool debug) override;
     /**
      * Returns node local indexes.
      *
@@ -147,7 +147,7 @@ public:
      * @param indexes Node indexes.
      * @returns True if node is in mesh and false otherwise.
      */
-    bool getNodeEulerMeshIndex(const CalcNode& node, vector3u& indexes) const;
+    bool getNodeEulerMeshIndex(const Node& node, vector3u& indexes) const;
     /**
      * Returns local index for node specified by Euler mesh node index.
      * @param Euler mesh node index
@@ -159,7 +159,7 @@ public:
      * @param index Euler mesh node index
      * @return Node
      */
-    CalcNode& getNodeByEulerMeshIndex(const vector3u& index);
+    Node& getNodeByEulerMeshIndex(const vector3u& index);
 
     void setCellSize(const vector3r& cellSize);
     void setDimensions(const vector3u& dimensions);

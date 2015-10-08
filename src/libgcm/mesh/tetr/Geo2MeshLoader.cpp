@@ -54,7 +54,7 @@ void Geo2MeshLoader::createMshFile(string fileName, float tetrSize)
         }
     }
     /*
-     * TODO@ashevtsov: I don't really understand the meaning of all these options, values
+     * TODO@ashevtsov: I don't really understand the meaning of all these options, PDE
      * have been guessed to get a mesh with acceptable tetrahedra sizes.
      * In future need to undestand GMsh meshing algorithms and set these options correctly.
      */

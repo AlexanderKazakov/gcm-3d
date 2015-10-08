@@ -1,6 +1,6 @@
 #include "libgcm/mesh/cube/BasicCubicMeshGenerator.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 
@@ -26,7 +26,7 @@ void BasicCubicMeshGenerator::loadMesh(BasicCubicMesh* mesh,
                 float x = float(i) * h;
                 float y = float(j) * h;
                 float z = float(k) * h;
-                CalcNode* node = new CalcNode();//(n, x, y, z);
+                Node* node = new Node();//(n, x, y, z);
                 node->number = n;
                 node->coords[0] = x;
                 node->coords[1] = y;

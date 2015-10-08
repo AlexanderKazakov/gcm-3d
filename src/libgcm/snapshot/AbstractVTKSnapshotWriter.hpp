@@ -2,9 +2,9 @@
 #define ABSTRACTVTKSNAPSHOTWRITER_HPP_
 
 #include "libgcm/config.hpp"
-#include "libgcm/snapshotters/SnapshotWriter.hpp"
+#include "libgcm/snapshot/SnapshotWriter.hpp"
 #include "libgcm/util/Assertion.hpp"
-#include "libgcm/nodes/IdealElasticNode.hpp"
+#include "libgcm/node/IdealElasticNode.hpp"
 #include "libgcm/util/Logging.hpp"
 
 #include <vtkStdString.h>
@@ -178,7 +178,7 @@ namespace gcm
             for (auto it = MeshNodeIterator<MeshType, snapshotterId>(_mesh); it.hasNext(); it++)
             {
                 auto& node = static_cast<IdealElasticNode&>(*it);
-				worker_rank->InsertNextValue(_mesh->getRank());
+//				worker_rank->InsertNextValue(_mesh->getRank());
                 border->InsertNextValue(node.isBorder() ? 1 : 0);
 //                used->InsertNextValue(node.isUsed() ? 1 : 0);
 //                contact->InsertNextValue(node.isInContact() ? 1 : 0);
@@ -261,6 +261,7 @@ namespace gcm
            // Write file
            auto writer = vtkSmartPointer<GridWriterType>::New();
            writer->SetFileName(fileName.c_str());
+#define VTK_5_8 // TODO@next - remove this shit
 #ifdef VTK_5_8
            writer->SetInput(grid);
 #else 

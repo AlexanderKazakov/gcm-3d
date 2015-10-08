@@ -57,7 +57,7 @@ void MarkeredMesh::reconstructBorder()
 //    {
 //        auto& node = getNodeByLocalIndex(i);
 //        node.setUsed(false);
-//        node.setIsBorder(false);
+//        node.setBorder(false);
 //    }
 
     const auto& faces = surface.getMarkerFaces();
@@ -74,9 +74,9 @@ void MarkeredMesh::reconstructBorder()
 
     for (auto f: faces)
     {
-        const auto& v1 = nodes[f.verts[0]];
-        const auto& v2 = nodes[f.verts[1]];
-        const auto& v3 = nodes[f.verts[2]];
+        const auto& v1 = nodes[f.vertices[0]];
+        const auto& v2 = nodes[f.vertices[1]];
+        const auto& v3 = nodes[f.vertices[2]];
 
         auto minCoords = vmin(v1.coords, v2.coords, v3.coords);
         auto maxCoords = vmax(v1.coords, v2.coords, v3.coords);
@@ -249,16 +249,16 @@ void MarkeredMesh::reconstructBorder()
 
     unordered_map<int, bool> wasUsed;
 
-    for (int i = 1; i < nodeDimensions.x-1; i++)
-        for (int j = 1; j < nodeDimensions.y-1; j++)
-            for (int k = 1; k < nodeDimensions.z-1; k++)
+    for (uint i = 1; i < nodeDimensions.x-1; i++)
+        for (uint j = 1; j < nodeDimensions.y-1; j++)
+            for (uint k = 1; k < nodeDimensions.z-1; k++)
             {
                 auto& node = getNodeByEulerMeshIndex(vector3u(i, j, k));
                 auto _used = node.isUsed();
                 wasUsed[node.number] = _used;
 
                 node.setUsed(false);
-                node.setIsBorder(false);
+                node.setBorder(false);
 
                 uint usedCells = 0;
                 for (uint p = 0; p <= 1; p++)
@@ -274,7 +274,7 @@ void MarkeredMesh::reconstructBorder()
                 }
                 if (usedCells != 0 && usedCells != 8)
                 {
-                    node.setIsBorder(true);
+                    node.setBorder(true);
 
                     if (node.coords.x < outline.minX)
                         outline.minX = node.coords.x;
@@ -302,7 +302,7 @@ void MarkeredMesh::reconstructBorder()
 									for (auto fnum: borderFacesMap[index])
 									{
 										vector3r _norm;
-										findTriangleFaceNormal((const real *)nodes[faces[fnum].verts[0]].coords, (const real *)nodes[faces[fnum].verts[1]].coords, (const real *)nodes[faces[fnum].verts[2]].coords, &_norm.x, &_norm.y, &_norm.z);
+										findTriangleFaceNormal((const real *)nodes[faces[fnum].vertices[0]].coords, (const real *)nodes[faces[fnum].vertices[1]].coords, (const real *)nodes[faces[fnum].vertices[2]].coords, &_norm.x, &_norm.y, &_norm.z);
 										norm += _norm;
 										cnt++;
 									}
@@ -324,9 +324,9 @@ void MarkeredMesh::reconstructBorder()
                 }
 
             }
-    LOG_DEBUG("Fixing values at " << nodesToFix.size() << " nodes");
+    LOG_DEBUG("Fixing PDE at " << nodesToFix.size() << " nodes");
 
-    auto findNeighb = [this, &wasUsed](const vector3u& index) -> const CalcNode&
+    auto findNeighb = [this, &wasUsed](const vector3u& index) -> const Node&
     {
         int x = index.x;
         int y = index.y;
@@ -381,16 +381,19 @@ void MarkeredMesh::reconstructBorder()
 
         const auto& neighb = findNeighb(index);
 
-        node.sxx = neighb.sxx;
-        node.sxy = neighb.sxy;
-        node.sxz = neighb.sxz;
-        node.syy = neighb.syy;
-        node.syz = neighb.syz;
-        node.szz = neighb.szz;
+		// TODO@next remove cast
+		auto& ienode = static_cast<IdealElasticNode&>(node);
+		auto& ieneighb = static_cast<const IdealElasticNode&>(neighb);
+        ienode.sxx() = ieneighb.getSxx();
+        ienode.sxy() = ieneighb.getSxy();
+        ienode.sxz() = ieneighb.getSxz();
+        ienode.syy() = ieneighb.getSyy();
+        ienode.syz() = ieneighb.getSyz();
+        ienode.szz() = ieneighb.getSzz();
 
-        node.vx = neighb.vx;
-        node.vy = neighb.vy;
-        node.vz = neighb.vz;
+        ienode.vx() = ieneighb.getVx();
+        ienode.vy() = ieneighb.getVy();
+        ienode.vz() = ieneighb.getVz();
     }
     initialized = true;
 }
@@ -415,18 +418,23 @@ void MarkeredMesh::moveCoords(float tau) {
 
 //        assert_true(cellStatus[index.x][index.y][index.z]);
 
-        auto& n000 = getNodeByEulerMeshIndex(index);
-        auto& n010 = getNodeByEulerMeshIndex(index+vector3u(0, 1, 0));
-        auto& n110 = getNodeByEulerMeshIndex(index+vector3u(1, 1, 0));
-        auto& n100 = getNodeByEulerMeshIndex(index+vector3u(1, 0, 0));
-        auto& n001 = getNodeByEulerMeshIndex(index+vector3u(0, 0, 1));
-        auto& n011 = getNodeByEulerMeshIndex(index+vector3u(0, 1, 1));
-        auto& n111 = getNodeByEulerMeshIndex(index+vector3u(1, 1, 1));
-        auto& n101 = getNodeByEulerMeshIndex(index+vector3u(1, 0, 1));
+		// TODO@next remove cast
+        auto& n000 = static_cast<IdealElasticNode&>(getNodeByEulerMeshIndex(index));
+        auto& n010 = static_cast<IdealElasticNode&>(getNodeByEulerMeshIndex(index+vector3u(0, 1, 0)));
+        auto& n110 = static_cast<IdealElasticNode&>(getNodeByEulerMeshIndex(index+vector3u(1, 1, 0)));
+        auto& n100 = static_cast<IdealElasticNode&>(getNodeByEulerMeshIndex(index+vector3u(1, 0, 0)));
+        auto& n001 = static_cast<IdealElasticNode&>(getNodeByEulerMeshIndex(index+vector3u(0, 0, 1)));
+        auto& n011 = static_cast<IdealElasticNode&>(getNodeByEulerMeshIndex(index+vector3u(0, 1, 1)));
+        auto& n111 = static_cast<IdealElasticNode&>(getNodeByEulerMeshIndex(index+vector3u(1, 1, 1)));
+        auto& n101 = static_cast<IdealElasticNode&>(getNodeByEulerMeshIndex(index+vector3u(1, 0, 1)));
 
         vector3r v;
 
-        interpolateBox(n000.coords.x, n000.coords.y, n000.coords.z, n111.coords.x, n111.coords.y, n111.coords.z, marker.coords.x, marker.coords.y, marker.coords.z, n000.velocity, n001.velocity, n010.velocity, n011.velocity, n100.velocity, n101.velocity, n110.velocity, n111.velocity, v, 3);
+        interpolateBox(n000.coords.x, n000.coords.y, n000.coords.z, n111.coords.x,
+			n111.coords.y, n111.coords.z, marker.coords.x, marker.coords.y,
+			marker.coords.z, n000.velocity(), n001.velocity(), n010.velocity(),
+			n011.velocity(), n100.velocity(), n101.velocity(), 
+			n110.velocity(), n111.velocity(), v, 3);
 
         auto& offset = markersOffset[q];
         offset += v*tau;

@@ -2,8 +2,8 @@
 #define GCM_TETR_MESH_SECOND_ORDER_H_
 
 #include "libgcm/mesh/tetr/TetrMeshFirstOrder.hpp"
-#include "libgcm/elem/TetrSecondOrder.hpp"
-#include "libgcm/elem/TriangleSecondOrder.hpp"
+#include "libgcm/elements/TetrahedronSecondOrder.hpp"
+#include "libgcm/elements/TriangleSecondOrder.hpp"
 
 #include "libgcm/interpolator/TetrSecondOrderMinMaxInterpolator.hpp"
 
@@ -17,7 +17,6 @@ namespace gcm {
     class TetrMeshSecondOrder: public TetrMeshFirstOrder {
 
     //friend class VTK2SnapshotWriter;
-    friend class DataBus;
     friend class CollisionDetector;
     friend class BruteforceCollisionDetector;
 
@@ -25,7 +24,7 @@ namespace gcm {
         /*
          * List of mesh tetrahedrons.
          */
-        std::vector<TetrSecondOrder> tetrs2;
+        std::vector<TetrahedronSecondOrder> tetrs2;
         std::vector<TriangleSecondOrder> border2;
         bool secondOrderNodesAreGenerated;
         int firstOrderNodesNumber;
@@ -36,7 +35,7 @@ namespace gcm {
     protected:
         int countSecondOrderNodes(TetrMeshFirstOrder* src);
         void generateSecondOrderNodes();
-        void fillSecondOrderNode(CalcNode& newNode, int nodeIdx1, int nodeIdx2);
+        void fillSecondOrderNode(Node& newNode, int nodeIdx1, int nodeIdx2);
 
         void verifyTetrahedraVertices();
         void build_volume_reverse_lookups();
@@ -55,14 +54,14 @@ namespace gcm {
         /*
          * Returns tetr by its index.
          */
-        TetrFirstOrder& getTetr(unsigned int index);
-        TetrSecondOrder& getTetr2(int index);
+        TetrahedronFirstOrder& getTetr(unsigned int index);
+        TetrahedronSecondOrder& getTetr2(int index);
 
-        TetrFirstOrder& getTetrByLocalIndex(unsigned int index);
-        TetrSecondOrder& getTetr2ByLocalIndex(int index);
+        TetrahedronFirstOrder& getTetrByLocalIndex(unsigned int index);
+        TetrahedronSecondOrder& getTetr2ByLocalIndex(int index);
 
-        void addTetr(TetrFirstOrder& tetr);
-        void addTetr2(TetrSecondOrder& tetr);
+        void addTetr(TetrahedronFirstOrder& tetr);
+        void addTetr2(TetrahedronSecondOrder& tetr);
         void rebuildMaps();
 
         TriangleFirstOrder& getTriangle(int index);
@@ -71,10 +70,10 @@ namespace gcm {
         void preProcessGeometry();
         void moveCoords(float tau);
 
-        bool interpolateNode(CalcNode& origin, float dx, float dy, float dz, bool debug,
-                                CalcNode& targetNode, bool& isInnerPoint);
+        bool interpolateNode(Node& origin, float dx, float dy, float dz, bool debug,
+                                Node& targetNode, bool& isInnerPoint);
 
-        bool interpolateNode(CalcNode& node);
+        bool interpolateNode(Node& node);
 		
 		bool belongsToTetr(int nodeNum, int tetrNum, int faceNum);
 

@@ -1,7 +1,7 @@
 #ifndef GCM_CORRECTOR_HPP
 #define GCM_CORRECTOR_HPP
 
-#include "libgcm/meshes/Mesh.hpp"
+#include "libgcm/mesh/Mesh.hpp"
 
 namespace gcm {
 	class Mesh;

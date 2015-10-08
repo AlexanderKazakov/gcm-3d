@@ -1,6 +1,6 @@
 #include "libgcm/interpolator/LineSecondOrderInterpolator.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 
@@ -14,7 +14,7 @@ LineSecondOrderInterpolator::~LineSecondOrderInterpolator()
 {
 }
 
-void LineSecondOrderInterpolator::interpolate(CalcNode& node, CalcNode& nodeLeft, CalcNode& nodeCur, CalcNode& nodeRight)
+void LineSecondOrderInterpolator::interpolate(Node& node, Node& nodeLeft, Node& nodeCur, Node& nodeRight)
 {
     LOG_TRACE("Start interpolation");
 
@@ -27,28 +27,27 @@ void LineSecondOrderInterpolator::interpolate(CalcNode& node, CalcNode& nodeLeft
     // FIXME_ASAP
     float x = (node.coords.x - nodeCur.coords.x) + (node.coords.y - nodeCur.coords.y) + (node.coords.z - nodeCur.coords.z);
 
-    for (int i = 0; i < 9; i++) {
-        float rVal = nodeRight.values[i];
-        float lVal = nodeLeft.values[i];
-        float cVal = nodeCur.values[i];
+    for (int i = 0; i < node.getSizeOfPDE(); i++) {
+        float rVal = nodeRight.PDE[i];
+        float lVal = nodeLeft.PDE[i];
+        float cVal = nodeCur.PDE[i];
         float a = (rVal - 2 * cVal + lVal) / (2 * h * h);
         float b = (rVal - lVal) / (2 * h);
         float c = cVal;
-        node.values[i] = a * x * x + b * x + c;
+        node.PDE[i] = a * x * x + b * x + c;
         float max = ( rVal > cVal ? (rVal > lVal ? rVal : lVal) : (cVal > lVal ? cVal : lVal) );
         float min = ( rVal < cVal ? (rVal < lVal ? rVal : lVal) : (cVal < lVal ? cVal : lVal) );
-        if(node.values[i] > max)
+        if(node.PDE[i] > max)
         {
-            node.values[i] = max;
+            node.PDE[i] = max;
         }
-        if(node.values[i] < min)
+        if(node.PDE[i] < min)
         {
-            node.values[i] = min;
+            node.PDE[i] = min;
         }
     }
 
-    // FIXME_ASAP
-    node.setRho(nodeCur.getRho());
+//	TODO@next - do smth with rho in interpolators
     node.setMaterialId(nodeCur.getMaterialId());
 
     LOG_TRACE("Interpolation done");

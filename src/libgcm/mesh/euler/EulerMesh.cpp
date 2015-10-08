@@ -1,7 +1,7 @@
 #include "libgcm/mesh/euler/EulerMesh.hpp"
 
 #include "libgcm/util/Assertion.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/Math.hpp"
 #include "libgcm/snapshot/VTKEulerMeshSnapshotWriter.hpp"
 
@@ -12,10 +12,10 @@ using namespace gcm;
 using std::min;
 using std::floor;
 
-const uchar EulerMesh::VIRT_FLAG = CalcNode::FLAG_1;
-const uchar EulerMesh::VIRT_CELL_AXIS_X_FLAG = CalcNode::FLAG_2;
-const uchar EulerMesh::VIRT_CELL_AXIS_Y_FLAG = CalcNode::FLAG_3;
-const uchar EulerMesh::VIRT_CELL_AXIS_Z_FLAG = CalcNode::FLAG_4;
+const uchar EulerMesh::VIRT_FLAG = Node::FLAG_1;
+const uchar EulerMesh::VIRT_CELL_AXIS_X_FLAG = Node::FLAG_2;
+const uchar EulerMesh::VIRT_CELL_AXIS_Y_FLAG = Node::FLAG_3;
+const uchar EulerMesh::VIRT_CELL_AXIS_Z_FLAG = Node::FLAG_4;
 
 EulerMesh::EulerMesh()
 {
@@ -44,9 +44,9 @@ EulerMesh::EulerMesh(vector3u dimensions, vector3r cellSize, vector3r center): E
     setCenter(center);
     generateMesh();
 
-    for (int i = 0; i < dimensions.x; i++)
-        for (int j = 0; j < dimensions.y; j++)
-            for (int k = 0; k < dimensions.z; k++)
+    for (uint i = 0; i < dimensions.x; i++)
+        for (uint j = 0; j < dimensions.y; j++)
+            for (uint k = 0; k < dimensions.z; k++)
                 cellStatus[i][j][k] = true;
 
     auto& n1 = getNodeByEulerMeshIndex(vector3u(0, 0, 0));
@@ -93,7 +93,7 @@ const SnapshotWriter& EulerMesh::getDumper() const
     return VTKEulerMeshSnapshotWriter::getInstance();
 }
 
-void EulerMesh::findBorderNodeNormal(const CalcNode& node, float* x, float* y, float* z, bool debug)
+void EulerMesh::findBorderNodeNormal(const Node& node, float* x, float* y, float* z, bool debug)
 {
     assert_true(borderNormals.find(node.number) != borderNormals.end(),
         {
@@ -107,7 +107,7 @@ void EulerMesh::findBorderNodeNormal(const CalcNode& node, float* x, float* y, f
     *z = norm.z;
 }
 
-bool EulerMesh::interpolateBorderNode(real x, real y, real z, real dx, real dy, real dz, CalcNode& node)
+bool EulerMesh::interpolateBorderNode(real x, real y, real z, real dx, real dy, real dz, Node& node)
 {
     assert_true(
         ((dx == 0.0) && (dy == 0.0)) ||
@@ -165,10 +165,10 @@ bool EulerMesh::interpolateBorderNode(real x, real y, real z, real dx, real dy, 
         x2 = x1 + cellSize.y;
         y2 = y1 + cellSize.z;
 
-        q11 = _node.values;
-        q21 = getNodeByEulerMeshIndex(vector3u(index.x+d, index.y+1, index.z)).values;
-        q22 = getNodeByEulerMeshIndex(vector3u(index.x+d, index.y+1, index.z+1)).values;
-        q12 = getNodeByEulerMeshIndex(vector3u(index.x+d, index.y, index.z+1)).values;
+        q11 = _node.PDE;
+        q21 = getNodeByEulerMeshIndex(vector3u(index.x+d, index.y+1, index.z)).PDE;
+        q22 = getNodeByEulerMeshIndex(vector3u(index.x+d, index.y+1, index.z+1)).PDE;
+        q12 = getNodeByEulerMeshIndex(vector3u(index.x+d, index.y, index.z+1)).PDE;
 
         node.coords.x = _node.coords.x;
         _x = node.coords.y = coords.y;
@@ -192,10 +192,10 @@ bool EulerMesh::interpolateBorderNode(real x, real y, real z, real dx, real dy, 
         x2 = x1 + cellSize.x;
         y2 = y1 + cellSize.z;
 
-        q11 = _node.values;
-        q21 = getNodeByEulerMeshIndex(vector3u(index.x+1, index.y+d, index.z)).values;
-        q22 = getNodeByEulerMeshIndex(vector3u(index.x+1, index.y+d, index.z+1)).values;
-        q12 = getNodeByEulerMeshIndex(vector3u(index.x, index.y+d, index.z+1)).values;
+        q11 = _node.PDE;
+        q21 = getNodeByEulerMeshIndex(vector3u(index.x+1, index.y+d, index.z)).PDE;
+        q22 = getNodeByEulerMeshIndex(vector3u(index.x+1, index.y+d, index.z+1)).PDE;
+        q12 = getNodeByEulerMeshIndex(vector3u(index.x, index.y+d, index.z+1)).PDE;
 
         _x = node.coords.x = coords.x;
         node.coords.y = _node.coords.y;
@@ -219,10 +219,10 @@ bool EulerMesh::interpolateBorderNode(real x, real y, real z, real dx, real dy, 
         x2 = x1 + cellSize.x;
         y2 = y1 + cellSize.y;
 
-        q11 = _node.values;
-        q21 = getNodeByEulerMeshIndex(vector3u(index.x+1, index.y, index.z+d)).values;
-        q22 = getNodeByEulerMeshIndex(vector3u(index.x+1, index.y+1, index.z+d)).values;
-        q12 = getNodeByEulerMeshIndex(vector3u(index.x, index.y+1, index.z+d)).values;
+        q11 = _node.PDE;
+        q21 = getNodeByEulerMeshIndex(vector3u(index.x+1, index.y, index.z+d)).PDE;
+        q22 = getNodeByEulerMeshIndex(vector3u(index.x+1, index.y+1, index.z+d)).PDE;
+        q12 = getNodeByEulerMeshIndex(vector3u(index.x, index.y+1, index.z+d)).PDE;
 
         _x = node.coords.x = coords.x;
         _y = node.coords.y = coords.y;
@@ -237,14 +237,14 @@ bool EulerMesh::interpolateBorderNode(real x, real y, real z, real dx, real dy, 
         node.setCustomFlag(VIRT_CELL_AXIS_Z_FLAG, d);
     }
 
-    interpolateRectangle(x1, y1, x2, y2, _x, _y, q11, q12, q22, q21, node.values, VALUES_NUMBER);
-    node.setIsBorder(true);
+    interpolateRectangle(x1, y1, x2, y2, _x, _y, q11, q12, q22, q21, node.PDE, node.getSizeOfPDE());
+    node.setBorder(true);
 
     return true;
 }
 
 
-bool EulerMesh::interpolateNode(CalcNode& origin, float dx, float dy, float dz, bool debug, CalcNode& targetNode, bool& isInnerPoint)
+bool EulerMesh::interpolateNode(Node& origin, float dx, float dy, float dz, bool debug, Node& targetNode, bool& isInnerPoint)
 {
     targetNode.coords = origin.coords+vector3r(dx, dy, dz);
 
@@ -291,7 +291,7 @@ bool EulerMesh::interpolateNode(CalcNode& origin, float dx, float dy, float dz, 
     }
 }
 
-bool EulerMesh::getNodeEulerMeshIndex(const CalcNode& node, vector3u& indexes) const
+bool EulerMesh::getNodeEulerMeshIndex(const Node& node, vector3u& indexes) const
 {
     const auto& c1 = const_cast<EulerMesh*>(this)->getNodeByEulerMeshIndex(vector3u(0, 0, 0)).coords;
     const auto& c2 = const_cast<EulerMesh*>(this)->getNodeByEulerMeshIndex(nodeDimensions-vector3u(1, 1, 1)).coords;
@@ -315,7 +315,7 @@ int EulerMesh::getNodeLocalIndexByEulerMeshIndex(const vector3u& index) const
     return index.z + index.y*nodeDimensions.z + index.x*nodeDimensions.y*nodeDimensions.z;
 }
 
-CalcNode& EulerMesh::getNodeByEulerMeshIndex(const vector3u& index) {
+Node& EulerMesh::getNodeByEulerMeshIndex(const vector3u& index) {
     return Mesh::getNodeByLocalIndex(getNodeLocalIndexByEulerMeshIndex(index));
 }
 
@@ -357,7 +357,7 @@ void EulerMesh::generateMesh() {
     LOG_DEBUG("Total number of node: " << nodesNumber);
     nodes.reserve(nodesNumber);
 
-    CalcNode node;
+    Node node;
     node.setPlacement(true);
     // FIXME do we actually need this?
     node.setUsed(false);
@@ -443,7 +443,7 @@ uchar EulerMesh::getCellStatus(const vector3u& index) const
     return cellStatus[index.x][index.y][index.z];
 }
 
-bool EulerMesh::interpolateNode(CalcNode& node) {
+bool EulerMesh::interpolateNode(Node& node) {
 	if (!outline.isInAABB(node))
 		return false;
     auto index = getCellEulerIndexByCoords(node.coords);
@@ -451,7 +451,7 @@ bool EulerMesh::interpolateNode(CalcNode& node) {
     return interpolateNode(node, index);
 }
 
-bool EulerMesh::interpolateNode(CalcNode& node, const vector3u &index) {
+bool EulerMesh::interpolateNode(Node& node, const vector3u &index) {
     if (!cellStatus[index.x][index.y][index.z])
         return false;
 
@@ -464,7 +464,10 @@ bool EulerMesh::interpolateNode(CalcNode& node, const vector3u &index) {
     auto& n111 = getNodeByEulerMeshIndex(index+vector3u(1, 1, 1));
     auto& n101 = getNodeByEulerMeshIndex(index+vector3u(1, 0, 1));
 
-    interpolateBox(n000.coords.x, n000.coords.y, n000.coords.z, n111.coords.x, n111.coords.y, n111.coords.z, node.coords.x, node.coords.y, node.coords.z, n000.values, n001.values, n010.values, n011.values, n100.values, n101.values, n110.values, n111.values, node.values, VALUES_NUMBER);
+    interpolateBox(n000.coords.x, n000.coords.y, n000.coords.z, n111.coords.x, 
+		n111.coords.y, n111.coords.z, node.coords.x, node.coords.y, node.coords.z,
+		n000.PDE, n001.PDE, n010.PDE, n011.PDE, n100.PDE, n101.PDE, n110.PDE, 
+		n111.PDE, node.PDE, node.getSizeOfPDE());
     node.setMaterialId(n000.getMaterialId());
     node.setRheologyMatrix(n000.getRheologyMatrix());
 

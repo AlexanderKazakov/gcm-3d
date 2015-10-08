@@ -22,9 +22,9 @@ void OpenFractureContactCalculator::setFracArea(Area* area) {
 	fracArea = area;
 };
 
-void OpenFractureContactCalculator::doCalc(CalcNode& cur_node, CalcNode& new_node, 
-	CalcNode& virt_node, RheologyMatrixPtr matrix, vector<CalcNode>& previousNodes, 
-	bool inner[], RheologyMatrixPtr virt_matrix, vector<CalcNode>& virtPreviousNodes,
+void OpenFractureContactCalculator::doCalc(Node& cur_node, Node& new_node, 
+	Node& virt_node, RheologyMatrixPtr matrix, vector<Node>& previousNodes, 
+	bool inner[], RheologyMatrixPtr virt_matrix, vector<Node>& virtPreviousNodes,
 	bool virt_inner[], float outer_normal[], float scale) 
 {
 	if(fracArea->isInArea(cur_node))

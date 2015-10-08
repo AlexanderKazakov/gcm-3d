@@ -38,12 +38,12 @@ Mesh* Body::getMesh(string id) {
     return NULL;
 }
 
-void Body::setInitialState(Area* area, float values[9]) {
+void Body::setInitialState(Area* area, float PDE[9]) {
     for( unsigned int i = 0; i < meshes.size(); i++ )
-        meshes[i]->setInitialState(area, values);
+        meshes[i]->setInitialState(area, PDE);
 }
 
-void Body::setInitialState(Area* area, std::function<void(CalcNode&)> setter) {
+void Body::setInitialState(Area* area, std::function<void(Node&)> setter) {
     for( unsigned int i = 0; i < meshes.size(); i++ )
         meshes[i]->setInitialState(area, setter);
 }

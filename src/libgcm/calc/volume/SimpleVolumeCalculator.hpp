@@ -12,8 +12,8 @@ namespace gcm
     {
     public:
         SimpleVolumeCalculator();
-        void doCalc(CalcNode& new_node, RheologyMatrixPtr matrix,
-                                        std::vector<CalcNode>& previousNodes);
+        void doCalc(Node& new_node, RheologyMatrixPtr matrix,
+                                        std::vector<Node>& previousNodes);
         inline std::string getType() {
             return "SimpleVolumeCalculator";
         }

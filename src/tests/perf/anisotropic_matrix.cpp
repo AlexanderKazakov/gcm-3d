@@ -9,7 +9,7 @@
 #endif
 
 #include "tests/perf/util.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/rheology/Material.hpp"
 #include "libgcm/Engine.hpp"
 #include "libgcm/rheology/decomposers/AnalyticalRheologyMatrixDecomposer.hpp"
@@ -53,7 +53,7 @@ int main()
     NumericalRheologyMatrixDecomposer numericalDecomposer;
     AnalyticalRheologyMatrixDecomposer analyticalDecomposer;
 
-    CalcNode node;
+    Node node;
 
     setter.setX(ax, mat, node);
     setter.setY(ay, mat, node);

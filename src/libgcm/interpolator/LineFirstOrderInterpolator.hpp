@@ -9,13 +9,13 @@
 
 
 namespace gcm {
-    class CalcNode;
+    class Node;
 
     class LineFirstOrderInterpolator : public TetrInterpolator {
     public:
         LineFirstOrderInterpolator();
         ~LineFirstOrderInterpolator();
-        void interpolate( CalcNode& node, CalcNode& node0, CalcNode& node1 );
+        void interpolate( Node& node, Node& node0, Node& node1 );
     private:
         USE_LOGGER;
     };

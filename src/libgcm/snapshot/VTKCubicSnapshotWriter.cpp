@@ -28,7 +28,7 @@ void VTKCubicSnapshotWriter::dumpMeshSpecificData(BasicCubicMesh* mesh,
 {
     for(int i = 0; i < mesh->getNodesNumber(); i++)
     {
-        CalcNode& node = mesh->getNodeByLocalIndex(i);
+        Node& node = mesh->getNodeByLocalIndex(i);
         points->InsertNextPoint( node.coords[0], node.coords[1], node.coords[2] );
     }
 

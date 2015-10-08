@@ -65,13 +65,13 @@ int main() {
     	return -1;
     }
 
-    vector<CalcNode> virt_nodes1;
-    vector<CalcNode> virt_nodes2;
+    vector<Node> virt_nodes1;
+    vector<Node> virt_nodes2;
 
     auto t = measure_time2(
         [&](){ virt_nodes1.clear(); },
         [&](){
-            vector<CalcNode> nodes;
+            vector<Node> nodes;
             bcd.find_nodes_in_intersection(m1, intersection, nodes);
 
         	float direction[3];
@@ -88,16 +88,16 @@ int main() {
         	        	if (z != m)
         	        		direction[z] = 0;
 
-        	        CalcNode new_node;
+        	        Node new_node;
         	        if( m2->interpolateBorderNode_old(
         	        		nodes[k].coords[0], nodes[k].coords[1], nodes[k].coords[2],
         	                direction[0] * bcd.get_threshold(), direction[1] * bcd.get_threshold(),
         					direction[2] * bcd.get_threshold(), new_node) )
         	        {
-        	        	new_node.setIsBorder(true);
+        	        	new_node.setBorder(true);
         	            new_node.setInContact(true);
         	            new_node.contactNodeNum = 2;
-        	            new_node.setCustomFlag(CalcNode::FLAG_1, 1);
+        	            new_node.setCustomFlag(Node::FLAG_1, 1);
         	            (m1->getNode(nodes[k].number)).setInContact(true);
         	            (m1->getNode(nodes[k].number)).contactNodeNum = virt_nodes1.size();
         	            (m1->getNode(nodes[k].number)).contactDirection = m;
@@ -109,7 +109,7 @@ int main() {
         },
         [&](){ virt_nodes2.clear(); },
         [&](){
-            vector<CalcNode> nodes;
+            vector<Node> nodes;
             bcd.find_nodes_in_intersection(dynamic_cast<BasicCubicMesh*>(m1), intersection, nodes);
 
             float direction[3];
@@ -126,16 +126,16 @@ int main() {
         	        	if (z != m)
         	        		direction[z] = 0;
 
-        	        CalcNode new_node;
+        	        Node new_node;
         	        if( m2->interpolateBorderNode(
         	        		nodes[k].coords[0], nodes[k].coords[1], nodes[k].coords[2],
         	                direction[0] * bcd.get_threshold(), direction[1] * bcd.get_threshold(),
         					direction[2] * bcd.get_threshold(), new_node) )
         	        {
-        	        	new_node.setIsBorder(true);
+        	        	new_node.setBorder(true);
         	            new_node.setInContact(true);
         	            new_node.contactNodeNum = 2;
-        	            new_node.setCustomFlag(CalcNode::FLAG_1, 1);
+        	            new_node.setCustomFlag(Node::FLAG_1, 1);
         	            (m1->getNode(nodes[k].number)).setInContact(true);
         	            (m1->getNode(nodes[k].number)).contactNodeNum = virt_nodes2.size();
         	            (m1->getNode(nodes[k].number)).contactDirection = m;
@@ -153,7 +153,7 @@ int main() {
     cout << "virt_nodes1 size: " << virt_nodes1.size() << endl;
     cout << "virt_nodes2 size: " << virt_nodes2.size() << endl;
 
-    vector<CalcNode>::iterator it;
+    vector<Node>::iterator it;
     for(int i = 0; i < virt_nodes2.size(); i++) {
 		it = find(virt_nodes1.begin(), virt_nodes1.end(), virt_nodes2[i]);
 		if(it == virt_nodes1.end()) {

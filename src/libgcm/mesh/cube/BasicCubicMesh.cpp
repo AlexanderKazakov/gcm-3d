@@ -1,6 +1,6 @@
 #include "libgcm/mesh/cube/BasicCubicMesh.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/snapshot/VTKCubicSnapshotWriter.hpp"
 #include "launcher/loaders/mesh/BasicCubicMeshLoader.hpp"
 
@@ -56,16 +56,16 @@ void BasicCubicMesh::preProcessGeometry()
 {
     LOG_DEBUG("Preprocessing mesh geometry started.");
 	for(int i = 0; i < getNodesNumber(); i++)
-		getNodeByLocalIndex(i).setIsBorder(false);
+		getNodeByLocalIndex(i).setBorder(false);
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         for( int i = 0; i < 3; i ++)
         {
             if( ( fabs(node.coords[i] - outline.min_coords[i]) < EQUALITY_TOLERANCE )
                 || ( fabs(node.coords[i] - outline.max_coords[i]) < EQUALITY_TOLERANCE ) )
             {
-                node.setIsBorder(true);
+                node.setBorder(true);
             }
         }
     }
@@ -106,13 +106,13 @@ void BasicCubicMesh::calcMinH()
     if( getNodesNumber() < 2)
         return;
 
-    CalcNode& base = getNodeByLocalIndex(0);
+    Node& base = getNodeByLocalIndex(0);
     float h;
 
     // We suppose that mesh is uniform
     for(int i = 1; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         h = distance(base.coords, node.coords);
         if( h < meshH )
             meshH = h;
@@ -140,7 +140,7 @@ float BasicCubicMesh::getMinH()
     return meshH;
 };
 
-void BasicCubicMesh::findBorderNodeNormal(const CalcNode& node, float* x, float* y, float* z, bool debug)
+void BasicCubicMesh::findBorderNodeNormal(const Node& node, float* x, float* y, float* z, bool debug)
 {
     assert_true(node.isBorder() );
 	
@@ -164,7 +164,7 @@ void BasicCubicMesh::findBorderNodeNormal(const CalcNode& node, float* x, float*
     *z = normal[2];
 };
 
-int BasicCubicMesh::findNeighbourPoint(CalcNode& node, float dx, float dy, float dz,
+int BasicCubicMesh::findNeighbourPoint(Node& node, float dx, float dy, float dz,
 	bool debug, float* coords, bool* innerPoint)
 {
     //int meshSizeX = 1 + (outline.maxX - outline.minX + meshH * 0.1) / meshH;
@@ -205,8 +205,8 @@ int BasicCubicMesh::findNeighbourPoint(CalcNode& node, float dx, float dy, float
     return neighNum;
 };
 
-bool BasicCubicMesh::interpolateNode(CalcNode& origin, float dx, float dy, float dz, bool debug,
-                                CalcNode& targetNode, bool& isInnerPoint)
+bool BasicCubicMesh::interpolateNode(Node& origin, float dx, float dy, float dz, bool debug,
+                                Node& targetNode, bool& isInnerPoint)
 {
 	if(fabs(dx) < EQUALITY_TOLERANCE && fabs(dy) < EQUALITY_TOLERANCE && fabs(dz) < EQUALITY_TOLERANCE)
 	{
@@ -221,7 +221,7 @@ bool BasicCubicMesh::interpolateNode(CalcNode& origin, float dx, float dy, float
     if( neighInd == -1 )
         return false;
 
-    CalcNode tmpNode;
+    Node tmpNode;
     int secondNeighInd = findNeighbourPoint( origin, -dx, -dy, -dz, debug,
                                     tmpNode.coords, &isInnerPoint );
 
@@ -250,14 +250,14 @@ bool BasicCubicMesh::interpolateNode(CalcNode& origin, float dx, float dy, float
     return true;
 };
 
-bool BasicCubicMesh::interpolateNode(CalcNode& node)
+bool BasicCubicMesh::interpolateNode(Node& node)
 {
     // Not implemented
     return false;
 };
 
 bool BasicCubicMesh::interpolateBorderNode_old(real x, real y, real z,
-                                real dx, real dy, real dz, CalcNode& node)
+                                real dx, real dy, real dz, Node& node)
 {
     //int meshSizeX = 1 + (outline.maxX - outline.minX + meshH * 0.1) / meshH;
     float coords[3];
@@ -271,7 +271,7 @@ bool BasicCubicMesh::interpolateBorderNode_old(real x, real y, real z,
         float minH = std::numeric_limits<float>::infinity();
         int num = -1;
         for(int i = 1; i < getNodesNumber(); i++) {
-            CalcNode& node = getNodeByLocalIndex(i);
+            Node& node = getNodeByLocalIndex(i);
 			if(node.isBorder()) {
 				float h = distance(coords, node.coords);
 				if( h < minH ) {
@@ -305,13 +305,13 @@ void BasicCubicMesh::findNearestsNodes(const vector3r& coords, int N, vector< pa
 			for( int i = i_min; i <= i_max; i++ )
 	        {
 				num = i * (numY + 1) * (numZ + 1) + j * (numZ + 1) + k + nodes[0].number;
-				CalcNode& node = getNode(num);
+				Node& node = getNode(num);
 				result.push_back( make_pair(node.number, (coords - node.coords).length()) );
 	        }
 }
 
 bool BasicCubicMesh::interpolateBorderNode(real x, real y, real z,
-        					real dx, real dy, real dz, CalcNode& node)
+        					real dx, real dy, real dz, Node& node)
 {
 	// One cube
 	const int N = 8;
@@ -329,8 +329,8 @@ bool BasicCubicMesh::interpolateBorderNode(real x, real y, real z,
 		// Sorting nodes by distance
 		sort(result.begin(), result.end(), sort_pred());
 
-		for(int i = 0; i < result.size(); i++) {
-			CalcNode& node1 = getNode( result[i].first );
+		for(uint i = 0; i < result.size(); i++) {
+			Node& node1 = getNode( result[i].first );
 			if( node1.isBorder() )
 			{
 				node = node1;

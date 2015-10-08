@@ -4,7 +4,7 @@
 #include "libgcm/rheology/RheologyMatrix.hpp"
 #include "libgcm/rheology/setters/IsotropicRheologyMatrixSetter.hpp"
 #include "libgcm/rheology/decomposers/IsotropicRheologyMatrixDecomposer.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 
 using namespace gcm;

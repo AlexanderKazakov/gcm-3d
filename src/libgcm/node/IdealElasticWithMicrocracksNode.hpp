@@ -23,7 +23,7 @@ namespace gcm {
          *     valuesInPDE == 9 (velocity vector and stress tensor)
          *     valuesInODE == 3 (vector for crack orientation)
          */
-        IdealElasticWithMicrocracksNode(); //: CalcNode(9, 3, IDEAL_ELASTIC_WITH_MICROCRACKS_NODE_TYPE);
+        IdealElasticWithMicrocracksNode(); //: Node(9, 3, IDEAL_ELASTIC_WITH_MICROCRACKS_NODE_TYPE);
 
         // TODO@amisto Review, cleanup and document the methods.
 

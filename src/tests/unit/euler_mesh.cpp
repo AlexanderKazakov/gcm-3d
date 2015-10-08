@@ -21,7 +21,7 @@ protected:
 using gcm::vector3u;
 using gcm::vector3r;
 using gcm::real;
-using gcm::CalcNode;
+using gcm::Node;
 using gcm::Exception;
 using gcm::Engine;
 using gcm::RheologyMatrixPtr;
@@ -142,7 +142,7 @@ TEST_F(EulerMesh, interpolateNode)
     }
 
     auto& n1 = mesh.getNodeByEulerMeshIndex({0, 0, 0});
-    CalcNode r;
+    Node r;
     bool inner;
 
     ASSERT_TRUE(
@@ -186,7 +186,7 @@ TEST_F(EulerMesh, interpolateBorderNode)
 
     mesh.reconstructBorder();
 
-    CalcNode node;
+    Node node;
 
     for (int i = 0; i <= 1; i++)
     {

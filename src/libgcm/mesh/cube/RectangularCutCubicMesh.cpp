@@ -1,6 +1,7 @@
 #include "libgcm/mesh/cube/RectangularCutCubicMesh.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/Engine.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/snapshot/VTKCubicSnapshotWriter.hpp"
 #include "launcher/loaders/mesh/RectangularCutCubicMeshLoader.hpp"
 
@@ -25,8 +26,8 @@ void RectangularCutCubicMesh::preProcessGeometry()
     LOG_DEBUG("Preprocessing mesh geometry started.");
 	
 	for(int i = 0; i < getNodesNumber(); i++) {
-		CalcNode& node = getNodeByLocalIndex(i);
-		node.setIsBorder(false);
+		Node& node = getNodeByLocalIndex(i);
+		node.setBorder(false);
 		node.setCustomFlag(1, false);
 		if( !cutArea.isOutAABB(node) ) {
 			node.setCustomFlag(1, true);
@@ -37,26 +38,26 @@ void RectangularCutCubicMesh::preProcessGeometry()
     // for usual AABB outline
 	for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         for( int i = 0; i < 3; i ++)
         {
             if( ( fabs(node.coords[i] - outline.min_coords[i]) < EQUALITY_TOLERANCE )
                 || ( fabs(node.coords[i] - outline.max_coords[i]) < EQUALITY_TOLERANCE ) )
             {
-                node.setIsBorder(true); break;
+                node.setBorder(true); break;
             }
         }
     }
 	// for cutArea
 	for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
 		if(cutArea.isInAABB(node)) {
 			for( int i = 0; i < 3; i ++)
 				if( ( fabs(node.coords[i] - cutArea.min_coords[i]) < EQUALITY_TOLERANCE )
 					|| ( fabs(node.coords[i] - cutArea.max_coords[i]) < EQUALITY_TOLERANCE ) )
 				{
-					node.setIsBorder(true); break;
+					node.setBorder(true); break;
 				}
 		}
 	}
@@ -64,10 +65,10 @@ void RectangularCutCubicMesh::preProcessGeometry()
     LOG_DEBUG("Preprocessing mesh geometry done.");
 };
 
-void RectangularCutCubicMesh::findBorderNodeNormal(const CalcNode& node, 
+void RectangularCutCubicMesh::findBorderNodeNormal(const Node& node, 
 	float* x, float* y, float* z, bool debug)
 {
-    //CalcNode& node = getNode( border_node_index );
+    //Node& node = getNode( border_node_index );
     assert_true(node.isBorder() );
     float normal[3];
     normal[0] = normal[1] = normal[2] = 0.0;
@@ -98,7 +99,7 @@ void RectangularCutCubicMesh::findBorderNodeNormal(const CalcNode& node,
     *z = normal[2];
 };
 
-int RectangularCutCubicMesh::findNeighbourPoint(CalcNode& node, float dx, float dy, float dz,
+int RectangularCutCubicMesh::findNeighbourPoint(Node& node, float dx, float dy, float dz,
 	bool debug, float* coords, bool* innerPoint)
 {
     //int meshSizeX = 1 + (outline.maxX - outline.minX + meshH * 0.1) / meshH;
@@ -157,13 +158,13 @@ void RectangularCutCubicMesh::findNearestsNodes(const vector3r& coords, int N, v
 			for( int i = i_min; i <= i_max; i++ )
 	        {
 				num = i * (numY + 1) * (numZ + 1) + j * (numZ + 1) + k + nodes[0].number;
-				CalcNode& node = getNode(num);
+				Node& node = getNode(num);
 				result.push_back( make_pair(node.number, (coords - node.coords).length()) );
 	        }
 }
 
 bool RectangularCutCubicMesh::interpolateBorderNode(real x, real y, real z,
-        					real dx, real dy, real dz, CalcNode& node)
+        					real dx, real dy, real dz, Node& node)
 {
 	// One cube
 	const int N = 8;
@@ -182,8 +183,8 @@ bool RectangularCutCubicMesh::interpolateBorderNode(real x, real y, real z,
 		// Sorting nodes by distance
 		sort(result.begin(), result.end(), sort_pred());
 
-		for(int i = 0; i < result.size(); i++) {
-			CalcNode& node1 = getNode( result[i].first );
+		for(uint i = 0; i < result.size(); i++) {
+			Node& node1 = getNode( result[i].first );
 			if( node1.isBorder() )
 			{
 				node = node1;
@@ -199,7 +200,7 @@ bool RectangularCutCubicMesh::interpolateBorderNode(real x, real y, real z,
 void RectangularCutCubicMesh::transfer(float x, float y, float z) {
 	for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         node.coords[0] += x;
         node.coords[1] += y;
         node.coords[2] += z;

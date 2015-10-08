@@ -22,17 +22,17 @@
 #include "libgcm/interpolator/TetrSecondOrderMinMaxInterpolator.hpp"
 #include "libgcm/interpolator/LineFirstOrderInterpolator.hpp"
 
-#include "libgcm/failure/FailureModel.hpp"
-#include "libgcm/failure/NoFailureModel.hpp"
-#include "libgcm/failure/CrackFailureModel.hpp"
-#include "libgcm/failure/ScalarFailureModel.hpp"
-#include "libgcm/failure/ContinualFailureModel.hpp"
-#include "libgcm/failure/DebugFailureModel.hpp"
-#include "libgcm/failure/HashinFailureModel.hpp"
-#include "libgcm/failure/TsaiHillFailureModel.hpp"
-#include "libgcm/failure/TsaiWuFailureModel.hpp"
-#include "libgcm/failure/DruckerPragerFailureModel.hpp"
-#include "libgcm/failure/PuckFailureModel.hpp"
+//#include "libgcm/failure/FailureModel.hpp"
+//#include "libgcm/failure/NoFailureModel.hpp"
+//#include "libgcm/failure/CrackFailureModel.hpp"
+//#include "libgcm/failure/ScalarFailureModel.hpp"
+//#include "libgcm/failure/ContinualFailureModel.hpp"
+//#include "libgcm/failure/DebugFailureModel.hpp"
+//#include "libgcm/failure/HashinFailureModel.hpp"
+//#include "libgcm/failure/TsaiHillFailureModel.hpp"
+//#include "libgcm/failure/TsaiWuFailureModel.hpp"
+//#include "libgcm/failure/DruckerPragerFailureModel.hpp"
+//#include "libgcm/failure/PuckFailureModel.hpp"
 
 //
 #include "libgcm/rheology/Material.hpp"
@@ -40,7 +40,6 @@
 #include "libgcm/rheology/DummyRheologyCalculator.hpp"
 #include "libgcm/GCMDispatcher.hpp"
 #include "libgcm/DummyDispatcher.hpp"
-#include "libgcm/DataBus.hpp"
 #include "libgcm/BorderCondition.hpp"
 #include "libgcm/ContactCondition.hpp"
 #include "libgcm/CollisionDetector.hpp"
@@ -100,7 +99,7 @@ namespace gcm
 
         std::map<std::string, RheologyCalculator*> rheologyCalculators;
 		
-		std::map<std::string, FailureModel*> failureModels;
+//		std::map<std::string, FailureModel*> failureModels;
 
         // FIXME - tetr-specific is bad
         std::map<std::string, TetrInterpolator*> interpolators;
@@ -116,9 +115,8 @@ namespace gcm
 
         gcm::GCMDispatcher* dispatcher;
 
-        DataBus* dataBus;
         CollisionDetector* colDet;
-        std::vector<CalcNode> virtNodes;
+        std::vector<Node> virtNodes;
 
         //VTKSnapshotWriter* vtkSnapshotWriter;
         //VTK2SnapshotWriter* vtkDumpWriter;
@@ -216,10 +214,10 @@ namespace gcm
 
         void registerRheologyCalculator(RheologyCalculator *rheologyCalculator);
 
-        void registerFailureModel(FailureModel *model);
-		FailureModel* getFailureModel(std::string modelType);
-        void setDefaultFailureModelType(std::string modelType);
-        std::string getDefaultFailureModelType();
+//        void registerFailureModel(FailureModel *model);
+//		FailureModel* getFailureModel(std::string modelType);
+//        void setDefaultFailureModelType(std::string modelType);
+//        std::string getDefaultFailureModelType();
 
         unsigned int addBorderCondition(BorderCondition *borderCondition);
         void replaceDefaultBorderCondition(BorderCondition *borderCondition);
@@ -276,8 +274,6 @@ namespace gcm
         float getTimeStepMultiplier();
         float getCurrentTime();
         void setCurrentTime(float time);
-        void syncNodes();
-        void syncOutlines();
         void calculate(bool save_snapshots = true);
         void setNumberOfSnaps(int number);
         void setStepsPerSnap(int number);
@@ -287,8 +283,7 @@ namespace gcm
 		void scaleScene(float x0, float y0, float z0, 
 				float scaleX, float scaleY, float scaleZ);
 
-        DataBus* getDataBus();
-        CalcNode& getVirtNode(unsigned int i);
+        Node& getVirtNode(unsigned int i);
 
         void setContactThresholdType(unsigned char type);
         unsigned char getContactThresholdType();
@@ -302,9 +297,9 @@ namespace gcm
         float getGmshVerbosity();
         void setGmshVerbosity(float verbosity);
 
-        bool interpolateNode(CalcNode& node);
+        bool interpolateNode(Node& node);
 
-        void setRheologyMatrices(std::function<RheologyMatrixPtr (const CalcNode&)> getMatrixForNode);
+        void setRheologyMatrices(std::function<RheologyMatrixPtr (const Node&)> getMatrixForNode);
 
         const std::vector<std::tuple<unsigned int, std::string, std::string>>& getSnapshotsList() const;
         const std::vector<float>& getSnapshotTimestamps() const;

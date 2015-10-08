@@ -3,8 +3,8 @@
 
 #include <vector>
 
-#include "libgcm/elem/TriangleFirstOrder.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/elements/TriangleFirstOrder.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/util/AABB.hpp"
 #include "libgcm/util/Types.hpp"
 
@@ -13,7 +13,7 @@ namespace gcm
     class MarkeredSurface
     {
         protected:
-            std::vector<CalcNode> markers;
+            std::vector<Node> markers;
             std::vector<TriangleFirstOrder> faces;
             std::vector<int> regions;
             AABB aabb;
@@ -22,9 +22,9 @@ namespace gcm
         public:
 			void updateAABB();
             MarkeredSurface();
-            MarkeredSurface(std::vector<CalcNode>& markers, std::vector<TriangleFirstOrder>& faces, std::vector<int>& regions);
+            MarkeredSurface(std::vector<Node>& markers, std::vector<TriangleFirstOrder>& faces, std::vector<int>& regions);
 
-            const std::vector<CalcNode>& getMarkerNodes() const;
+            const std::vector<Node>& getMarkerNodes() const;
             unsigned int getNumberOfMarkerNodes() const;
             const std::vector<TriangleFirstOrder>& getMarkerFaces() const;
             unsigned int getNumberOfMarkerFaces() const;

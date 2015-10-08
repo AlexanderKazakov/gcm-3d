@@ -4,7 +4,7 @@
 #include "libgcm/rheology/Plasticity.hpp"
 #include "libgcm/rheology/setters/PrandtlRaussPlasticityRheologyMatrixSetter.hpp"
 #include "libgcm/rheology/setters/IsotropicRheologyMatrixSetter.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 
 #define ITERATIONS 1000
@@ -16,7 +16,7 @@ TEST(Plasticity, PrandtlRaussElasticTransition)
 {
     srand(time(NULL));
 
-    CalcNode isotropicNode;
+    Node isotropicNode;
 
     for (int k = 0; k < ITERATIONS; k++)
     {
@@ -32,7 +32,7 @@ TEST(Plasticity, PrandtlRaussElasticTransition)
 	    gcm_matrix a1, a2;
 		IsotropicRheologyMatrixSetter elasticSetter;
 		PrandtlRaussPlasticityRheologyMatrixSetter plasticSetter;
-		CalcNode node;
+		Node node;
 		
 		node.setRho(rho);
 

@@ -52,6 +52,10 @@ real IdealElasticNode::getSzz() const {
 
 // Read-write access
 
+real* IdealElasticNode::velocity() {
+	return &(PDE[0]);
+}
+
 real& IdealElasticNode::vx() {
     return PDE[0];
 }

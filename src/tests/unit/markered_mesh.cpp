@@ -35,9 +35,9 @@ TEST(MarkeredSurfaceGeoGenerator, Sphere)
 
     for (auto f: surface.getMarkerFaces())
     {
-        findTriangleFaceNormal(nodes[f.verts[0]].coords, nodes[f.verts[1]].coords, nodes[f.verts[2]].coords, &norm.x, &norm.y, &norm.z);
+        findTriangleFaceNormal(nodes[f.vertices[0]].coords, nodes[f.vertices[1]].coords, nodes[f.vertices[2]].coords, &norm.x, &norm.y, &norm.z);
 
-        EXPECT_NEAR(norm*nodes[f.verts[0]].coords, 1.0, 1e-2);
+        EXPECT_NEAR(norm*nodes[f.vertices[0]].coords, 1.0, 1e-2);
     }
 }
 
@@ -89,9 +89,9 @@ TEST(MarkeredSurfaceGeoGenerator, Cube)
 
     for (auto f: surface.getMarkerFaces())
     {
-        findTriangleFaceNormal(nodes[f.verts[0]].coords, nodes[f.verts[1]].coords, nodes[f.verts[2]].coords, &norm.x, &norm.y, &norm.z);
+        findTriangleFaceNormal(nodes[f.vertices[0]].coords, nodes[f.vertices[1]].coords, nodes[f.vertices[2]].coords, &norm.x, &norm.y, &norm.z);
 
-        auto r = (nodes[f.verts[0]].coords + nodes[f.verts[1]].coords + nodes[f.verts[2]].coords)/3;
+        auto r = (nodes[f.vertices[0]].coords + nodes[f.vertices[1]].coords + nodes[f.vertices[2]].coords)/3;
 
         if (fabs(fabs(r.z)-5) < EQUALITY_TOLERANCE)
         {

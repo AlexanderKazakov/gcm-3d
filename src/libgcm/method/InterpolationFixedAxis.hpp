@@ -8,7 +8,7 @@
 //#include "libgcm/util/AnisotropicMatrix3D.hpp"
 ////#include "libgcm/util/ElasticMatrix3D.hpp"
 #include "libgcm/util/Types.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/util/Logging.hpp"
 #include "libgcm/Exception.hpp"
 
@@ -21,25 +21,25 @@ namespace gcm
         InterpolationFixedAxis();
         virtual ~InterpolationFixedAxis();
         int getNumberOfStages();
-        void doNextPartStep(CalcNode& cur_node, CalcNode& new_node, float time_step, int stage, Mesh* mesh);
+        void doNextPartStep(Node& cur_node, Node& new_node, float time_step, int stage, Mesh* mesh);
         std::string getType();
     protected:
-        int prepare_node(CalcNode& cur_node, RheologyMatrixPtr rheologyMatrix,
+        int prepare_node(Node& cur_node, RheologyMatrixPtr rheologyMatrix,
                 float time_step, int stage, Mesh* mesh,
-                float* dksi, bool* inner, std::vector<CalcNode>& previous_nodes,
+                float* dksi, bool* inner, std::vector<Node>& previous_nodes,
                 float* outer_normal, bool debug);
-        int prepare_node(CalcNode& cur_node, RheologyMatrixPtr rheologyMatrix,
+        int prepare_node(Node& cur_node, RheologyMatrixPtr rheologyMatrix,
                 float time_step, int stage, Mesh* mesh,
-                float* dksi, bool* inner, std::vector<CalcNode>& previous_nodes,
+                float* dksi, bool* inner, std::vector<Node>& previous_nodes,
                 float* outer_normal);
-        int find_nodes_on_previous_time_layer(CalcNode& cur_node, int stage, Mesh* mesh,
-                float dksi[], bool inner[], std::vector<CalcNode>& previous_nodes,
+        int find_nodes_on_previous_time_layer(Node& cur_node, int stage, Mesh* mesh,
+                float dksi[], bool inner[], std::vector<Node>& previous_nodes,
                 float outer_normal[], bool debug);
-        int find_nodes_on_previous_time_layer(CalcNode& cur_node, int stage, Mesh* mesh,
-                float dksi[], bool inner[], std::vector<CalcNode>& previous_nodes,
+        int find_nodes_on_previous_time_layer(Node& cur_node, int stage, Mesh* mesh,
+                float dksi[], bool inner[], std::vector<Node>& previous_nodes,
                 float outer_normal[]);
         
-        void __doNextPartStep(CalcNode& cur_node, CalcNode& new_node, float time_step, int stage, Mesh* mesh);
+        void __doNextPartStep(Node& cur_node, Node& new_node, float time_step, int stage, Mesh* mesh);
 
         USE_LOGGER;
     };

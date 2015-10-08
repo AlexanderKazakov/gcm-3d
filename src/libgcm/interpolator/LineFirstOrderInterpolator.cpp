@@ -1,6 +1,6 @@
 #include "libgcm/interpolator/LineFirstOrderInterpolator.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 
@@ -14,7 +14,7 @@ LineFirstOrderInterpolator::~LineFirstOrderInterpolator()
 {
 }
 
-void LineFirstOrderInterpolator::interpolate(CalcNode& node, CalcNode& node0, CalcNode& node1)
+void LineFirstOrderInterpolator::interpolate(Node& node, Node& node0, Node& node1)
 {
     LOG_TRACE("Start interpolation");
 
@@ -43,12 +43,11 @@ void LineFirstOrderInterpolator::interpolate(CalcNode& node, CalcNode& node0, Ca
         }
     }
 
-    for (int i = 0; i < 9; i++) {
-        node.values[i] = (node0.values[i] * factor0 + node1.values[i] * factor1);
+    for (int i = 0; i < node.getSizeOfPDE(); i++) {
+        node.PDE[i] = (node0.PDE[i] * factor0 + node1.PDE[i] * factor1);
     }
-
-    node.setRho(node0.getRho() * factor0 + node1.getRho() * factor1);
+//	TODO@next - do smth with rho in interpolators
+//    node.setRho(node0.getRho() * factor0 + node1.getRho() * factor1);
     node.setMaterialId(node0.getMaterialId());
-
     LOG_TRACE("Interpolation done");
 }

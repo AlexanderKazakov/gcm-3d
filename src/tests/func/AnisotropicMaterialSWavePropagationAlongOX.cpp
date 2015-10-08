@@ -6,17 +6,17 @@
 
 #include "libgcm/Exception.hpp"
 #include "libgcm/rheology/Material.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 
 /*
  * Analytics for the test described in tasks/tests/s-wave-test.xml
- * Sets analytical values for CalcNode object provided
+ * Sets analytical values for Node object provided
  * It does not take into account waves from border, so it works only for wave axis and not too long
  * For high accuracy node should have coordinates (0; 0; z), where -5 < z < 5
  */
-void setSWaveAlongXAnalytics(CalcNode& node, float t, Engine& engine)
+void setSWaveAlongXAnalytics(Node& node, float t, Engine& engine)
 {
     // Parameters from task file
     float LEFT_MARK_START = 1.0;

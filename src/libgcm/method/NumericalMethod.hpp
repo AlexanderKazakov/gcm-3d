@@ -13,7 +13,7 @@
 #include "libgcm/mesh/Mesh.hpp"
 
 namespace gcm {
-    class CalcNode;
+    class Node;
     /*
      * Numerical method
      */
@@ -34,12 +34,12 @@ namespace gcm {
         /*
          * Computes next state (after the next part step) for the given node
          */
-        virtual void doNextPartStep(CalcNode& cur_node, CalcNode& new_node, float time_step, int stage, Mesh* mesh) = 0;
+        virtual void doNextPartStep(Node& cur_node, Node& new_node, float time_step, int stage, Mesh* mesh) = 0;
         /*
          * Returns maximum lambda for the given node
          * TODO@avasyukov: Should we replace it with getMaxTimeStep?
          */
-//        virtual real getMaxEigenvalue(CalcNode& node) const = 0; //(CalcNode& node, TetrMesh* mesh)
+//        virtual real getMaxEigenvalue(Node& node) const = 0; //(Node& node, TetrMesh* mesh)
 
         virtual std::string getType() = 0;
 

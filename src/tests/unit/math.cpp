@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include "libgcm/Math.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 #include <gtest/gtest.h>
 
@@ -88,7 +88,7 @@ TEST(Math, solvePolynomialThirdOrderHydrostaticStress)
 {
     srand(0);
 
-    CalcNode node;
+    Node node;
     
     for (int k = 0; k < ITERATIONS; k++)
     {

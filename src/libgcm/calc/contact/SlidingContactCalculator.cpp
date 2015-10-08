@@ -27,265 +27,266 @@ SlidingContactCalculator::~SlidingContactCalculator()
     gsl_permutation_free(p_gsl);
 };
 
-void SlidingContactCalculator::doCalc(CalcNode& cur_node, CalcNode& new_node, CalcNode& virt_node,
-                            RheologyMatrixPtr matrix, vector<CalcNode>& previousNodes, bool inner[],
-                            RheologyMatrixPtr virt_matrix, vector<CalcNode>& virtPreviousNodes, bool virt_inner[],
+void SlidingContactCalculator::doCalc(Node& cur_node, Node& new_node, Node& virt_node,
+                            RheologyMatrixPtr matrix, vector<Node>& previousNodes, bool inner[],
+                            RheologyMatrixPtr virt_matrix, vector<Node>& virtPreviousNodes, bool virt_inner[],
                             float outer_normal[], float scale)
 {
-    assert_eq(previousNodes.size(), 9);
-    assert_eq(virtPreviousNodes.size(), 9);
-
-    if (isFreeBorder(cur_node, virt_node, outer_normal))
-    {
-        fbc->doCalc(cur_node, new_node, matrix, previousNodes, inner, outer_normal, scale);
-        return;
-    }
-
-    // Here we will store (omega = Matrix_OMEGA * u)
-    float omega[9];
-    float virt_omega[9];
-
-    int posInEq18 = 0;
-    int curNN = 0;
-
-    // For all omegas of real node
-    for(int i = 0; i < 9; i++)
-    {
-        LOG_TRACE("PrNode: " << previousNodes[i]);
-        // If omega is 'inner'
-        if(inner[i])
-        {
-            LOG_TRACE("INNER");
-            // omega on new time layer is equal to omega on previous time layer along characteristic
-            omega[i] = 0;
-            for( int j = 0; j < 9; j++ ) {
-                omega[i] += matrix->getU(i,j) * previousNodes[i].values[j];
-            }
-
-            // then we must set the corresponding values of the 18x18 matrix
-            gsl_vector_set( om_gsl, 6 * curNN + posInEq18, omega[i] );
-
-            for( int j = 0; j < 9; j++ ) {
-                gsl_matrix_set( U_gsl, 6 * curNN + posInEq18, j, matrix->getU( i, j ) );
-            }
-            for( int j = 9; j < 18; j++ ) {
-                gsl_matrix_set( U_gsl, 6 * curNN + posInEq18, j, 0 );
-            }
-            posInEq18++;
-        }
-    }
-
-    posInEq18 = 0;
-    curNN = 1;
-    // For all omegas of virtual node
-    for(int i = 0; i < 9; i++)
-    {
-        LOG_TRACE("VirtPrNode: " << virtPreviousNodes[i]);
-        // If omega is 'inner'
-        if(virt_inner[i])
-        {
-            LOG_TRACE("INNER");
-            // omega on new time layer is equal to omega on previous time layer along characteristic
-            virt_omega[i] = 0;
-            for( int j = 0; j < 9; j++ ) {
-                virt_omega[i] += virt_matrix->getU(i,j) * virtPreviousNodes[i].values[j];
-            }
-
-            // then we must set the corresponding values of the 18x18 matrix
-            gsl_vector_set( om_gsl, 6 * curNN + posInEq18, virt_omega[i] );
-
-            for( int j = 0; j < 9; j++ ) {
-                gsl_matrix_set( U_gsl, 6 * curNN + posInEq18, j, 0 );
-            }
-            for( int j = 9; j < 18; j++ ) {
-                gsl_matrix_set( U_gsl, 6 * curNN + posInEq18, j, virt_matrix->getU( i, j - 9 ) );
-            }
-            posInEq18++;
-        }
-    }
-
-    // Clear the rest 6 rows of the matrix
-    for( int strN = 12; strN < 18; strN++ ) {
-        for( int colN = 0; colN < 18; colN++ ) {
-            gsl_matrix_set( U_gsl, strN, colN, 0 );
-        }
-    }
-
-    for( int strN = 12; strN < 18; strN++ ) {
-        gsl_vector_set( om_gsl, strN, 0 );
-	}
-	
-	float local_n[3][3];
-	local_n[0][0] = outer_normal[0];
-	local_n[0][1] = outer_normal[1];
-	local_n[0][2] = outer_normal[2];
-	createLocalBasis(local_n[0], local_n[1], local_n[2]);
-	
-    // Normal velocities are equal
-    gsl_matrix_set( U_gsl, 12, 0, local_n[0][0]);
-    gsl_matrix_set( U_gsl, 12, 1, local_n[0][1]);
-    gsl_matrix_set( U_gsl, 12, 2, local_n[0][2]);
-    gsl_matrix_set( U_gsl, 12, 9,  - local_n[0][0]);
-    gsl_matrix_set( U_gsl, 12, 10, - local_n[0][1]);
-    gsl_matrix_set( U_gsl, 12, 11, - local_n[0][2]);
-
-    // We use outer normal to find total stress vector (sigma * n) - sum of normal and shear - and tell it is equal
-    // TODO - is it ok?
-    // TODO - never-ending questions - is everything ok with (x-y-z) and (ksi-eta-dzeta) basises?
-
-    // TODO FIXME - it works now because exactly the first axis is the only one where contact is possible
-    // and it coincides with outer normal
-
-    // Normal stresses are equal
-    gsl_matrix_set(U_gsl, 13, 3, local_n[0][0] * local_n[0][0]);
-    gsl_matrix_set(U_gsl, 13, 4, 2 * local_n[0][1] * local_n[0][0]);
-    gsl_matrix_set(U_gsl, 13, 5, 2 * local_n[0][2] * local_n[0][0]);
-    gsl_matrix_set(U_gsl, 13, 6, local_n[0][1] * local_n[0][1]);
-    gsl_matrix_set(U_gsl, 13, 7, 2 * local_n[0][2] * local_n[0][1]);
-    gsl_matrix_set(U_gsl, 13, 8, local_n[0][2] * local_n[0][2]);
-
-    gsl_matrix_set(U_gsl, 13, 12, - local_n[0][0] * local_n[0][0]);
-    gsl_matrix_set(U_gsl, 13, 13, - 2 * local_n[0][1] * local_n[0][0]);
-    gsl_matrix_set(U_gsl, 13, 14, - 2 * local_n[0][2] * local_n[0][0]);
-    gsl_matrix_set(U_gsl, 13, 15, - local_n[0][1] * local_n[0][1]);
-    gsl_matrix_set(U_gsl, 13, 16, - 2 * local_n[0][2] * local_n[0][1]);
-    gsl_matrix_set(U_gsl, 13, 17, - local_n[0][2] * local_n[0][2]);
-
-    // Tangential stresses are zero
-
-    gsl_matrix_set(U_gsl, 14, 3, - (local_n[0][0] * local_n[1][0]) );
-    gsl_matrix_set(U_gsl, 14, 4, - (local_n[0][1] * local_n[1][0] + local_n[0][0] * local_n[1][1]) );
-    gsl_matrix_set(U_gsl, 14, 5, - (local_n[0][2] * local_n[1][0] + local_n[0][0] * local_n[1][2]) );
-    gsl_matrix_set(U_gsl, 14, 6, - (local_n[0][1] * local_n[1][1]) );
-    gsl_matrix_set(U_gsl, 14, 7, - (local_n[0][2] * local_n[1][1] + local_n[0][1] * local_n[1][2]) );
-    gsl_matrix_set(U_gsl, 14, 8, - (local_n[0][2] * local_n[1][2]) );
-
-    gsl_matrix_set(U_gsl, 15, 3, - (local_n[0][0] * local_n[2][0]) );
-    gsl_matrix_set(U_gsl, 15, 4, - (local_n[0][1] * local_n[2][0] + local_n[0][0] * local_n[2][1]) );
-    gsl_matrix_set(U_gsl, 15, 5, - (local_n[0][2] * local_n[2][0] + local_n[0][0] * local_n[2][2]) );
-    gsl_matrix_set(U_gsl, 15, 6, - (local_n[0][1] * local_n[2][1]) );
-    gsl_matrix_set(U_gsl, 15, 7, - (local_n[0][2] * local_n[2][1] + local_n[0][1] * local_n[2][2]) );
-    gsl_matrix_set(U_gsl, 15, 8, - (local_n[0][2] * local_n[2][2]) );
-
-
-    gsl_matrix_set(U_gsl, 16, 12, - (local_n[0][0] * local_n[1][0]) );
-    gsl_matrix_set(U_gsl, 16, 13, - (local_n[0][1] * local_n[1][0] + local_n[0][0] * local_n[1][1]) );
-    gsl_matrix_set(U_gsl, 16, 14, - (local_n[0][2] * local_n[1][0] + local_n[0][0] * local_n[1][2]) );
-    gsl_matrix_set(U_gsl, 16, 15, - (local_n[0][1] * local_n[1][1]) );
-    gsl_matrix_set(U_gsl, 16, 16, - (local_n[0][2] * local_n[1][1] + local_n[0][1] * local_n[1][2]) );
-    gsl_matrix_set(U_gsl, 16, 17, - (local_n[0][2] * local_n[1][2]) );
-
-    gsl_matrix_set(U_gsl, 17, 12, - (local_n[0][0] * local_n[2][0]) );
-    gsl_matrix_set(U_gsl, 17, 13, - (local_n[0][1] * local_n[2][0] + local_n[0][0] * local_n[2][1]) );
-    gsl_matrix_set(U_gsl, 17, 14, - (local_n[0][2] * local_n[2][0] + local_n[0][0] * local_n[2][2]) );
-    gsl_matrix_set(U_gsl, 17, 15, - (local_n[0][1] * local_n[2][1]) );
-    gsl_matrix_set(U_gsl, 17, 16, - (local_n[0][2] * local_n[2][1] + local_n[0][1] * local_n[2][2]) );
-    gsl_matrix_set(U_gsl, 17, 17, - (local_n[0][2] * local_n[2][2]) );
-
-
-    // Tmp value for GSL solver
-    int s;
-    gsl_linalg_LU_decomp (U_gsl, p_gsl, &s);
-    try
-    {
-        gsl_linalg_LU_solve (U_gsl, p_gsl, om_gsl, x_gsl);
-    }
-    catch (Exception& e)
-    {
-        cur_node.setContactCalculationError();
-        for(int i = 0; i < 18; i++) {
-            std::stringstream matStr;
-            for(int j = 0; j < 18; j++)
-                matStr << gsl_matrix_get(U_gsl, i, j) << " ";
-            LOG_TRACE(matStr.str());
-        }
-        LOG_ERROR("Bad node: " << cur_node);
-        LOG_ERROR("Normal: " << outer_normal[0] << " " << outer_normal[1] << " " << outer_normal[2]);
-        LOG_ERROR("Delta: " << virt_node.coords[0] - cur_node.coords[0] 
-                        << " " << virt_node.coords[1] - cur_node.coords[1] 
-                        << " " << virt_node.coords[2] - cur_node.coords[2]);
-        throw;
-    }
-
-    // Just get first 9 values (real node) and dump the rest 9 (virt node)
-    for(int j = 0; j < 9; j++)
-        new_node.values[j] = gsl_vector_get(x_gsl, j);
-	
-	CalcNode new_virt_node;
-	for(int j = 0; j < 9; j++)
-        new_virt_node.values[j] = gsl_vector_get(x_gsl, j + 9);
-	
-	if (isFreeBorder(new_node, new_virt_node, outer_normal))
-    {
-        fbc->doCalc(cur_node, new_node, matrix, previousNodes, inner, outer_normal, scale);
-        return;
-    }
-
-};
-
-bool SlidingContactCalculator::isFreeBorder(CalcNode& cur_node, 
-	CalcNode& virt_node, float outer_normal[])
-{	
-	float local_n[3][3];
-    local_n[0][0] = outer_normal[0];
-    local_n[0][1] = outer_normal[1];
-    local_n[0][2] = outer_normal[2];
-
-    createLocalBasis(local_n[0], local_n[1], local_n[2]);
-
-    //---------------------------------------Check if nodes fall apart
-    LOG_TRACE("Cur node: " << cur_node);
-    LOG_TRACE("Virt node: " << virt_node);
-
-    float vel_rel[3] = {
-        cur_node.vx - virt_node.vx,
-        cur_node.vy - virt_node.vy,
-        cur_node.vz - virt_node.vz
-    };
-    float vel_avg[3] = {
-        cur_node.vx + virt_node.vx,
-        cur_node.vy + virt_node.vy,
-        cur_node.vz + virt_node.vz
-    };
-    float vel_avg_abs = sqrt(scalarProduct(vel_avg, vel_avg));
-    float vel_rel_abs = sqrt(scalarProduct(vel_rel, vel_rel));
-    
-    float force_cur[3] = {
-        cur_node.sxx*outer_normal[0] + cur_node.sxy*outer_normal[1] + cur_node.sxz*outer_normal[2],
-        cur_node.sxy*outer_normal[0] + cur_node.syy*outer_normal[1] + cur_node.syz*outer_normal[2],
-        cur_node.sxz*outer_normal[0] + cur_node.syz*outer_normal[1] + cur_node.szz*outer_normal[2]
-    };
-    float force_virt[3] = {
-        virt_node.sxx*outer_normal[0] + virt_node.sxy*outer_normal[1] + virt_node.sxz*outer_normal[2],
-        virt_node.sxy*outer_normal[0] + virt_node.syy*outer_normal[1] + virt_node.syz*outer_normal[2],
-        virt_node.sxz*outer_normal[0] + virt_node.syz*outer_normal[1] + virt_node.szz*outer_normal[2]
-    };
-
-    float vel_rel_p = scalarProduct(vel_rel, outer_normal);
-    float vel_avg_p = scalarProduct(vel_avg, outer_normal);
-    float force_cur_p = scalarProduct(force_cur,outer_normal);
-    float force_virt_p = scalarProduct(force_virt,outer_normal);
-    float force_rel_p = force_cur_p + force_virt_p;
-
-
-    LOG_TRACE("Vrel: " << vel_rel[0] << " " << vel_rel[1] << " " << vel_rel[2]);
-    LOG_TRACE("Fcur: " << force_cur[0] << " " << force_cur[1] << " " << force_cur[2]);
-    LOG_TRACE("Vavg: " << vel_avg_abs << " Vdelta: " << vel_rel_abs);
-    LOG_TRACE("VrelP: " << vel_rel_p << " Fabs: " << force_rel_p);
-    
-    bool free_border = false;
-    float eps = 0.2*fabs(vel_avg_p);
-    // If relative speed is positive
-    if(vel_rel_p < -eps) {
-    	free_border = true;
-    } else if (vel_rel_p < eps) { 
-        // If relative speed is close to zero, check force
-        if (force_rel_p > 0)
-		{
-            free_border = true;
-		}
-    } 
-    
-    LOG_TRACE("Free border: " << free_border);
-	return free_border;
+	THROW_UNSUPPORTED("Not implemented");
+//    assert_eq(previousNodes.size(), 9);
+//    assert_eq(virtPreviousNodes.size(), 9);
+//
+//    if (isFreeBorder(cur_node, virt_node, outer_normal))
+//    {
+//        fbc->doCalc(cur_node, new_node, matrix, previousNodes, inner, outer_normal, scale);
+//        return;
+//    }
+//
+//    // Here we will store (omega = Matrix_OMEGA * u)
+//    float omega[9];
+//    float virt_omega[9];
+//
+//    int posInEq18 = 0;
+//    int curNN = 0;
+//
+//    // For all omegas of real node
+//    for(int i = 0; i < 9; i++)
+//    {
+//        LOG_TRACE("PrNode: " << previousNodes[i]);
+//        // If omega is 'inner'
+//        if(inner[i])
+//        {
+//            LOG_TRACE("INNER");
+//            // omega on new time layer is equal to omega on previous time layer along characteristic
+//            omega[i] = 0;
+//            for( int j = 0; j < 9; j++ ) {
+//                omega[i] += matrix->getU(i,j) * previousNodes[i].PDE[j];
+//            }
+//
+//            // then we must set the corresponding PDE of the 18x18 matrix
+//            gsl_vector_set( om_gsl, 6 * curNN + posInEq18, omega[i] );
+//
+//            for( int j = 0; j < 9; j++ ) {
+//                gsl_matrix_set( U_gsl, 6 * curNN + posInEq18, j, matrix->getU( i, j ) );
+//            }
+//            for( int j = 9; j < 18; j++ ) {
+//                gsl_matrix_set( U_gsl, 6 * curNN + posInEq18, j, 0 );
+//            }
+//            posInEq18++;
+//        }
+//    }
+//
+//    posInEq18 = 0;
+//    curNN = 1;
+//    // For all omegas of virtual node
+//    for(int i = 0; i < 9; i++)
+//    {
+//        LOG_TRACE("VirtPrNode: " << virtPreviousNodes[i]);
+//        // If omega is 'inner'
+//        if(virt_inner[i])
+//        {
+//            LOG_TRACE("INNER");
+//            // omega on new time layer is equal to omega on previous time layer along characteristic
+//            virt_omega[i] = 0;
+//            for( int j = 0; j < 9; j++ ) {
+//                virt_omega[i] += virt_matrix->getU(i,j) * virtPreviousNodes[i].PDE[j];
+//            }
+//
+//            // then we must set the corresponding PDE of the 18x18 matrix
+//            gsl_vector_set( om_gsl, 6 * curNN + posInEq18, virt_omega[i] );
+//
+//            for( int j = 0; j < 9; j++ ) {
+//                gsl_matrix_set( U_gsl, 6 * curNN + posInEq18, j, 0 );
+//            }
+//            for( int j = 9; j < 18; j++ ) {
+//                gsl_matrix_set( U_gsl, 6 * curNN + posInEq18, j, virt_matrix->getU( i, j - 9 ) );
+//            }
+//            posInEq18++;
+//        }
+//    }
+//
+//    // Clear the rest 6 rows of the matrix
+//    for( int strN = 12; strN < 18; strN++ ) {
+//        for( int colN = 0; colN < 18; colN++ ) {
+//            gsl_matrix_set( U_gsl, strN, colN, 0 );
+//        }
+//    }
+//
+//    for( int strN = 12; strN < 18; strN++ ) {
+//        gsl_vector_set( om_gsl, strN, 0 );
+//	}
+//	
+//	float local_n[3][3];
+//	local_n[0][0] = outer_normal[0];
+//	local_n[0][1] = outer_normal[1];
+//	local_n[0][2] = outer_normal[2];
+//	createLocalBasis(local_n[0], local_n[1], local_n[2]);
+//	
+//    // Normal velocities are equal
+//    gsl_matrix_set( U_gsl, 12, 0, local_n[0][0]);
+//    gsl_matrix_set( U_gsl, 12, 1, local_n[0][1]);
+//    gsl_matrix_set( U_gsl, 12, 2, local_n[0][2]);
+//    gsl_matrix_set( U_gsl, 12, 9,  - local_n[0][0]);
+//    gsl_matrix_set( U_gsl, 12, 10, - local_n[0][1]);
+//    gsl_matrix_set( U_gsl, 12, 11, - local_n[0][2]);
+//
+//    // We use outer normal to find total stress vector (sigma * n) - sum of normal and shear - and tell it is equal
+//    // TODO - is it ok?
+//    // TODO - never-ending questions - is everything ok with (x-y-z) and (ksi-eta-dzeta) basises?
+//
+//    // TODO FIXME - it works now because exactly the first axis is the only one where contact is possible
+//    // and it coincides with outer normal
+//
+//    // Normal stresses are equal
+//    gsl_matrix_set(U_gsl, 13, 3, local_n[0][0] * local_n[0][0]);
+//    gsl_matrix_set(U_gsl, 13, 4, 2 * local_n[0][1] * local_n[0][0]);
+//    gsl_matrix_set(U_gsl, 13, 5, 2 * local_n[0][2] * local_n[0][0]);
+//    gsl_matrix_set(U_gsl, 13, 6, local_n[0][1] * local_n[0][1]);
+//    gsl_matrix_set(U_gsl, 13, 7, 2 * local_n[0][2] * local_n[0][1]);
+//    gsl_matrix_set(U_gsl, 13, 8, local_n[0][2] * local_n[0][2]);
+//
+//    gsl_matrix_set(U_gsl, 13, 12, - local_n[0][0] * local_n[0][0]);
+//    gsl_matrix_set(U_gsl, 13, 13, - 2 * local_n[0][1] * local_n[0][0]);
+//    gsl_matrix_set(U_gsl, 13, 14, - 2 * local_n[0][2] * local_n[0][0]);
+//    gsl_matrix_set(U_gsl, 13, 15, - local_n[0][1] * local_n[0][1]);
+//    gsl_matrix_set(U_gsl, 13, 16, - 2 * local_n[0][2] * local_n[0][1]);
+//    gsl_matrix_set(U_gsl, 13, 17, - local_n[0][2] * local_n[0][2]);
+//
+//    // Tangential stresses are zero
+//
+//    gsl_matrix_set(U_gsl, 14, 3, - (local_n[0][0] * local_n[1][0]) );
+//    gsl_matrix_set(U_gsl, 14, 4, - (local_n[0][1] * local_n[1][0] + local_n[0][0] * local_n[1][1]) );
+//    gsl_matrix_set(U_gsl, 14, 5, - (local_n[0][2] * local_n[1][0] + local_n[0][0] * local_n[1][2]) );
+//    gsl_matrix_set(U_gsl, 14, 6, - (local_n[0][1] * local_n[1][1]) );
+//    gsl_matrix_set(U_gsl, 14, 7, - (local_n[0][2] * local_n[1][1] + local_n[0][1] * local_n[1][2]) );
+//    gsl_matrix_set(U_gsl, 14, 8, - (local_n[0][2] * local_n[1][2]) );
+//
+//    gsl_matrix_set(U_gsl, 15, 3, - (local_n[0][0] * local_n[2][0]) );
+//    gsl_matrix_set(U_gsl, 15, 4, - (local_n[0][1] * local_n[2][0] + local_n[0][0] * local_n[2][1]) );
+//    gsl_matrix_set(U_gsl, 15, 5, - (local_n[0][2] * local_n[2][0] + local_n[0][0] * local_n[2][2]) );
+//    gsl_matrix_set(U_gsl, 15, 6, - (local_n[0][1] * local_n[2][1]) );
+//    gsl_matrix_set(U_gsl, 15, 7, - (local_n[0][2] * local_n[2][1] + local_n[0][1] * local_n[2][2]) );
+//    gsl_matrix_set(U_gsl, 15, 8, - (local_n[0][2] * local_n[2][2]) );
+//
+//
+//    gsl_matrix_set(U_gsl, 16, 12, - (local_n[0][0] * local_n[1][0]) );
+//    gsl_matrix_set(U_gsl, 16, 13, - (local_n[0][1] * local_n[1][0] + local_n[0][0] * local_n[1][1]) );
+//    gsl_matrix_set(U_gsl, 16, 14, - (local_n[0][2] * local_n[1][0] + local_n[0][0] * local_n[1][2]) );
+//    gsl_matrix_set(U_gsl, 16, 15, - (local_n[0][1] * local_n[1][1]) );
+//    gsl_matrix_set(U_gsl, 16, 16, - (local_n[0][2] * local_n[1][1] + local_n[0][1] * local_n[1][2]) );
+//    gsl_matrix_set(U_gsl, 16, 17, - (local_n[0][2] * local_n[1][2]) );
+//
+//    gsl_matrix_set(U_gsl, 17, 12, - (local_n[0][0] * local_n[2][0]) );
+//    gsl_matrix_set(U_gsl, 17, 13, - (local_n[0][1] * local_n[2][0] + local_n[0][0] * local_n[2][1]) );
+//    gsl_matrix_set(U_gsl, 17, 14, - (local_n[0][2] * local_n[2][0] + local_n[0][0] * local_n[2][2]) );
+//    gsl_matrix_set(U_gsl, 17, 15, - (local_n[0][1] * local_n[2][1]) );
+//    gsl_matrix_set(U_gsl, 17, 16, - (local_n[0][2] * local_n[2][1] + local_n[0][1] * local_n[2][2]) );
+//    gsl_matrix_set(U_gsl, 17, 17, - (local_n[0][2] * local_n[2][2]) );
+//
+//
+//    // Tmp value for GSL solver
+//    int s;
+//    gsl_linalg_LU_decomp (U_gsl, p_gsl, &s);
+//    try
+//    {
+//        gsl_linalg_LU_solve (U_gsl, p_gsl, om_gsl, x_gsl);
+//    }
+//    catch (Exception& e)
+//    {
+//        cur_node.setContactCalculationError();
+//        for(int i = 0; i < 18; i++) {
+//            std::stringstream matStr;
+//            for(int j = 0; j < 18; j++)
+//                matStr << gsl_matrix_get(U_gsl, i, j) << " ";
+//            LOG_TRACE(matStr.str());
+//        }
+//        LOG_ERROR("Bad node: " << cur_node);
+//        LOG_ERROR("Normal: " << outer_normal[0] << " " << outer_normal[1] << " " << outer_normal[2]);
+//        LOG_ERROR("Delta: " << virt_node.coords[0] - cur_node.coords[0] 
+//                        << " " << virt_node.coords[1] - cur_node.coords[1] 
+//                        << " " << virt_node.coords[2] - cur_node.coords[2]);
+//        throw;
+//    }
+//
+//    // Just get first 9 PDE (real node) and dump the rest 9 (virt node)
+//    for(int j = 0; j < 9; j++)
+//        new_node.PDE[j] = gsl_vector_get(x_gsl, j);
+//	
+//	Node new_virt_node;
+//	for(int j = 0; j < 9; j++)
+//        new_virt_node.PDE[j] = gsl_vector_get(x_gsl, j + 9);
+//	
+//	if (isFreeBorder(new_node, new_virt_node, outer_normal))
+//    {
+//        fbc->doCalc(cur_node, new_node, matrix, previousNodes, inner, outer_normal, scale);
+//        return;
+//    }
+//
+//};
+//
+//bool SlidingContactCalculator::isFreeBorder(Node& cur_node, 
+//	Node& virt_node, float outer_normal[])
+//{	
+//	float local_n[3][3];
+//    local_n[0][0] = outer_normal[0];
+//    local_n[0][1] = outer_normal[1];
+//    local_n[0][2] = outer_normal[2];
+//
+//    createLocalBasis(local_n[0], local_n[1], local_n[2]);
+//
+//    //---------------------------------------Check if nodes fall apart
+//    LOG_TRACE("Cur node: " << cur_node);
+//    LOG_TRACE("Virt node: " << virt_node);
+//
+//    float vel_rel[3] = {
+//        cur_node.vx - virt_node.vx,
+//        cur_node.vy - virt_node.vy,
+//        cur_node.vz - virt_node.vz
+//    };
+//    float vel_avg[3] = {
+//        cur_node.vx + virt_node.vx,
+//        cur_node.vy + virt_node.vy,
+//        cur_node.vz + virt_node.vz
+//    };
+//    float vel_avg_abs = sqrt(scalarProduct(vel_avg, vel_avg));
+//    float vel_rel_abs = sqrt(scalarProduct(vel_rel, vel_rel));
+//    
+//    float force_cur[3] = {
+//        cur_node.sxx*outer_normal[0] + cur_node.sxy*outer_normal[1] + cur_node.sxz*outer_normal[2],
+//        cur_node.sxy*outer_normal[0] + cur_node.syy*outer_normal[1] + cur_node.syz*outer_normal[2],
+//        cur_node.sxz*outer_normal[0] + cur_node.syz*outer_normal[1] + cur_node.szz*outer_normal[2]
+//    };
+//    float force_virt[3] = {
+//        virt_node.sxx*outer_normal[0] + virt_node.sxy*outer_normal[1] + virt_node.sxz*outer_normal[2],
+//        virt_node.sxy*outer_normal[0] + virt_node.syy*outer_normal[1] + virt_node.syz*outer_normal[2],
+//        virt_node.sxz*outer_normal[0] + virt_node.syz*outer_normal[1] + virt_node.szz*outer_normal[2]
+//    };
+//
+//    float vel_rel_p = scalarProduct(vel_rel, outer_normal);
+//    float vel_avg_p = scalarProduct(vel_avg, outer_normal);
+//    float force_cur_p = scalarProduct(force_cur,outer_normal);
+//    float force_virt_p = scalarProduct(force_virt,outer_normal);
+//    float force_rel_p = force_cur_p + force_virt_p;
+//
+//
+//    LOG_TRACE("Vrel: " << vel_rel[0] << " " << vel_rel[1] << " " << vel_rel[2]);
+//    LOG_TRACE("Fcur: " << force_cur[0] << " " << force_cur[1] << " " << force_cur[2]);
+//    LOG_TRACE("Vavg: " << vel_avg_abs << " Vdelta: " << vel_rel_abs);
+//    LOG_TRACE("VrelP: " << vel_rel_p << " Fabs: " << force_rel_p);
+//    
+//    bool free_border = false;
+//    float eps = 0.2*fabs(vel_avg_p);
+//    // If relative speed is positive
+//    if(vel_rel_p < -eps) {
+//    	free_border = true;
+//    } else if (vel_rel_p < eps) { 
+//        // If relative speed is close to zero, check force
+//        if (force_rel_p > 0)
+//		{
+//            free_border = true;
+//		}
+//    } 
+//    
+//    LOG_TRACE("Free border: " << free_border);
+//	return free_border;
 };

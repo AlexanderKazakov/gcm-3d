@@ -17,6 +17,12 @@ Node::Node(uchar sizeOfValuesInPDE,
 	ODE = PDE = NULL;
 }
 
+Node::Node(int num, const vector3r& coords) :
+           number(number), coords(coords)
+{
+	ODE = PDE = NULL;
+}
+
 Node::~Node()
 {
     // No delete[] calls here, since we use placement new 
@@ -132,10 +138,17 @@ RheologyMatrixPtr Node::getRheologyMatrix() const
     return rheologyMatrix;
 }
 
-/*MaterialPtr CalcNode::getMaterial() const
+/*MaterialPtr Node::getMaterial() const
 {
     return Engine::getInstance().getMaterial(materialId);
 }*/
+
+void Node::setPlacement(bool local)
+{
+    setUsed(true);
+    privateFlags.local = local;
+}
+
 
 bool Node::isUsed() const
 {
@@ -145,6 +158,29 @@ bool Node::isUsed() const
 void Node::setUsed(bool value)
 {
     publicFlags.isUsed = value;
+}
+
+
+bool Node::isFirstOrder() const
+{
+    return publicFlags.order == 0;
+}
+
+bool Node::isSecondOrder() const
+{
+    return publicFlags.order == 1;
+}
+
+void Node::setOrder(uchar order)
+{
+    switch (order) {
+    case 1: publicFlags.order = 0;
+        break;
+    case 2: publicFlags.order = 1;
+        break;
+    case 0: THROW_INVALID_ARG("Invalid node order specified");
+    default: THROW_UNSUPPORTED("Only first and second order nodes are supported at the moment");
+    }
 }
 
 bool Node::isHighOrder() const
@@ -201,6 +237,10 @@ bool Node::isDestroyed() const
 void Node::setDestroyed(bool value)
 {
     publicFlags.isDestroyed = value;
+}
+
+bool Node::isLocal(bool mustBeUsed) const {
+	return (isUsed() || !mustBeUsed) && privateFlags.local;
 }
 
 bool Node::isContactDestroyed() const

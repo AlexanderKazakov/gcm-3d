@@ -3,7 +3,7 @@
 #include "libgcm/snapshot/VTK2SnapshotWriter.hpp"
 #include "libgcm/snapshot/VTKSnapshotWriter.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 using std::unordered_map;
@@ -39,7 +39,7 @@ void TetrMeshSecondOrder::createTriangles(int number)
     faceStorageSize = number;
 }
 
-TetrFirstOrder& TetrMeshSecondOrder::getTetr(unsigned int index)
+TetrahedronFirstOrder& TetrMeshSecondOrder::getTetr(unsigned int index)
 {
     assert_ge(index, 0);
     unordered_map<int, int>::const_iterator itr;
@@ -48,7 +48,7 @@ TetrFirstOrder& TetrMeshSecondOrder::getTetr(unsigned int index)
     return tetrs2[itr->second];
 }
 
-TetrSecondOrder& TetrMeshSecondOrder::getTetr2(int index)
+TetrahedronSecondOrder& TetrMeshSecondOrder::getTetr2(int index)
 {
     assert_ge(index, 0);
     unordered_map<int, int>::const_iterator itr;
@@ -57,13 +57,13 @@ TetrSecondOrder& TetrMeshSecondOrder::getTetr2(int index)
     return tetrs2[itr->second];
 }
 
-TetrFirstOrder& TetrMeshSecondOrder::getTetrByLocalIndex(unsigned int index)
+TetrahedronFirstOrder& TetrMeshSecondOrder::getTetrByLocalIndex(unsigned int index)
 {
     assert_ge(index, 0);
     return tetrs2[index];
 }
 
-TetrSecondOrder& TetrMeshSecondOrder::getTetr2ByLocalIndex(int index)
+TetrahedronSecondOrder& TetrMeshSecondOrder::getTetr2ByLocalIndex(int index)
 {
     assert_ge(index, 0);
     return tetrs2[index];
@@ -79,18 +79,18 @@ void TetrMeshSecondOrder::rebuildMaps()
         tetrsMap[getTetr2ByLocalIndex(i).number] = i;
 }
 
-void TetrMeshSecondOrder::addTetr(TetrFirstOrder& tetr)
+void TetrMeshSecondOrder::addTetr(TetrahedronFirstOrder& tetr)
 {
     if (tetrsNumber == tetrsStorageSize)
         createTetrs(tetrsStorageSize * STORAGE_ONDEMAND_GROW_RATE);
     assert_lt(tetrsNumber, tetrsStorageSize);
     tetrs2[tetrsNumber].number = tetr.number;
-    memcpy(tetrs2[tetrsNumber].verts, tetr.verts, 4 * sizeof (int));
+    memcpy(tetrs2[tetrsNumber].vertices, tetr.vertices, 4 * sizeof (int));
     tetrsMap[tetr.number] = tetrsNumber;
     tetrsNumber++;
 }
 
-void TetrMeshSecondOrder::addTetr2(TetrSecondOrder& tetr)
+void TetrMeshSecondOrder::addTetr2(TetrahedronSecondOrder& tetr)
 {
     if (tetrsNumber == tetrsStorageSize)
         createTetrs(tetrsStorageSize * STORAGE_ONDEMAND_GROW_RATE);
@@ -147,8 +147,8 @@ bool TetrMeshSecondOrder::belongsToTetr(int nodeNum, int tetrNum, int faceNum)
             ai3 = j;
     }
     
-    TetrSecondOrder& tetr = getTetr2(tetrNum);
-    if( (nodeNum == tetr.verts[i1]) || (nodeNum == tetr.verts[i2]) || (nodeNum == tetr.verts[i3])
+    TetrahedronSecondOrder& tetr = getTetr2(tetrNum);
+    if( (nodeNum == tetr.vertices[i1]) || (nodeNum == tetr.vertices[i2]) || (nodeNum == tetr.vertices[i3])
                 || (nodeNum == tetr.addVerts[ai1]) || (nodeNum == tetr.addVerts[ai2]) || (nodeNum == tetr.addVerts[ai3]))
         return true;
     else
@@ -232,9 +232,9 @@ void TetrMeshSecondOrder::verifyTetrahedraVertices()
 {
     LOG_DEBUG("Verifying second order tetrahedra vertices");
     for (int tetrInd = 0; tetrInd < tetrsNumber; tetrInd++) {
-        TetrSecondOrder& tetr = getTetr2ByLocalIndex(tetrInd);
+        TetrahedronSecondOrder& tetr = getTetr2ByLocalIndex(tetrInd);
         for (int vertInd = 0; vertInd < 4; vertInd++) {
-            int nodeNum = tetr.verts[vertInd];
+            int nodeNum = tetr.vertices[vertInd];
             assert_ge(nodeNum, 0);
             assert_true(getNode(nodeNum).isFirstOrder());
         }
@@ -264,14 +264,14 @@ void TetrMeshSecondOrder::build_volume_reverse_lookups()
         int i = itr->first;
         // For all verticles
         for (int j = 0; j < 4; j++) {
-            TetrFirstOrder& tetr = getTetr(i);
-            int nodeInd = tetr.verts[j];
+            TetrahedronFirstOrder& tetr = getTetr(i);
+            int nodeInd = tetr.vertices[j];
             assert_true(getNode(nodeInd).isFirstOrder());
             // Push to data of nodes the number of this tetrahedron
             getVolumeElementsForNode(nodeInd).push_back(tetr.number);
         }
         for (int j = 0; j < 6; j++) {
-            TetrSecondOrder& tetr2 = getTetr2(i);
+            TetrahedronSecondOrder& tetr2 = getTetr2(i);
             int nodeInd = tetr2.addVerts[j];
             assert_true(getNode(nodeInd).isSecondOrder());
             // Push to data of nodes the number of this tetrahedron
@@ -280,7 +280,7 @@ void TetrMeshSecondOrder::build_volume_reverse_lookups()
     }
 
     for (MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr) {
-        CalcNode& node = getNode(itr->first);
+        Node& node = getNode(itr->first);
         int num = getVolumeElementsForNode(itr->first).size();
         if (num <= 0)
             LOG_DEBUG("Node is not a part of volumes. Node: " << node);
@@ -302,8 +302,8 @@ void TetrMeshSecondOrder::build_first_order_border()
     //for( int i = 0; i < nodesNumber; i++ ) {
     for (MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr) {
         int i = itr->first;
-        CalcNode& node = getNode(i);
-        node.setIsBorder(false);
+        Node& node = getNode(i);
+        node.setBorder(false);
         if (/*node.isLocal() &&*/ node.isFirstOrder()) {
             solid_angle = 0;
             vector<int>& elements = getVolumeElementsForNode(i);
@@ -316,7 +316,7 @@ void TetrMeshSecondOrder::build_first_order_border()
                 solid_angle += solid_angle_part;
             }
             if (fabs(4 * M_PI - solid_angle) > M_PI * EQUALITY_TOLERANCE) {
-                node.setIsBorder(true);
+                node.setBorder(true);
                 nodeCount++;
             }
         }
@@ -335,9 +335,9 @@ void TetrMeshSecondOrder::build_first_order_border()
     for (MapIter itr = tetrsMap.begin(); itr != tetrsMap.end(); ++itr) {
         int i = itr->first;
         for (int j = 0; j < 4; j++) {
-            if (isTriangleBorder(getTetr(i).verts))
+            if (isTriangleBorder(getTetr(i).vertices))
                 faceCount++;
-            shiftArrayLeft(getTetr(i).verts, 4);
+            shiftArrayLeft(getTetr(i).vertices, 4);
         }
     }
 
@@ -354,11 +354,11 @@ void TetrMeshSecondOrder::build_first_order_border()
     for (MapIter itr = tetrsMap.begin(); itr != tetrsMap.end(); ++itr) {
         int i = itr->first;
         for (int j = 0; j < 4; j++) {
-            if (isTriangleBorder(getTetr(i).verts)) {
-                getTriangle(number) = createBorderTriangle(getTetr(i).verts, number);
+            if (isTriangleBorder(getTetr(i).vertices)) {
+                getTriangle(number) = createBorderTriangle(getTetr(i).vertices, number);
                 number++;
             }
-            shiftArrayLeft(getTetr(i).verts, 4);
+            shiftArrayLeft(getTetr(i).vertices, 4);
         }
     }
     
@@ -385,8 +385,8 @@ void TetrMeshSecondOrder::generateSecondOrderBorder()
     int minI, maxI;
     for (int i = 0; i < faceNumber; i++) {
         for (int j = 0; j < 3; j++) {
-            v1 = getTriangle(i).verts[ combinations[j].first ];
-            v2 = getTriangle(i).verts[ combinations[j].second ];
+            v1 = getTriangle(i).vertices[ combinations[j].first ];
+            v2 = getTriangle(i).vertices[ combinations[j].second ];
 
             //if( ( v1 == 0 && v2 == 420 ) || ( v1 == 420 && v2 == 0 ) )
             //    debug = true;
@@ -399,9 +399,9 @@ void TetrMeshSecondOrder::generateSecondOrderBorder()
                 v2pos = -1;
                 curTInd = elements[k];
                 for (int z = 0; z < 4; z++) {
-                    if (getTetr(curTInd).verts[z] == v1)
+                    if (getTetr(curTInd).vertices[z] == v1)
                         v1pos = z;
-                    if (getTetr(curTInd).verts[z] == v2)
+                    if (getTetr(curTInd).vertices[z] == v2)
                         v2pos = z;
                 }
                 if (v1pos >= 0 && v2pos >= 0) {
@@ -433,7 +433,7 @@ void TetrMeshSecondOrder::generateSecondOrderBorder()
             assert_ne(ind, -1);
             assert_true(getNode(ind).isSecondOrder());
             getTriangle2(i).addVerts[j] = ind;
-            getNode(ind).setIsBorder(true);
+            getNode(ind).setBorder(true);
         }
     }
 
@@ -454,7 +454,7 @@ void TetrMeshSecondOrder::build_surface_reverse_lookups()
     // Go through all the triangles and push to data of nodes the number of this triangle
     for (int i = 0; i < faceNumber; i++) {
         for (int j = 0; j < 3; j++) {
-            int nodeInd = getTriangle(i).verts[j];
+            int nodeInd = getTriangle(i).vertices[j];
             assert_true(getNode(nodeInd).isFirstOrder());
             getBorderElementsForNode(nodeInd).push_back(i);
         }
@@ -466,7 +466,7 @@ void TetrMeshSecondOrder::build_surface_reverse_lookups()
     }
 
     for (MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr) {
-        CalcNode& node = getNode(itr->first);
+        Node& node = getNode(itr->first);
         int num = getBorderElementsForNode(itr->first).size();
         if (node.isBorder() && num <= 0)
             LOG_DEBUG("Border node is not a part of faces. Node: " << node);
@@ -493,8 +493,8 @@ void TetrMeshSecondOrder::moveCoords(float tau)
         int i = itr->first;
         for (int j = 0; j < 6; j++) {
             ind = getTetr2(i).addVerts[j];
-            v1 = getTetr(i).verts[ combinations[j].first ];
-            v2 = getTetr(i).verts[ combinations[j].second ];
+            v1 = getTetr(i).vertices[ combinations[j].first ];
+            v2 = getTetr(i).vertices[ combinations[j].second ];
             moveSecondOrderNode(ind, v1, v2);
         }
     }
@@ -502,10 +502,10 @@ void TetrMeshSecondOrder::moveCoords(float tau)
 
 void TetrMeshSecondOrder::moveSecondOrderNode(int nodeIdx, int nodeIdx1, int nodeIdx2)
 {
-    CalcNode& node = getNode(nodeIdx);
-    CalcNode& newNode = getNewNode(nodeIdx);
-    CalcNode& node1 = getNode(nodeIdx1);
-    CalcNode& node2 = getNode(nodeIdx2);
+    Node& node = getNode(nodeIdx);
+    Node& newNode = getNewNode(nodeIdx);
+    Node& node1 = getNode(nodeIdx1);
+    Node& node2 = getNode(nodeIdx2);
 
     for (int i = 0; i < 3; i++) {
         node.coords[i] = (node1.coords[i] + node2.coords[i]) * 0.5;
@@ -513,16 +513,16 @@ void TetrMeshSecondOrder::moveSecondOrderNode(int nodeIdx, int nodeIdx1, int nod
     }
 }
 
-void TetrMeshSecondOrder::fillSecondOrderNode(CalcNode& newNode, int nodeIdx1, int nodeIdx2)
+void TetrMeshSecondOrder::fillSecondOrderNode(Node& newNode, int nodeIdx1, int nodeIdx2)
 {
-    CalcNode& node1 = getNode(nodeIdx1);
-    CalcNode& node2 = getNode(nodeIdx2);
+    Node& node1 = getNode(nodeIdx1);
+    Node& node2 = getNode(nodeIdx2);
 
     for (int i = 0; i < 3; i++)
         newNode.coords[i] = (node1.coords[i] + node2.coords[i]) * 0.5;
 
     for (int i = 0; i < 9; i++)
-        newNode.values[i] = (node1.values[i] + node2.values[i]) * 0.5;
+        newNode.PDE[i] = (node1.PDE[i] + node2.PDE[i]) * 0.5;
 
     newNode.setRho((node1.getRho() + node2.getRho()) * 0.5);
     newNode.setMaterialId(node1.getMaterialId());
@@ -566,12 +566,12 @@ int TetrMeshSecondOrder::countSecondOrderNodes(TetrMeshFirstOrder* src)
     int v1, v2;
     int ind;
     for (int i = 0; i < src->getTetrsNumber(); i++) {
-        TetrFirstOrder& tetr = src->getTetrByLocalIndex(i);
+        TetrahedronFirstOrder& tetr = src->getTetrByLocalIndex(i);
         //if( body->getEngine()->getRank() == 1 )
         //    LOG_DEBUG("Tetr " << i << " Num: " << tetr.number);
         for (int j = 0; j < 6; j++) {
-            v1 = tetr.verts[ combinations[j].first ];
-            v2 = tetr.verts[ combinations[j].second ];
+            v1 = tetr.vertices[ combinations[j].first ];
+            v2 = tetr.vertices[ combinations[j].second ];
             //if( body->getEngine()->getRank() == 1 )
             //    LOG_DEBUG("V1 = " << v1 << " V2 = " << v2);
             ind = -1;
@@ -603,7 +603,7 @@ int TetrMeshSecondOrder::countSecondOrderNodes(TetrMeshFirstOrder* src)
 
 void TetrMeshSecondOrder::generateSecondOrderNodes()
 {
-    CalcNode node;
+    Node node;
 
     if (secondOrderNodesAreGenerated)
         return;
@@ -639,8 +639,8 @@ void TetrMeshSecondOrder::generateSecondOrderNodes()
     for (MapIter itr = tetrsMap.begin(); itr != tetrsMap.end(); ++itr) {
         int i = itr->first;
         for (int j = 0; j < 6; j++) {
-            v1 = getTetr(i).verts[ combinations[j].first ];
-            v2 = getTetr(i).verts[ combinations[j].second ];
+            v1 = getTetr(i).vertices[ combinations[j].first ];
+            v2 = getTetr(i).vertices[ combinations[j].second ];
             ind = -1;
 
             for (unsigned int z = 0; z < processed[v1]->size(); z++)
@@ -675,8 +675,8 @@ void TetrMeshSecondOrder::generateSecondOrderNodes()
     secondOrderNodesAreGenerated = true;
 }
 
-bool TetrMeshSecondOrder::interpolateNode(CalcNode& origin, float dx, float dy, float dz, bool debug,
-                                               CalcNode& targetNode, bool& isInnerPoint)
+bool TetrMeshSecondOrder::interpolateNode(Node& origin, float dx, float dy, float dz, bool debug,
+                                               Node& targetNode, bool& isInnerPoint)
 {
     int tetrInd = findOwnerTetr(origin, dx, dy, dz, debug,
                                 targetNode.coords, &isInnerPoint);
@@ -684,10 +684,10 @@ bool TetrMeshSecondOrder::interpolateNode(CalcNode& origin, float dx, float dy, 
     if (tetrInd == -1)
         return false;
 
-    TetrSecondOrder& tmp_tetr = getTetr2(tetrInd);
+    TetrahedronSecondOrder& tmp_tetr = getTetr2(tetrInd);
     interpolator->interpolate(targetNode,
-                              getNode(tmp_tetr.verts[0]), getNode(tmp_tetr.verts[1]),
-                              getNode(tmp_tetr.verts[2]), getNode(tmp_tetr.verts[3]),
+                              getNode(tmp_tetr.vertices[0]), getNode(tmp_tetr.vertices[1]),
+                              getNode(tmp_tetr.vertices[2]), getNode(tmp_tetr.vertices[3]),
                               getNode(tmp_tetr.addVerts[0]), getNode(tmp_tetr.addVerts[1]),
                               getNode(tmp_tetr.addVerts[2]), getNode(tmp_tetr.addVerts[3]),
                               getNode(tmp_tetr.addVerts[4]), getNode(tmp_tetr.addVerts[5]));
@@ -695,18 +695,18 @@ bool TetrMeshSecondOrder::interpolateNode(CalcNode& origin, float dx, float dy, 
 }
 
 // FIXME_ASAP: rewrite it
-bool TetrMeshSecondOrder::interpolateNode(CalcNode& node)
+bool TetrMeshSecondOrder::interpolateNode(Node& node)
 {
     for (int i = 0; i < getTetrsNumber(); i++)
     {
-        TetrSecondOrder& t = getTetr2ByLocalIndex(i);
+        TetrahedronSecondOrder& t = getTetr2ByLocalIndex(i);
         if ( pointInTetr(node.coords.x, node.coords.y, node.coords.z,
-                getNode(t.verts[0]).coords, getNode(t.verts[1]).coords,
-                getNode(t.verts[2]).coords, getNode(t.verts[3]).coords, false) )
+                getNode(t.vertices[0]).coords, getNode(t.vertices[1]).coords,
+                getNode(t.vertices[2]).coords, getNode(t.vertices[3]).coords, false) )
         {
             interpolator->interpolate( node,
-                    getNode(t.verts[0]), getNode(t.verts[1]),
-                    getNode(t.verts[2]), getNode(t.verts[3]),
+                    getNode(t.vertices[0]), getNode(t.vertices[1]),
+                    getNode(t.vertices[2]), getNode(t.vertices[3]),
                     getNode(t.addVerts[0]), getNode(t.addVerts[1]),
                     getNode(t.addVerts[2]), getNode(t.addVerts[3]),
                     getNode(t.addVerts[4]), getNode(t.addVerts[5]));

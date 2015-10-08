@@ -1,6 +1,6 @@
 #include "libgcm/node/FiniteStrainIdealElasticNode.hpp"
 #include "libgcm/util/Assertion.hpp"
-#include "libgcm/util/Math.hpp"
+#include "libgcm/Math.hpp"
 
 using namespace gcm;
 

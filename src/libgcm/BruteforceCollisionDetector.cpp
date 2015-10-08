@@ -1,7 +1,7 @@
 #include "libgcm/BruteforceCollisionDetector.hpp"
 
 #include "launcher/loaders/mesh/BasicCubicMeshLoader.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/Engine.hpp"
 #include "launcher/loaders/mesh/RectangularCutCubicMeshLoader.hpp"
 
@@ -21,12 +21,11 @@ string BruteforceCollisionDetector::getType () const
     return "BruteforceCollisionDetector";
 }
 
-void BruteforceCollisionDetector::find_collisions(vector<CalcNode> &virt_nodes)
+void BruteforceCollisionDetector::find_collisions(vector<Node> &virt_nodes)
 {
     Engine& e = Engine::getInstance();
     AABB intersection;
-    //data_bus->sync_outlines();
-    vector<CalcNode> local_nodes;
+    vector<Node> local_nodes;
 
     LOG_DEBUG("Processing local/local collisions");
 
@@ -83,16 +82,16 @@ void BruteforceCollisionDetector::find_collisions(vector<CalcNode> &virt_nodes)
                             if (z != m)
                                 direction[z] = 0;
 
-                        CalcNode new_node;
+                        Node new_node;
                         if( mesh2->interpolateBorderNode(
                                 local_nodes[k].coords[0], local_nodes[k].coords[1], local_nodes[k].coords[2],
                                 direction[0] * get_threshold(), direction[1] * get_threshold(),
 						        direction[2] * get_threshold(), new_node) )
                         {
-                            new_node.setIsBorder(true);
+                            new_node.setBorder(true);
                             new_node.setInContact(true);
                             new_node.contactNodeNum = j;
-                            new_node.setCustomFlag(CalcNode::FLAG_1, 1);
+                            new_node.setCustomFlag(Node::FLAG_1, 1);
 							new_node.contactDirection = m;
                             (mesh1->getNode(local_nodes[k].number)).setInContact(true);
                             (mesh1->getNode(local_nodes[k].number)).contactNodeNum = virt_nodes.size();

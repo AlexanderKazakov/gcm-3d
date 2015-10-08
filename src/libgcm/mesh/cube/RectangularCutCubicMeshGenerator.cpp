@@ -1,6 +1,6 @@
 #include "libgcm/mesh/cube/RectangularCutCubicMeshGenerator.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 
@@ -29,7 +29,7 @@ void RectangularCutCubicMeshGenerator::loadMesh(RectangularCutCubicMesh* mesh,
                 float x = i*h;
                 float y = j*h;
                 float z = k*h;
-                CalcNode* node = new CalcNode();//(n, x, y, z);
+                Node* node = new Node();//(n, x, y, z);
                 node->number = n;
                 node->coords[0] = x;
                 node->coords[1] = y;

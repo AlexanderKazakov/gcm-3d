@@ -3,7 +3,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
+#include "libgcm/Engine.hpp"
 
 using namespace gcm;
 using std::numeric_limits;
@@ -58,7 +59,7 @@ int TetrMeshFirstOrder::getTriangleNumber()
     return faceNumber;
 }
 
-TetrFirstOrder& TetrMeshFirstOrder::getTetr(unsigned int index) {
+TetrahedronFirstOrder& TetrMeshFirstOrder::getTetr(unsigned int index) {
     unordered_map<int, int>::const_iterator itr;
     itr = tetrsMap.find(index);
     assert_true(itr != tetrsMap.end() );
@@ -71,7 +72,7 @@ bool TetrMeshFirstOrder::hasTetr(unsigned int index) {
     return itr != tetrsMap.end();
 }
 
-TetrFirstOrder& TetrMeshFirstOrder::getTetrByLocalIndex(unsigned int index) {
+TetrahedronFirstOrder& TetrMeshFirstOrder::getTetrByLocalIndex(unsigned int index) {
     return tetrs1[index];
 }
 
@@ -94,7 +95,7 @@ void TetrMeshFirstOrder::createTriangles(int number) {
     faceStorageSize = number;
 }
 
-void TetrMeshFirstOrder::addTetr(TetrFirstOrder& tetr) {
+void TetrMeshFirstOrder::addTetr(TetrahedronFirstOrder& tetr) {
     if( tetrsNumber == tetrsStorageSize )
         createTetrs(tetrsStorageSize*STORAGE_ONDEMAND_GROW_RATE);
     assert_lt(tetrsNumber, tetrsStorageSize );
@@ -147,7 +148,7 @@ void TetrMeshFirstOrder::initSpatialIndex()
     kdtree = kd_create(3);
     for( MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr ) {
         int i = itr->first;
-        CalcNode& node = getNode(i);
+        Node& node = getNode(i);
         kd_insert3( kdtree, node.coords.x, node.coords.y, node.coords.z, &node );
     }
 }
@@ -167,11 +168,11 @@ void TetrMeshFirstOrder::build_volume_reverse_lookups()
     //for(int i = 0; i < tetrsNumber; i++) {
     for( MapIter itr = tetrsMap.begin(); itr != tetrsMap.end(); ++itr ) {
         int i = itr->first;
-        TetrFirstOrder& tetr = getTetr(i);
+        TetrahedronFirstOrder& tetr = getTetr(i);
         // For all verticles
         for(int j = 0; j < 4; j++)
         {
-            CalcNode& node = getNode( tetr.verts[j] );
+            Node& node = getNode( tetr.vertices[j] );
             assert_true(node.isFirstOrder() );
             // Push to data of nodes the number of this tetrahedron
             getVolumeElementsForNode(i).push_back( tetr.number );
@@ -219,8 +220,8 @@ void TetrMeshFirstOrder::build_border()
     //for( int i = 0; i < nodesNumber; i++ ) {
     for( MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr ) {
         int i = itr->first;
-        CalcNode& node = getNode(i);
-        node.setIsBorder(false);
+        Node& node = getNode(i);
+        node.setBorder(false);
         // We consider remote nodes to be 'border' of current local ones
         if( /*node.isLocal() &&*/ node.isFirstOrder() )
         {
@@ -233,7 +234,7 @@ void TetrMeshFirstOrder::build_border()
                 solid_angle += solid_angle_part;
             }
             if( fabs(4 * M_PI - solid_angle) > M_PI * EQUALITY_TOLERANCE ) {
-                node.setIsBorder (true);
+                node.setBorder (true);
                 nodeCount++;
             }
         }
@@ -251,12 +252,12 @@ void TetrMeshFirstOrder::build_border()
     //for(int i = 0; i < tetrsNumber; i++) {
     for( MapIter itr = tetrsMap.begin(); itr != tetrsMap.end(); ++itr ) {
         int i = itr->first;
-        TetrFirstOrder& tetr = getTetr(i);
+        TetrahedronFirstOrder& tetr = getTetr(i);
         for( int j = 0; j < 4; j++ )
         {
-            if( isTriangleBorder( tetr.verts ) )
+            if( isTriangleBorder( tetr.vertices ) )
                 faceCount++;
-            shiftArrayLeft( tetr.verts, 4 );
+            shiftArrayLeft( tetr.vertices, 4 );
         }
     }
 
@@ -267,15 +268,15 @@ void TetrMeshFirstOrder::build_border()
     //for(int i = 0; i < tetrsNumber; i++) {
     for( MapIter itr = tetrsMap.begin(); itr != tetrsMap.end(); ++itr ) {
         int i = itr->first;
-        TetrFirstOrder& tetr = getTetr(i);
+        TetrahedronFirstOrder& tetr = getTetr(i);
         for( int j = 0; j < 4; j++ )
         {
-            if( isTriangleBorder( tetr.verts ) )
+            if( isTriangleBorder( tetr.vertices ) )
             {
-                getTriangle(number) = createBorderTriangle( tetr.verts, number );
+                getTriangle(number) = createBorderTriangle( tetr.vertices, number );
                 number++;
             }
-            shiftArrayLeft( tetr.verts, 4 );
+            shiftArrayLeft( tetr.vertices, 4 );
         }
     }
 
@@ -300,7 +301,7 @@ void TetrMeshFirstOrder::build_surface_reverse_lookups()
         TriangleFirstOrder& tri = getTriangle(i);
         for(int j = 0; j < 3; j++)
         {
-            CalcNode& node = getNode( tri.verts[j] );
+            Node& node = getNode( tri.vertices[j] );
             assert_true(node.isFirstOrder() );
             getBorderElementsForNode(i).push_back( i );
         }
@@ -317,7 +318,7 @@ void TetrMeshFirstOrder::check_unused_nodes()
     //for(int i = 0; i < nodesNumber; i++) {
     for( MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr ) {
         int i = itr->first;
-        CalcNode& node = getNode(i);
+        Node& node = getNode(i);
         if( getVolumeElementsForNode(i).size() == 0 )
             node.setUsed(false);
     }
@@ -326,7 +327,7 @@ void TetrMeshFirstOrder::check_unused_nodes()
     //for(int i = 0; i < nodesNumber; i++) {
     /*for( MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr ) {
         int i = itr->first;
-        CalcNode& node = getNode(i);
+        Node& node = getNode(i);
         // If node is remote
         if( node.isRemote() )
         {
@@ -334,12 +335,12 @@ void TetrMeshFirstOrder::check_unused_nodes()
             // Check tetrahedrons it is a member of
             for(unsigned j = 0; j < node.elements->size(); j++)
             {
-                TetrFirstOrder& tetr = getTetr( node.elements->at(j) );
+                TetrahedronFirstOrder& tetr = getTetr( node.elements->at(j) );
                 // Check verticles
                 for(int k = 0; k < 4; k++)
                 {
                     // If it is local - count++
-                    if( getNode( tetr.verts[k] ).isLocal() )
+                    if( getNode( tetr.vertices[k] ).isLocal() )
                         count++;
                 }
             }
@@ -368,7 +369,7 @@ void TetrMeshFirstOrder::check_outer_normals()
     //for(int i = 0; i < nodesNumber; i++) {
     for( MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr ) {
         int i = itr->first;
-        CalcNode& node = getNode(i);
+        Node& node = getNode(i);
         if(node.isBorder() && node.isUsed()) {
 
             findBorderNodeNormal(node, &normal[0], &normal[1], &normal[2], false);
@@ -400,10 +401,10 @@ void TetrMeshFirstOrder::verifyTetrahedraVertices ()
     LOG_DEBUG ("Verifying tetrahedra vertices");
     for( MapIter itr = tetrsMap.begin(); itr != tetrsMap.end(); ++itr ) {
         int tetrInd = itr->first;
-        TetrFirstOrder& tetr = getTetr(tetrInd);
+        TetrahedronFirstOrder& tetr = getTetr(tetrInd);
         for (int vertInd = 0; vertInd < 4; vertInd++)
         {
-            assert_true(getNode( tetr.verts[vertInd] ).isFirstOrder() );
+            assert_true(getNode( tetr.vertices[vertInd] ).isFirstOrder() );
         }
     }
 }
@@ -419,13 +420,13 @@ TriangleFirstOrder TetrMeshFirstOrder::createBorderTriangle(int v[4], int number
     TriangleFirstOrder tri;
     tri.number = number;
     if( !needSwap ) {
-        tri.verts[0] = v[0];
-        tri.verts[1] = v[1];
-        tri.verts[2] = v[2];
+        tri.vertices[0] = v[0];
+        tri.vertices[1] = v[1];
+        tri.vertices[2] = v[2];
     } else {
-        tri.verts[0] = v[0];
-        tri.verts[1] = v[2];
-        tri.verts[2] = v[1];
+        tri.vertices[0] = v[0];
+        tri.vertices[1] = v[2];
+        tri.vertices[2] = v[1];
     }
     return tri;
 }
@@ -450,10 +451,10 @@ bool TetrMeshFirstOrder::isTriangleBorder(int v[4], bool* needSwap)
 bool TetrMeshFirstOrder::isTriangleBorder(int v[4], bool* needSwap, bool debug)
 {
     *needSwap = false;
-    CalcNode& v1 = getNode( v[0] );
-    CalcNode& v2 = getNode( v[1] );
-    CalcNode& v3 = getNode( v[2] );
-    CalcNode& tetr_vert = getNode( v[3] );
+    Node& v1 = getNode( v[0] );
+    Node& v2 = getNode( v[1] );
+    Node& v3 = getNode( v[2] );
+    Node& tetr_vert = getNode( v[3] );
 
     if( !v1.isBorder() || !v2.isBorder() || !v3.isBorder() )
         return false;
@@ -545,10 +546,10 @@ bool TetrMeshFirstOrder::isTriangleBorder(int v[4], bool* needSwap, bool debug)
     return true;
 };
 
-int TetrMeshFirstOrder::findOwnerTetr(const CalcNode& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint)
+int TetrMeshFirstOrder::findOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint)
 {
     // Handle virt nodes
-    if(node.getCustomFlag(CalcNode::FLAG_1))
+    if(node.getCustomFlag(Node::FLAG_1))
     {
         assert_lt(node.number, 0);
         int testRes = virtExpandingScanForOwnerTetr(node, dx, dy, dz, debug, coords, innerPoint);
@@ -581,14 +582,14 @@ bool TetrMeshFirstOrder::belongsToTetr(int nodeNum, int tetrNum, int faceNum)
     int i1 = (0+faceNum) % 4;
     int i2 = (1+faceNum) % 4;
     int i3 = (2+faceNum) % 4;
-    TetrFirstOrder& tetr = getTetr(tetrNum);
-    if( (nodeNum == tetr.verts[i1]) || (nodeNum == tetr.verts[i2]) || (nodeNum == tetr.verts[i3]) )
+    TetrahedronFirstOrder& tetr = getTetr(tetrNum);
+    if( (nodeNum == tetr.vertices[i1]) || (nodeNum == tetr.vertices[i2]) || (nodeNum == tetr.vertices[i3]) )
         return true;
     else
         return false;
 }
 
-bool TetrMeshFirstOrder::isInnerPoint(const CalcNode& node, float dx, float dy, float dz, bool debug)
+bool TetrMeshFirstOrder::isInnerPoint(const Node& node, float dx, float dy, float dz, bool debug)
 {
     bool innerPoint;
     float coords[3];
@@ -596,7 +597,7 @@ bool TetrMeshFirstOrder::isInnerPoint(const CalcNode& node, float dx, float dy, 
     return innerPoint;
 }
 
-int TetrMeshFirstOrder::fastScanForOwnerTetr(const CalcNode& node, float dx, float dy, float dz, bool debug)
+int TetrMeshFirstOrder::fastScanForOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug)
 {
     if( debug )
         LOG_TRACE("Fast scan - debug ON (however, consider !inAABB condition)");
@@ -630,10 +631,10 @@ int TetrMeshFirstOrder::fastScanForOwnerTetr(const CalcNode& node, float dx, flo
 
     for(unsigned i = 0; i < elements.size(); i++)
     {
-        TetrFirstOrder& tetr = getTetr(elements[i]);
+        TetrahedronFirstOrder& tetr = getTetr(elements[i]);
         if( pointInTetr(x, y, z,
-                getNode( tetr.verts[0] ).coords, getNode( tetr.verts[1] ).coords,
-                getNode( tetr.verts[2] ).coords, getNode( tetr.verts[3] ).coords,
+                getNode( tetr.vertices[0] ).coords, getNode( tetr.vertices[1] ).coords,
+                getNode( tetr.vertices[2] ).coords, getNode( tetr.vertices[3] ).coords,
                 debug) )
         {
             updateCharactCache(node, dx, dy, dz, tetr.number);
@@ -651,11 +652,11 @@ void TetrMeshFirstOrder::getPotentialOwnerTetrs(float x, float y, float z, vecto
     std::unordered_set<int> _tetrs;
     double pt[3] = {x, y, z};
     double pos[3];
-    CalcNode* pNode;
+    Node* pNode;
     struct kdres *presults = kd_nearest_range(kdtree, pt, getMaxEdge()*1.01);
     while (!kd_res_end(presults)) {
         /* get the data and position of the current result item */
-        pNode = (CalcNode*) kd_res_item(presults, pos);
+        pNode = (Node*) kd_res_item(presults, pos);
         _nodes.insert(pNode->number);
         /* go to the next entry */
         kd_res_next(presults);
@@ -665,11 +666,11 @@ void TetrMeshFirstOrder::getPotentialOwnerTetrs(float x, float y, float z, vecto
     {
         vector<int> volEls = getVolumeElementsForNode(nodeNum);
         for(int el : volEls) {
-            TetrFirstOrder& t = getTetr(el);
-            bool localN1 = (_nodes.find(t.verts[0]) != _nodes.end());
-            bool localN2 = (_nodes.find(t.verts[1]) != _nodes.end());
-            bool localN3 = (_nodes.find(t.verts[2]) != _nodes.end());
-            bool localN4 = (_nodes.find(t.verts[3]) != _nodes.end());
+            TetrahedronFirstOrder& t = getTetr(el);
+            bool localN1 = (_nodes.find(t.vertices[0]) != _nodes.end());
+            bool localN2 = (_nodes.find(t.vertices[1]) != _nodes.end());
+            bool localN3 = (_nodes.find(t.vertices[2]) != _nodes.end());
+            bool localN4 = (_nodes.find(t.vertices[3]) != _nodes.end());
             if(localN1 && localN2 && localN3 && localN4)
                 _tetrs.insert(el);
         }
@@ -678,7 +679,7 @@ void TetrMeshFirstOrder::getPotentialOwnerTetrs(float x, float y, float z, vecto
         tetrs.push_back(t);
 }
 
-int TetrMeshFirstOrder::newExpandingScanForOwnerTetr (const CalcNode& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint)
+int TetrMeshFirstOrder::newExpandingScanForOwnerTetr (const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint)
 {
     float x = node.coords[0] + dx;
     float y = node.coords[1] + dy;
@@ -736,12 +737,12 @@ int TetrMeshFirstOrder::newExpandingScanForOwnerTetr (const CalcNode& node, floa
     // Check current tetrs
     for(unsigned i = 0; i < tetrsToCheck.size(); i++)
     {
-        TetrFirstOrder& curTetr = getTetr(tetrsToCheck[i]);
+        TetrahedronFirstOrder& curTetr = getTetr(tetrsToCheck[i]);
         assert_eq(curTetr.number, tetrsToCheck[i] );
-        CalcNode& n1 = getNode( curTetr.verts[0] );
-        CalcNode& n2 = getNode( curTetr.verts[1] );
-        CalcNode& n3 = getNode( curTetr.verts[2] );
-        CalcNode& n4 = getNode( curTetr.verts[3] );
+        Node& n1 = getNode( curTetr.vertices[0] );
+        Node& n2 = getNode( curTetr.vertices[1] );
+        Node& n3 = getNode( curTetr.vertices[2] );
+        Node& n4 = getNode( curTetr.vertices[3] );
             
         if( debug ) {
             LOG_DEBUG("Checking tetr: " << curTetr);
@@ -773,9 +774,9 @@ int TetrMeshFirstOrder::newExpandingScanForOwnerTetr (const CalcNode& node, floa
             int i2 = (1+j) % 4;
             int i3 = (2+j) % 4;
 
-            CalcNode& n1 = getNode( curTetr.verts[i1] );
-            CalcNode& n2 = getNode( curTetr.verts[i2] );
-            CalcNode& n3 = getNode( curTetr.verts[i3] );
+            Node& n1 = getNode( curTetr.vertices[i1] );
+            Node& n2 = getNode( curTetr.vertices[i2] );
+            Node& n3 = getNode( curTetr.vertices[i3] );
 
             if( debug ) {
                 LOG_DEBUG("Checking face");
@@ -838,7 +839,7 @@ int TetrMeshFirstOrder::newExpandingScanForOwnerTetr (const CalcNode& node, floa
 // Older implementation based on 'real' expanding scan.
 // The idea is nice, but implementation was still not good after few years of never-ending debug.
 // (a) Clean impl was too slow. (b) Tricky impl missed nodes sometimes.
-int TetrMeshFirstOrder::expandingScanForOwnerTetr (const CalcNode& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint)
+int TetrMeshFirstOrder::expandingScanForOwnerTetr (const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint)
 {
     float x = node.coords[0] + dx;
     float y = node.coords[1] + dy;
@@ -929,12 +930,12 @@ int TetrMeshFirstOrder::expandingScanForOwnerTetr (const CalcNode& node, float d
         // Check current tetrs
         for(unsigned i = 0; i < tetrsToCheck.size(); i++)
         {
-            TetrFirstOrder& curTetr = getTetr(tetrsToCheck[i]);
+            TetrahedronFirstOrder& curTetr = getTetr(tetrsToCheck[i]);
             assert_eq(curTetr.number, tetrsToCheck[i] );
-            CalcNode& n1 = getNode( curTetr.verts[0] );
-            CalcNode& n2 = getNode( curTetr.verts[1] );
-            CalcNode& n3 = getNode( curTetr.verts[2] );
-            CalcNode& n4 = getNode( curTetr.verts[3] );
+            Node& n1 = getNode( curTetr.vertices[0] );
+            Node& n2 = getNode( curTetr.vertices[1] );
+            Node& n3 = getNode( curTetr.vertices[2] );
+            Node& n4 = getNode( curTetr.vertices[3] );
             
             if( debug ) {
                 LOG_DEBUG("Checking tetr: " << curTetr);
@@ -969,9 +970,9 @@ int TetrMeshFirstOrder::expandingScanForOwnerTetr (const CalcNode& node, float d
                 int i2 = (1+j) % 4;
                 int i3 = (2+j) % 4;
 
-                CalcNode& n1 = getNode( curTetr.verts[i1] );
-                CalcNode& n2 = getNode( curTetr.verts[i2] );
-                CalcNode& n3 = getNode( curTetr.verts[i3] );
+                Node& n1 = getNode( curTetr.vertices[i1] );
+                Node& n2 = getNode( curTetr.vertices[i2] );
+                Node& n3 = getNode( curTetr.vertices[i3] );
                 
                 if( debug ) {
                     LOG_DEBUG("Checking face");
@@ -1047,7 +1048,7 @@ int TetrMeshFirstOrder::expandingScanForOwnerTetr (const CalcNode& node, float d
                 // For all verticles of current tetr
                 for(int j = 0; j < 4; j++)
                 {
-                    CalcNode& vertJ = getNode( curTetr.verts[j] );
+                    Node& vertJ = getNode( curTetr.vertices[j] );
                     // Skip base node. Otherwise we'll get false positive insideR for the 1st and 2nd layers
                     if( vertJ.number == node.number )
                         continue;
@@ -1096,10 +1097,10 @@ int TetrMeshFirstOrder::expandingScanForOwnerTetr (const CalcNode& node, float d
             if( isCompletelyChecked )
                 continue;
 
-            TetrFirstOrder& checkedTetr = getTetr(checkedTetrNum);
+            TetrahedronFirstOrder& checkedTetr = getTetr(checkedTetrNum);
             for(int j = 0; j < 4; j++)
             {
-                CalcNode& vertJ = getNode( checkedTetr.verts[j] );
+                Node& vertJ = getNode( checkedTetr.vertices[j] );
                 vector<int>& elements = getVolumeElementsForNode(vertJ.number);
                 for(unsigned k = 0; k < elements.size(); k++)
                 {
@@ -1121,7 +1122,7 @@ int TetrMeshFirstOrder::expandingScanForOwnerTetr (const CalcNode& node, float d
     return -1;
 }
 
-int TetrMeshFirstOrder::orientedExpandingScanForOwnerTetr (const CalcNode& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint)
+int TetrMeshFirstOrder::orientedExpandingScanForOwnerTetr (const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint)
 {
     float x = node.coords[0] + dx;
     float y = node.coords[1] + dy;
@@ -1183,11 +1184,11 @@ int TetrMeshFirstOrder::orientedExpandingScanForOwnerTetr (const CalcNode& node,
     // Check tetrs around
     for(unsigned i = 0; i < elements.size(); i++)
     {
-        TetrFirstOrder& curTetr = getTetr(elements[i]);
-        CalcNode& n1 = getNode( curTetr.verts[0] );
-        CalcNode& n2 = getNode( curTetr.verts[1] );
-        CalcNode& n3 = getNode( curTetr.verts[2] );
-        CalcNode& n4 = getNode( curTetr.verts[3] );
+        TetrahedronFirstOrder& curTetr = getTetr(elements[i]);
+        Node& n1 = getNode( curTetr.vertices[0] );
+        Node& n2 = getNode( curTetr.vertices[1] );
+        Node& n3 = getNode( curTetr.vertices[2] );
+        Node& n4 = getNode( curTetr.vertices[3] );
             
         if( debug ) {
             LOG_DEBUG("Checking tetr: " << curTetr);
@@ -1221,9 +1222,9 @@ int TetrMeshFirstOrder::orientedExpandingScanForOwnerTetr (const CalcNode& node,
             int i2 = (1+j) % 4;
             int i3 = (2+j) % 4;
 
-            CalcNode& n1 = getNode( curTetr.verts[i1] );
-            CalcNode& n2 = getNode( curTetr.verts[i2] );
-            CalcNode& n3 = getNode( curTetr.verts[i3] );
+            Node& n1 = getNode( curTetr.vertices[i1] );
+            Node& n2 = getNode( curTetr.vertices[i2] );
+            Node& n3 = getNode( curTetr.vertices[i3] );
                 
             if( debug ) {
                 LOG_DEBUG("Checking face");
@@ -1321,13 +1322,13 @@ int TetrMeshFirstOrder::orientedExpandingScanForOwnerTetr (const CalcNode& node,
         for(int j = 0; j < 3; j++) {
             vector<int>& nextElems = getVolumeElementsForNode(lastFace[j]);
             for(unsigned i = 0; i < nextElems.size(); i++) {
-                TetrFirstOrder& possibleTetr = getTetr(nextElems[i]);
+                TetrahedronFirstOrder& possibleTetr = getTetr(nextElems[i]);
                 if( debug ) {
                     LOG_DEBUG("Checking tetr: " << possibleTetr);
-                    /*CalcNode& n1 = getNode( possibleTetr.verts[0] );
-                    CalcNode& n2 = getNode( possibleTetr.verts[1] );
-                    CalcNode& n3 = getNode( possibleTetr.verts[2] );
-                    CalcNode& n4 = getNode( possibleTetr.verts[3] );
+                    /*Node& n1 = getNode( possibleTetr.vertices[0] );
+                    Node& n2 = getNode( possibleTetr.vertices[1] );
+                    Node& n3 = getNode( possibleTetr.vertices[2] );
+                    Node& n4 = getNode( possibleTetr.vertices[3] );
             
                     LOG_DEBUG("V1: " << n1);
                     LOG_DEBUG("V2: " << n2);
@@ -1341,13 +1342,13 @@ int TetrMeshFirstOrder::orientedExpandingScanForOwnerTetr (const CalcNode& node,
                     continue;
                 }
                 if( debug )
-                    LOG_DEBUG("New tetr. Checking verts.");
-                bool v1Exists = ( (v1 == possibleTetr.verts[0]) || (v1 == possibleTetr.verts[1]) 
-                                    || (v1 == possibleTetr.verts[2]) || (v1 == possibleTetr.verts[3]));
-                bool v2Exists = ( (v2 == possibleTetr.verts[0]) || (v2 == possibleTetr.verts[1]) 
-                                    || (v2 == possibleTetr.verts[2]) || (v2 == possibleTetr.verts[3]));
-                bool v3Exists = ( (v3 == possibleTetr.verts[0]) || (v3 == possibleTetr.verts[1]) 
-                                    || (v3 == possibleTetr.verts[2]) || (v3 == possibleTetr.verts[3]));
+                    LOG_DEBUG("New tetr. Checking vertices.");
+                bool v1Exists = ( (v1 == possibleTetr.vertices[0]) || (v1 == possibleTetr.vertices[1]) 
+                                    || (v1 == possibleTetr.vertices[2]) || (v1 == possibleTetr.vertices[3]));
+                bool v2Exists = ( (v2 == possibleTetr.vertices[0]) || (v2 == possibleTetr.vertices[1]) 
+                                    || (v2 == possibleTetr.vertices[2]) || (v2 == possibleTetr.vertices[3]));
+                bool v3Exists = ( (v3 == possibleTetr.vertices[0]) || (v3 == possibleTetr.vertices[1]) 
+                                    || (v3 == possibleTetr.vertices[2]) || (v3 == possibleTetr.vertices[3]));
                 if( debug )
                     LOG_DEBUG("Verts res:" << v1Exists << " " << v2Exists << " " << v3Exists);
                 if(v1Exists && v2Exists && v3Exists) {
@@ -1379,11 +1380,11 @@ int TetrMeshFirstOrder::orientedExpandingScanForOwnerTetr (const CalcNode& node,
         }
 
 
-        TetrFirstOrder& curTetr = getTetr(nextTetr);
-        CalcNode& n1 = getNode( curTetr.verts[0] );
-        CalcNode& n2 = getNode( curTetr.verts[1] );
-        CalcNode& n3 = getNode( curTetr.verts[2] );
-        CalcNode& n4 = getNode( curTetr.verts[3] );
+        TetrahedronFirstOrder& curTetr = getTetr(nextTetr);
+        Node& n1 = getNode( curTetr.vertices[0] );
+        Node& n2 = getNode( curTetr.vertices[1] );
+        Node& n3 = getNode( curTetr.vertices[2] );
+        Node& n4 = getNode( curTetr.vertices[3] );
 
         if( debug ) {
             LOG_DEBUG("Checking tetr: " << curTetr);
@@ -1419,9 +1420,9 @@ int TetrMeshFirstOrder::orientedExpandingScanForOwnerTetr (const CalcNode& node,
             int i2 = (1+j) % 4;
             int i3 = (2+j) % 4;
 
-            CalcNode& n1 = getNode( curTetr.verts[i1] );
-            CalcNode& n2 = getNode( curTetr.verts[i2] );
-            CalcNode& n3 = getNode( curTetr.verts[i3] );
+            Node& n1 = getNode( curTetr.vertices[i1] );
+            Node& n2 = getNode( curTetr.vertices[i2] );
+            Node& n3 = getNode( curTetr.vertices[i3] );
 
             if( debug ) {
                 LOG_DEBUG("Checking face");
@@ -1520,7 +1521,7 @@ int TetrMeshFirstOrder::orientedExpandingScanForOwnerTetr (const CalcNode& node,
     THROW_BAD_MESH("Oriented scan takes too long - smth went wrong");
 }
 
-int TetrMeshFirstOrder::virtExpandingScanForOwnerTetr (const CalcNode& _node, float _dx, float _dy, float _dz, bool debug, float* coords, bool* innerPoint)
+int TetrMeshFirstOrder::virtExpandingScanForOwnerTetr (const Node& _node, float _dx, float _dy, float _dz, bool debug, float* coords, bool* innerPoint)
 {
     float x = _node.coords[0] + _dx;
     float y = _node.coords[1] + _dy;
@@ -1535,12 +1536,12 @@ int TetrMeshFirstOrder::virtExpandingScanForOwnerTetr (const CalcNode& _node, fl
 
     double pt[3] = {x, y, z};
     double pos[3];
-    CalcNode* pNode;
+    Node* pNode;
     struct kdres *presults = kd_nearest(kdtree, pt);
-    pNode = (CalcNode*) kd_res_item(presults, pos);
+    pNode = (Node*) kd_res_item(presults, pos);
     kd_res_free( presults );
     
-    CalcNode& node = getNode(pNode->number);
+    Node& node = getNode(pNode->number);
     float dx = _node.coords.x - node.coords.x + _dx;
     float dy = _node.coords.y - node.coords.y + _dy;
     float dz = _node.coords.z - node.coords.z + _dz;
@@ -1633,12 +1634,12 @@ int TetrMeshFirstOrder::virtExpandingScanForOwnerTetr (const CalcNode& _node, fl
         // Check current tetrs
         for(unsigned i = 0; i < tetrsToCheck.size(); i++)
         {
-            TetrFirstOrder& curTetr = getTetr(tetrsToCheck[i]);
+            TetrahedronFirstOrder& curTetr = getTetr(tetrsToCheck[i]);
             assert_eq(curTetr.number, tetrsToCheck[i] );
-            CalcNode& n1 = getNode( curTetr.verts[0] );
-            CalcNode& n2 = getNode( curTetr.verts[1] );
-            CalcNode& n3 = getNode( curTetr.verts[2] );
-            CalcNode& n4 = getNode( curTetr.verts[3] );
+            Node& n1 = getNode( curTetr.vertices[0] );
+            Node& n2 = getNode( curTetr.vertices[1] );
+            Node& n3 = getNode( curTetr.vertices[2] );
+            Node& n4 = getNode( curTetr.vertices[3] );
             
             if( debug ) {
                 LOG_DEBUG("Checking tetr: " << curTetr);
@@ -1673,9 +1674,9 @@ int TetrMeshFirstOrder::virtExpandingScanForOwnerTetr (const CalcNode& _node, fl
                 int i2 = (1+j) % 4;
                 int i3 = (2+j) % 4;
 
-                CalcNode& n1 = getNode( curTetr.verts[i1] );
-                CalcNode& n2 = getNode( curTetr.verts[i2] );
-                CalcNode& n3 = getNode( curTetr.verts[i3] );
+                Node& n1 = getNode( curTetr.vertices[i1] );
+                Node& n2 = getNode( curTetr.vertices[i2] );
+                Node& n3 = getNode( curTetr.vertices[i3] );
                 
                 if( debug ) {
                     LOG_DEBUG("Checking face");
@@ -1751,7 +1752,7 @@ int TetrMeshFirstOrder::virtExpandingScanForOwnerTetr (const CalcNode& _node, fl
                 // For all verticles of current tetr
                 for(int j = 0; j < 4; j++)
                 {
-                    CalcNode& vertJ = getNode( curTetr.verts[j] );
+                    Node& vertJ = getNode( curTetr.vertices[j] );
                     // Skip base node. Otherwise we'll get false positive insideR for the 1st and 2nd layers
                     if( vertJ.number == node.number )
                         continue;
@@ -1800,10 +1801,10 @@ int TetrMeshFirstOrder::virtExpandingScanForOwnerTetr (const CalcNode& _node, fl
             if( isCompletelyChecked )
                 continue;
 
-            TetrFirstOrder& checkedTetr = getTetr(checkedTetrNum);
+            TetrahedronFirstOrder& checkedTetr = getTetr(checkedTetrNum);
             for(int j = 0; j < 4; j++)
             {
-                CalcNode& vertJ = getNode( checkedTetr.verts[j] );
+                Node& vertJ = getNode( checkedTetr.vertices[j] );
                 vector<int>& elements = getVolumeElementsForNode(vertJ.number);
                 for(unsigned k = 0; k < elements.size(); k++)
                 {
@@ -1825,18 +1826,18 @@ int TetrMeshFirstOrder::virtExpandingScanForOwnerTetr (const CalcNode& _node, fl
     return -1;
 }
 
-void TetrMeshFirstOrder::findBorderNodeNormal(const CalcNode& _node, float* x, float* y, float* z, bool debug)
+void TetrMeshFirstOrder::findBorderNodeNormal(const Node& _node, float* x, float* y, float* z, bool debug)
 {
     assert_true(_node.isBorder() );
     int nodeNumber;
     // Virt nodes
-    if(_node.getCustomFlag(CalcNode::FLAG_1)) {
+    if(_node.getCustomFlag(Node::FLAG_1)) {
         assert_lt(_node.number, 0);
         double pt[3] = {_node.coords.x, _node.coords.y, _node.coords.z};
         double pos[3];
-        CalcNode* pNode;
+        Node* pNode;
         struct kdres *presults = kd_nearest(kdtree, pt);
-        pNode = (CalcNode*) kd_res_item(presults, pos);
+        pNode = (Node*) kd_res_item(presults, pos);
         kd_res_free( presults );
         nodeNumber = pNode->number;
         // Reasonable WA. Experiment shows it is used for ~ N * 10^-4 nodes
@@ -1844,7 +1845,7 @@ void TetrMeshFirstOrder::findBorderNodeNormal(const CalcNode& _node, float* x, f
             kdres *presults = kd_nearest_range(kdtree, pt, getMaxEdge());
             while (!kd_res_end(presults)) {
                 /* get the data and position of the current result item */
-                pNode = (CalcNode*) kd_res_item(presults, pos);
+                pNode = (Node*) kd_res_item(presults, pos);
                 if(pNode->isBorder()) {
                     nodeNumber = pNode->number;
                     break;
@@ -1859,7 +1860,7 @@ void TetrMeshFirstOrder::findBorderNodeNormal(const CalcNode& _node, float* x, f
         nodeNumber = _node.number;
     }
     
-    CalcNode& node = getNode(nodeNumber);
+    Node& node = getNode(nodeNumber);
     
     assert_ge(node.number, 0);
     
@@ -1896,9 +1897,9 @@ void TetrMeshFirstOrder::findBorderNodeNormal(const CalcNode& _node, float* x, f
         if( debug )
         {
             LOG_TRACE("Element " << triNumber);
-            LOG_TRACE("Vert #1: " << getNode( getTriangle(triNumber).verts[0] ));
-            LOG_TRACE("Vert #2: " << getNode( getTriangle(triNumber).verts[1] ));
-            LOG_TRACE("Vert #3: " << getNode( getTriangle(triNumber).verts[2] ));
+            LOG_TRACE("Vert #1: " << getNode( getTriangle(triNumber).vertices[0] ));
+            LOG_TRACE("Vert #2: " << getNode( getTriangle(triNumber).vertices[1] ));
+            LOG_TRACE("Vert #3: " << getNode( getTriangle(triNumber).vertices[2] ));
             LOG_TRACE("Normal: " << cur_normal[0] << " " << cur_normal[1] << " " << cur_normal[2]);
         }
     }
@@ -1930,38 +1931,38 @@ void TetrMeshFirstOrder::findBorderNodeNormal(const CalcNode& _node, float* x, f
 
 float TetrMeshFirstOrder::get_solid_angle(int node_index, int tetr_index)
 {
-    TetrFirstOrder& tetr = getTetr(tetr_index);
-    CalcNode& node = getNode(node_index);
+    TetrahedronFirstOrder& tetr = getTetr(tetr_index);
+    Node& node = getNode(node_index);
     // Node should belong to Tetr
-    assert_true(( tetr.verts[0] == node_index )
-            || ( tetr.verts[1] == node_index )
-            || ( tetr.verts[2] == node_index )
-            || ( tetr.verts[3] == node_index ) );
+    assert_true(( tetr.vertices[0] == node_index )
+            || ( tetr.vertices[1] == node_index )
+            || ( tetr.vertices[2] == node_index )
+            || ( tetr.vertices[3] == node_index ) );
     /*{
-        LOG_WARN("TEST: " << node_index << " " << tetr.verts[0] << " " << tetr.verts[1] << " " << tetr.verts[2] << " " << tetr.verts[3]);
+        LOG_WARN("TEST: " << node_index << " " << tetr.vertices[0] << " " << tetr.vertices[1] << " " << tetr.vertices[2] << " " << tetr.vertices[3]);
         LOG_WARN("TEST: " << node);
-        LOG_WARN("TEST: " << getNode( tetr.verts[0] ));
-        LOG_WARN("TEST: " << getNode( tetr.verts[1] ));
-        LOG_WARN("TEST: " << getNode( tetr.verts[2] ));
-        LOG_WARN("TEST: " << getNode( tetr.verts[3] ));
+        LOG_WARN("TEST: " << getNode( tetr.vertices[0] ));
+        LOG_WARN("TEST: " << getNode( tetr.vertices[1] ));
+        LOG_WARN("TEST: " << getNode( tetr.vertices[2] ));
+        LOG_WARN("TEST: " << getNode( tetr.vertices[3] ));
         return -1;
     }*/
 
-    int verts[3];
+    int vertices[3];
     int count = 0;
 
     for(int i = 0; i < 4; i++)
-        if(tetr.verts[i] != node_index) {
-            verts[count] = tetr.verts[i];
+        if(tetr.vertices[i] != node_index) {
+            vertices[count] = tetr.vertices[i];
             count++;
         }
 
     // We are to find 3 other verticles to form the face we are looking at
     assert_eq(count, 3 );
 
-    CalcNode& v0 = getNode( verts[0] );
-    CalcNode& v1 = getNode( verts[1] );
-    CalcNode& v2 = getNode( verts[2] );
+    Node& v0 = getNode( vertices[0] );
+    Node& v1 = getNode( vertices[1] );
+    Node& v2 = getNode( vertices[2] );
 
     return solidAngle(
             v0.coords[0] - node.coords[0],
@@ -1980,9 +1981,9 @@ void TetrMeshFirstOrder::find_border_elem_normal(int border_element_index,
                                                         float* x, float* y, float* z)
 {
     TriangleFirstOrder& tri = getTriangle(border_element_index);
-    findTriangleFaceNormal( getNode( tri.verts[0] ).coords,
-                            getNode( tri.verts[1] ).coords,
-                            getNode( tri.verts[2] ).coords,
+    findTriangleFaceNormal( getNode( tri.vertices[0] ).coords,
+                            getNode( tri.vertices[1] ).coords,
+                            getNode( tri.vertices[2] ).coords,
                             x, y, z );
 };
 
@@ -1999,11 +2000,11 @@ void TetrMeshFirstOrder::calcMinH()
     //for(int i = 0; i < tetrsNumber; i++) {
     for( MapIter itr = tetrsMap.begin(); itr != tetrsMap.end(); ++itr ) {
         int i = itr->first;
-        TetrFirstOrder& tetr = getTetr(i);
-        if ( ( !getNode( tetr.verts[0] ).isUsed() )
-            || ( !getNode( tetr.verts[1] ).isUsed() )
-            || ( !getNode( tetr.verts[2] ).isUsed() )
-            || ( !getNode( tetr.verts[3] ).isUsed() ) )
+        TetrahedronFirstOrder& tetr = getTetr(i);
+        if ( ( !getNode( tetr.vertices[0] ).isUsed() )
+            || ( !getNode( tetr.vertices[1] ).isUsed() )
+            || ( !getNode( tetr.vertices[2] ).isUsed() )
+            || ( !getNode( tetr.vertices[3] ).isUsed() ) )
             continue;
 
         // Get current h
@@ -2034,11 +2035,11 @@ void TetrMeshFirstOrder::calcMaxH()
     //for(int i = 0; i < tetrsNumber; i++) {
     for( MapIter itr = tetrsMap.begin(); itr != tetrsMap.end(); ++itr ) {
         int i = itr->first;
-        TetrFirstOrder& tetr = getTetr(i);
-        if ( ( !getNode( tetr.verts[0] ).isUsed() )
-            || ( !getNode( tetr.verts[1] ).isUsed() )
-            || ( !getNode( tetr.verts[2] ).isUsed() )
-            || ( !getNode( tetr.verts[3] ).isUsed() ) )
+        TetrahedronFirstOrder& tetr = getTetr(i);
+        if ( ( !getNode( tetr.vertices[0] ).isUsed() )
+            || ( !getNode( tetr.vertices[1] ).isUsed() )
+            || ( !getNode( tetr.vertices[2] ).isUsed() )
+            || ( !getNode( tetr.vertices[3] ).isUsed() ) )
             continue;
 
         // Get current h
@@ -2068,11 +2069,11 @@ void TetrMeshFirstOrder::calcMaxEdge()
     // Go through tetrahedrons
     for( MapIter itr = tetrsMap.begin(); itr != tetrsMap.end(); ++itr ) {
         int i = itr->first;
-        TetrFirstOrder& tetr = getTetr(i);
+        TetrahedronFirstOrder& tetr = getTetr(i);
         
         for (int j = 0; j < 6; j++) {
-            CalcNode& n1 = getNode(tetr.verts[ combinations[j].first ]);
-            CalcNode& n2 = getNode(tetr.verts[ combinations[j].second ]);
+            Node& n1 = getNode(tetr.vertices[ combinations[j].first ]);
+            Node& n2 = getNode(tetr.vertices[ combinations[j].second ]);
             
             // Calc current edge
             edge = vectorNorm(n1.coords.x - n2.coords.x, n1.coords.y - n2.coords.y, n1.coords.z - n2.coords.z);
@@ -2097,11 +2098,11 @@ void TetrMeshFirstOrder::calcAvgH()
     //for(int i = 0; i < tetrsNumber; i++) {
     for( MapIter itr = tetrsMap.begin(); itr != tetrsMap.end(); ++itr ) {
         int i = itr->first;
-        TetrFirstOrder& tetr = getTetr(i);
-        if ( ( !getNode( tetr.verts[0] ).isUsed() )
-            || ( !getNode( tetr.verts[1] ).isUsed() )
-            || ( !getNode( tetr.verts[2] ).isUsed() )
-            || ( !getNode( tetr.verts[3] ).isUsed() ) )
+        TetrahedronFirstOrder& tetr = getTetr(i);
+        if ( ( !getNode( tetr.vertices[0] ).isUsed() )
+            || ( !getNode( tetr.vertices[1] ).isUsed() )
+            || ( !getNode( tetr.vertices[2] ).isUsed() )
+            || ( !getNode( tetr.vertices[3] ).isUsed() ) )
             continue;
 
         // Get current h
@@ -2115,9 +2116,9 @@ void TetrMeshFirstOrder::calcAvgH()
 
 float TetrMeshFirstOrder::tetr_h(int i)
 {
-    TetrFirstOrder& tetr = getTetr(i);
-    return tetrHeight( getNode(tetr.verts[0]).coords, getNode(tetr.verts[1]).coords,
-                        getNode(tetr.verts[2]).coords, getNode(tetr.verts[3]).coords );
+    TetrahedronFirstOrder& tetr = getTetr(i);
+    return tetrHeight( getNode(tetr.vertices[0]).coords, getNode(tetr.vertices[1]).coords,
+                        getNode(tetr.vertices[2]).coords, getNode(tetr.vertices[3]).coords );
 };
 
 void TetrMeshFirstOrder::doNextPartStep(float tau, int stage)
@@ -2138,7 +2139,7 @@ void TetrMeshFirstOrder::logMeshStats()
     for( MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr )
     {
         int i = itr->first;
-        CalcNode& node = getNode(i);
+        Node& node = getNode(i);
         if( node.isBorder() )
             borderCount++;
         else
@@ -2207,7 +2208,7 @@ void TetrMeshFirstOrder::checkTopology(float tau)
     for( MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr )
     {
         int i = itr->first;
-        CalcNode& node = getNode(i);
+        Node& node = getNode(i);
         if( !node.isBorder() )
             continue;
 
@@ -2248,7 +2249,7 @@ void TetrMeshFirstOrder::checkTopology(float tau)
     for( MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr )
     {
         int i = itr->first;
-        CalcNode& node = getNode(i);
+        Node& node = getNode(i);
         if( !node.isBorder() )
             continue;
 
@@ -2389,7 +2390,7 @@ float TetrMeshFirstOrder::getAvgH()
     return mesh_avg_h;
 }
 
-bool TetrMeshFirstOrder::checkCharactCache(const CalcNode& node, float dx, float dy, float dz, int& tetrNum)
+bool TetrMeshFirstOrder::checkCharactCache(const Node& node, float dx, float dy, float dz, int& tetrNum)
 {
     int cacheIndex = getCharactCacheIndex(node, dx, dy, dz);
     unordered_map<int, int>::const_iterator itr;
@@ -2399,17 +2400,17 @@ bool TetrMeshFirstOrder::checkCharactCache(const CalcNode& node, float dx, float
     tetrNum = itr->second;
     if( tetrNum == -1 )
         return false;
-    TetrFirstOrder& curTetr = getTetr(tetrNum);
+    TetrahedronFirstOrder& curTetr = getTetr(tetrNum);
     return pointInTetr(
                     node.coords[0] + dx, node.coords[1] + dy, node.coords[2] + dz,
-                    getNode( curTetr.verts[0] ).coords,
-                    getNode( curTetr.verts[1] ).coords,
-                    getNode( curTetr.verts[2] ).coords,
-                    getNode( curTetr.verts[3] ).coords,
+                    getNode( curTetr.vertices[0] ).coords,
+                    getNode( curTetr.vertices[1] ).coords,
+                    getNode( curTetr.vertices[2] ).coords,
+                    getNode( curTetr.vertices[3] ).coords,
                 false);
 }
 
-void TetrMeshFirstOrder::updateCharactCache(const CalcNode& node, float dx, float dy, float dz, int tetrNum)
+void TetrMeshFirstOrder::updateCharactCache(const Node& node, float dx, float dy, float dz, int tetrNum)
 {
     if( !charactCacheAvailable() )
         return;
@@ -2417,7 +2418,7 @@ void TetrMeshFirstOrder::updateCharactCache(const CalcNode& node, float dx, floa
     charactCache[cacheIndex][node.number] = tetrNum;
 }
 
-int TetrMeshFirstOrder::getCharactCacheIndex(const CalcNode& node, float dx, float dy, float dz)
+int TetrMeshFirstOrder::getCharactCacheIndex(const Node& node, float dx, float dy, float dz)
 {
     float fdx = fabs(dx);
     float fdy = fabs(dy);
@@ -2488,8 +2489,8 @@ bool TetrMeshFirstOrder::charactCacheAvailable()
             && getNodeByLocalIndex(0).getMaterialId() < Engine::getInstance().getNumberOfMaterials() );*/
 }
 
-bool TetrMeshFirstOrder::interpolateNode(CalcNode& origin, float dx, float dy, float dz, bool debug,
-                                                CalcNode& targetNode, bool& isInnerPoint)
+bool TetrMeshFirstOrder::interpolateNode(Node& origin, float dx, float dy, float dz, bool debug,
+                                                Node& targetNode, bool& isInnerPoint)
 {
     int tetrInd = findOwnerTetr( origin, dx, dy, dz, debug,
                                     targetNode.coords, &isInnerPoint );
@@ -2497,26 +2498,26 @@ bool TetrMeshFirstOrder::interpolateNode(CalcNode& origin, float dx, float dy, f
     if( tetrInd == -1 )
         return false;
 
-    TetrFirstOrder& tmp_tetr = getTetr( tetrInd );
+    TetrahedronFirstOrder& tmp_tetr = getTetr( tetrInd );
     interpolator->interpolate( targetNode,
-            getNode( tmp_tetr.verts[0] ), getNode( tmp_tetr.verts[1] ),
-            getNode( tmp_tetr.verts[2] ), getNode( tmp_tetr.verts[3] ) );
+            getNode( tmp_tetr.vertices[0] ), getNode( tmp_tetr.vertices[1] ),
+            getNode( tmp_tetr.vertices[2] ), getNode( tmp_tetr.vertices[3] ) );
     return true;
 }
 
 // FIXME_ASAP: rewrite it
-bool TetrMeshFirstOrder::interpolateNode(CalcNode& node)
+bool TetrMeshFirstOrder::interpolateNode(Node& node)
 {
     for (int i = 0; i < getTetrsNumber(); i++)
     {
-        TetrFirstOrder& t = getTetrByLocalIndex(i);
+        TetrahedronFirstOrder& t = getTetrByLocalIndex(i);
         if ( pointInTetr(node.coords.x, node.coords.y, node.coords.z,
-                getNode(t.verts[0]).coords, getNode(t.verts[1]).coords,
-                getNode(t.verts[2]).coords, getNode(t.verts[3]).coords, false) )
+                getNode(t.vertices[0]).coords, getNode(t.vertices[1]).coords,
+                getNode(t.vertices[2]).coords, getNode(t.vertices[3]).coords, false) )
         {
             interpolator->interpolate( node,
-                    getNode( t.verts[0] ), getNode( t.verts[1] ),
-                    getNode( t.verts[2] ), getNode( t.verts[3] ) );
+                    getNode( t.vertices[0] ), getNode( t.vertices[1] ),
+                    getNode( t.vertices[2] ), getNode( t.vertices[3] ) );
             return true;
         }
     }
@@ -2525,7 +2526,7 @@ bool TetrMeshFirstOrder::interpolateNode(CalcNode& node)
 }
 
 bool TetrMeshFirstOrder::interpolateBorderNode(real x, real y, real z, 
-                                real dx, real dy, real dz, CalcNode& node)
+                                real dx, real dy, real dz, Node& node)
 {
     real start[3];
     start[0] = x;
@@ -2541,11 +2542,11 @@ bool TetrMeshFirstOrder::interpolateBorderNode(real x, real y, real z,
     vector<int> targetFaces;
     double pt[3] = { x + dx * 0.5, y + dy * 0.5, z + dz * 0.5 };
     double pos[3];
-    CalcNode* pNode;
+    Node* pNode;
     struct kdres *presults = kd_nearest_range(kdtree, pt, length * 0.5 + getMaxH());
     while (!kd_res_end(presults)) {
         /* get the data and position of the current result item */
-        pNode = (CalcNode*) kd_res_item(presults, pos);
+        pNode = (Node*) kd_res_item(presults, pos);
         vector<int> cf = getBorderElementsForNode(pNode->number);
         targetFaces.insert(targetFaces.end(), cf.begin(), cf.end());
         /* go to the next entry */
@@ -2556,13 +2557,13 @@ bool TetrMeshFirstOrder::interpolateBorderNode(real x, real y, real z,
     std::sort(targetFaces.begin(), targetFaces.end());
     
     //bool tmpRes = false;
-    //CalcNode tmpNode;
+    //Node tmpNode;
     for (unsigned int i = 0; i < targetFaces.size(); i++)
     {
         TriangleFirstOrder& face = getTriangle(targetFaces[i]);
-        CalcNode& n1 = getNode(face.verts[0]);
-        CalcNode& n2 = getNode(face.verts[1]);
-        CalcNode& n3 = getNode(face.verts[2]);
+        Node& n1 = getNode(face.vertices[0]);
+        Node& n2 = getNode(face.vertices[1]);
+        Node& n3 = getNode(face.vertices[2]);
         // FIXME_ASAP - ugly WA 
         node = n1;
         real xmin = n1.coords[0], ymin = n1.coords[1], zmin = n1.coords[2], xmax = n1.coords[0], ymax = n1.coords[1], zmax = n1.coords[2];
@@ -2600,9 +2601,8 @@ bool TetrMeshFirstOrder::interpolateBorderNode(real x, real y, real z,
             }
             
             interpolateTriangle( n1.coords, n2.coords, n3.coords, node.coords,
-                                n1.values, n2.values, n3.values, node.values, 9);
-            node.setRho((getNode(face.verts[0])).getRho());
-            node.setMaterialId((getNode(face.verts[0])).getMaterialId());
+                                n1.PDE, n2.PDE, n3.PDE, node.PDE, 9);
+            node.setMaterialId((getNode(face.vertices[0])).getMaterialId());
 
             //tmpRes = true;
             //break;
@@ -2617,9 +2617,9 @@ bool TetrMeshFirstOrder::interpolateBorderNode(real x, real y, real z,
     for (int i = 0; i < faceNumber; i++)
     {
         TriangleFirstOrder& face = getTriangle(i);
-        CalcNode& n1 = getNode(face.verts[0]);
-        CalcNode& n2 = getNode(face.verts[1]);
-        CalcNode& n3 = getNode(face.verts[2]);
+        Node& n1 = getNode(face.vertices[0]);
+        Node& n2 = getNode(face.vertices[1]);
+        Node& n3 = getNode(face.vertices[2]);
         // FIXME_ASAP - ugly WA 
         node = n1;
         real xmin = n1.coords[0], ymin = n1.coords[1], zmin = n1.coords[2], xmax = n1.coords[0], ymax = n1.coords[1], zmax = n1.coords[2];
@@ -2649,9 +2649,9 @@ bool TetrMeshFirstOrder::interpolateBorderNode(real x, real y, real z,
                                      start, direction, length, node.coords, false))
         {
                 interpolateTriangle( n1.coords, n2.coords, n3.coords, node.coords,
-                                     n1.values, n2.values, n3.values, node.values, 9);
-                node.setRho((getNode(face.verts[0])).getRho());
-                node.setMaterialId((getNode(face.verts[0])).getMaterialId());
+                                     n1.PDE, n2.PDE, n3.PDE, node.PDE, 9);
+                node.setRho((getNode(face.vertices[0])).getRho());
+                node.setMaterialId((getNode(face.vertices[0])).getMaterialId());
 
                 double d = vectorNorm(node.coords.x - tmpNode.coords.x, node.coords.y - tmpNode.coords.y, node.coords.z - tmpNode.coords.z);
                 if(!tmpRes || d > length * 0.1) {

@@ -6,7 +6,7 @@
  */
 #include "libgcm/calc/border/BorderCalculator.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 

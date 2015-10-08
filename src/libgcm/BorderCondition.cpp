@@ -1,7 +1,7 @@
 #include "libgcm/BorderCondition.hpp"
 
 #include "libgcm/util/forms/PulseForm.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 using std::vector;
@@ -22,8 +22,8 @@ BorderCondition::~BorderCondition() {
 
 }
 
-void BorderCondition::doCalc(float time, CalcNode& cur_node, CalcNode& new_node, RheologyMatrixPtr matrix,
-                            vector<CalcNode>& previousNodes, bool inner[], float outer_normal[])
+void BorderCondition::doCalc(float time, Node& cur_node, Node& new_node, RheologyMatrixPtr matrix,
+                            vector<Node>& previousNodes, bool inner[], float outer_normal[])
 {
     calc->doCalc(cur_node, new_node, matrix, previousNodes, inner, outer_normal,
                     form->calcMagnitudeNorm(time, cur_node.coords, area) );

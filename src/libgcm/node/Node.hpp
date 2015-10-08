@@ -86,11 +86,6 @@ protected:
 	uchar contactConditionId;
 
 	/**
-	 * Identifier of the body this node belongs to.
-	 */
-	uchar bodyId;
-
-	/**
 	 * Node material id.
 	 */
 	uchar materialId;
@@ -145,13 +140,13 @@ public:
 	/**
 	 * Copy constructor
 	 */
-	// CalcNode(const Node& src);
+	// Node(const Node& src);
 	/**
 	 * Constructor. Creates node with specified number assigned.
 	 *
 	 * @param num Number of the node
 	 */
-	// CalcNode(int num);
+	// Node(int num);
 	/**
 	 * Constructor. Creates node with specified number assigned
 	 * and set coordinates.
@@ -159,7 +154,7 @@ public:
 	 * @param num Number of the node
 	 * @param coords Node coords
 	 */
-	// CalcNode(int num, const vector3r& coords);
+	Node(int num, const vector3r& coords);
 	/**
 	 * Assign operator
 	 */
@@ -177,6 +172,11 @@ public:
 	 * Contact direction. FIXME
 	 */
 	uchar contactDirection;
+
+	/**
+	 * Identifier of the body this node belongs to.
+	 */
+	uchar bodyId;
 
 	/**
 	 * Set all values in PDE and ODE in the node to zero.
@@ -238,6 +238,7 @@ public:
 	 */
 	RheologyMatrixPtr getRheologyMatrix() const;
 
+	void setPlacement(bool local);
 	/**
 	 * Indicates whether node is a real part of mesh, is used and its state should be calculated.
 	 * Example use case: imported meshes may contain nodes that were used during mesh generation 
@@ -253,6 +254,9 @@ public:
 	 */
 	void setUsed(bool value);
 
+	bool isFirstOrder() const;
+	bool isSecondOrder() const;
+	void setOrder(uchar order);
 	/**
 	 * Indicates whether node if first order (verticle of mesh element - tetrahedron, cube, etc)
 	 * or high order (addition node on edge or whatever).
@@ -272,6 +276,7 @@ public:
 	 *
 	 * @return True in case of virtual node and false otherwise.
 	 */
+	
 	bool isVirtual() const;
 	/**
 	 * Sets new virtual state of the node
@@ -326,6 +331,12 @@ public:
 	 */
 	void setDestroyed(bool value);
 
+	/**
+	 * Indicates whether node is local or not.
+	 *
+	 * @return True in case of local node and false otherwise.
+	 */
+	bool isLocal(bool mustBeUsed = true) const;
 	/**
 	 * Indicates whether node is on destroyed contact
 	 *
@@ -427,6 +438,18 @@ public:
 	 * Constant to access custom flag1 using getCustomFlag / setCustomFlag.
 	 */
 	static const uchar FLAG_1 = 1;
+	/**
+	 * Constant to access custom flag2 using getCustomFlag / setCustomFlag.
+	 */
+	static const uchar FLAG_2 = 2;
+	/**
+	 * Constant to access custom flag3 using getCustomFlag / setCustomFlag.
+	 */
+	static const uchar FLAG_3 = 3;
+	/**
+	 * Constant to access custom flag4 using getCustomFlag / setCustomFlag.
+	 */
+	static const uchar FLAG_4 = 4;
 };
 }
 

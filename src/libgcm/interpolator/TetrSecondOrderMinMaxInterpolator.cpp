@@ -6,7 +6,7 @@
  */
 #include "libgcm/interpolator/TetrSecondOrderMinMaxInterpolator.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 
@@ -20,10 +20,10 @@ TetrSecondOrderMinMaxInterpolator::~TetrSecondOrderMinMaxInterpolator()
 {
 }
 
-void TetrSecondOrderMinMaxInterpolator::interpolate(CalcNode& node,
-                                                         CalcNode& node0, CalcNode& node1, CalcNode& node2, CalcNode& node3,
-                                                         CalcNode& addNode0, CalcNode& addNode1, CalcNode& addNode2,
-                                                         CalcNode& addNode3, CalcNode& addNode4, CalcNode& addNode5)
+void TetrSecondOrderMinMaxInterpolator::interpolate(Node& node,
+		Node& node0, Node& node1, Node& node2, Node& node3,
+		Node& addNode0, Node& addNode1, Node& addNode2,
+		Node& addNode3, Node& addNode4, Node& addNode5)
 {
     LOG_TRACE("Start interpolation");
 
@@ -134,75 +134,76 @@ void TetrSecondOrderMinMaxInterpolator::interpolate(CalcNode& node,
     addNodes[4] = &addNode4;
     addNodes[5] = &addNode5;
 
-    for (int i = 0; i < 9; i++) {
-        float min = baseNodes[0]->values[i];
-        float max = baseNodes[0]->values[i];
+    for (int i = 0; i < baseNodes[0]->getSizeOfPDE(); i++) {
+        float min = baseNodes[0]->PDE[i];
+        float max = baseNodes[0]->PDE[i];
         for (int z = 1; z < 4; z++) {
-            if (baseNodes[z]->values[i] < min)
-                min = baseNodes[z]->values[i];
-            if (baseNodes[z]->values[i] > max)
-                max = baseNodes[z]->values[i];
+            if (baseNodes[z]->PDE[i] < min)
+                min = baseNodes[z]->PDE[i];
+            if (baseNodes[z]->PDE[i] > max)
+                max = baseNodes[z]->PDE[i];
         }
         for (int z = 0; z < 6; z++) {
-            if (addNodes[z]->values[i] < min)
-                min = addNodes[z]->values[i];
-            if (addNodes[z]->values[i] > max)
-                max = addNodes[z]->values[i];
+            if (addNodes[z]->PDE[i] < min)
+                min = addNodes[z]->PDE[i];
+            if (addNodes[z]->PDE[i] > max)
+                max = addNodes[z]->PDE[i];
         }
 
-        node.values[i] = (baseNodes[0]->values[i] * factor[0] * (2 * factor[0] - 1)
-                + baseNodes[1]->values[i] * factor[1] * (2 * factor[1] - 1)
-                + baseNodes[2]->values[i] * factor[2] * (2 * factor[2] - 1)
-                + baseNodes[3]->values[i] * factor[3] * (2 * factor[3] - 1)
-                + addNodes[0]->values[i] * 4 * factor[0] * factor[1]
-                + addNodes[1]->values[i] * 4 * factor[0] * factor[2]
-                + addNodes[2]->values[i] * 4 * factor[0] * factor[3]
-                + addNodes[3]->values[i] * 4 * factor[1] * factor[2]
-                + addNodes[4]->values[i] * 4 * factor[1] * factor[3]
-                + addNodes[5]->values[i] * 4 * factor[2] * factor[3]
+        node.PDE[i] = (baseNodes[0]->PDE[i] * factor[0] * (2 * factor[0] - 1)
+                + baseNodes[1]->PDE[i] * factor[1] * (2 * factor[1] - 1)
+                + baseNodes[2]->PDE[i] * factor[2] * (2 * factor[2] - 1)
+                + baseNodes[3]->PDE[i] * factor[3] * (2 * factor[3] - 1)
+                + addNodes[0]->PDE[i] * 4 * factor[0] * factor[1]
+                + addNodes[1]->PDE[i] * 4 * factor[0] * factor[2]
+                + addNodes[2]->PDE[i] * 4 * factor[0] * factor[3]
+                + addNodes[3]->PDE[i] * 4 * factor[1] * factor[2]
+                + addNodes[4]->PDE[i] * 4 * factor[1] * factor[3]
+                + addNodes[5]->PDE[i] * 4 * factor[2] * factor[3]
                 );
 
-        if (node.values[i] < min)
-            node.values[i] = min;
-        if (node.values[i] > max)
-            node.values[i] = max;
+        if (node.PDE[i] < min)
+            node.PDE[i] = min;
+        if (node.PDE[i] > max)
+            node.PDE[i] = max;
     }
 
-    {
-        float min = baseNodes[0]->getRho();
-        float max = baseNodes[0]->getRho();
-        for (int z = 1; z < 4; z++) {
-            if (baseNodes[z]->getRho() < min)
-                min = baseNodes[z]->getRho();
-            if (baseNodes[z]->getRho() > max)
-                max = baseNodes[z]->getRho();
-        }
-        for (int z = 0; z < 6; z++) {
-            if (addNodes[z]->getRho() < min)
-                min = addNodes[z]->getRho();
-            if (addNodes[z]->getRho() > max)
-                max = addNodes[z]->getRho();
-        }
-
-        float rho = (baseNodes[0]->getRho() * factor[0] * (2 * factor[0] - 1)
-                + baseNodes[1]->getRho() * factor[1] * (2 * factor[1] - 1)
-                + baseNodes[2]->getRho() * factor[2] * (2 * factor[2] - 1)
-                + baseNodes[3]->getRho() * factor[3] * (2 * factor[3] - 1)
-                + addNodes[0]->getRho() * 4 * factor[0] * factor[1]
-                + addNodes[1]->getRho() * 4 * factor[0] * factor[2]
-                + addNodes[2]->getRho() * 4 * factor[0] * factor[3]
-                + addNodes[3]->getRho() * 4 * factor[1] * factor[2]
-                + addNodes[4]->getRho() * 4 * factor[1] * factor[3]
-                + addNodes[5]->getRho() * 4 * factor[2] * factor[3]
-                );
-
-        if (rho < min)
-            rho = min;
-        if (rho > max)
-            rho = max;
-
-        node.setRho(rho);
-    }
+//	TODO@next - do smth with rho in interpolators
+//    {
+//        float min = baseNodes[0]->getRho();
+//        float max = baseNodes[0]->getRho();
+//        for (int z = 1; z < 4; z++) {
+//            if (baseNodes[z]->getRho() < min)
+//                min = baseNodes[z]->getRho();
+//            if (baseNodes[z]->getRho() > max)
+//                max = baseNodes[z]->getRho();
+//        }
+//        for (int z = 0; z < 6; z++) {
+//            if (addNodes[z]->getRho() < min)
+//                min = addNodes[z]->getRho();
+//            if (addNodes[z]->getRho() > max)
+//                max = addNodes[z]->getRho();
+//        }
+//
+//        float rho = (baseNodes[0]->getRho() * factor[0] * (2 * factor[0] - 1)
+//                + baseNodes[1]->getRho() * factor[1] * (2 * factor[1] - 1)
+//                + baseNodes[2]->getRho() * factor[2] * (2 * factor[2] - 1)
+//                + baseNodes[3]->getRho() * factor[3] * (2 * factor[3] - 1)
+//                + addNodes[0]->getRho() * 4 * factor[0] * factor[1]
+//                + addNodes[1]->getRho() * 4 * factor[0] * factor[2]
+//                + addNodes[2]->getRho() * 4 * factor[0] * factor[3]
+//                + addNodes[3]->getRho() * 4 * factor[1] * factor[2]
+//                + addNodes[4]->getRho() * 4 * factor[1] * factor[3]
+//                + addNodes[5]->getRho() * 4 * factor[2] * factor[3]
+//                );
+//
+//        if (rho < min)
+//            rho = min;
+//        if (rho > max)
+//            rho = max;
+//
+//        node.setRho(rho);
+//    }
 
     node.setMaterialId(baseNodes[0]->getMaterialId());
 

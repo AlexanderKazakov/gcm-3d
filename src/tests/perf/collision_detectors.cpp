@@ -71,8 +71,8 @@ int main() {
 
     bcd.find_intersection(o1, o2, intersection);
 
-    vector<CalcNode> nodes1;
-    vector<CalcNode> nodes2;
+    vector<Node> nodes1;
+    vector<Node> nodes2;
         
     print_test_title("find_nodes_in_intersection");
 

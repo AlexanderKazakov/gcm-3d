@@ -6,7 +6,7 @@
  */
 #include "libgcm/calc/contact/ContactCalculator.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 using std::string;

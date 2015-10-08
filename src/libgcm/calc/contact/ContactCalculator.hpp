@@ -12,12 +12,12 @@
 #include <vector>
 
 #include "libgcm/rheology/RheologyMatrix.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 
 namespace gcm
 {
-    class CalcNode;
+    class Node;
     /*
      * Base class for inner points calculators
      */
@@ -32,9 +32,9 @@ namespace gcm
         /*
          * Calculate next state for the given node
          */
-        virtual void doCalc(CalcNode& cur_node, CalcNode& new_node, CalcNode& virt_node,
-                            RheologyMatrixPtr matrix, std::vector<CalcNode>& previousNodes, bool inner[],
-                            RheologyMatrixPtr virt_matrix, std::vector<CalcNode>& virtPreviousNodes, bool virt_inner[],
+        virtual void doCalc(Node& cur_node, Node& new_node, Node& virt_node,
+                            RheologyMatrixPtr matrix, std::vector<Node>& previousNodes, bool inner[],
+                            RheologyMatrixPtr virt_matrix, std::vector<Node>& virtPreviousNodes, bool virt_inner[],
                             float outer_normal[], float scale) = 0;
         /*
          * Returns type of the calculator

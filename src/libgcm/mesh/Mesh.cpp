@@ -1,6 +1,8 @@
 #include "libgcm/mesh/Mesh.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
+#include "libgcm/Engine.hpp"
+#include "libgcm/method/InterpolationFixedAxis.hpp"
 
 using namespace gcm;
 using std::string;
@@ -78,7 +80,7 @@ void Mesh::setBodyNum(unsigned char id)
 {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         node.bodyId = id;
     }
 }
@@ -120,14 +122,13 @@ void Mesh::initNewNodes()
 {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
-        CalcNode& newNode = getNewNode( node.number );
+        Node& node = getNodeByLocalIndex(i);
+        Node& newNode = getNewNode( node.number );
         newNode.coords = node.coords;
-        copy(node.values, node.values + VALUES_NUMBER, newNode.values);
-        newNode.setRho(node.getRho());
+        copy(node.PDE, node.PDE + node.getSizeOfPDE(), newNode.PDE);
+        copy(node.ODE, node.ODE + node.getSizeOfODE(), newNode.ODE);
         newNode.setMaterialId(node.getMaterialId());
         newNode.setContactConditionId(node.getContactConditionId());
-        newNode.createCrack(node.getCrackDirection());
     }
 }
 
@@ -160,7 +161,7 @@ void Mesh::createOutline()
 
         for(int i = 0; i < getNodesNumber(); i++)
         {
-            CalcNode& node = getNodeByLocalIndex(i);
+            Node& node = getNodeByLocalIndex(i);
             if( node.isLocal() )
             {
                 for(int j = 0; j < 3; j++) {
@@ -184,22 +185,22 @@ void Mesh::createOutline()
     }
 }
 
-void Mesh::setInitialState(Area* area, float* values)
+void Mesh::setInitialState(Area* area, float* PDE)
 {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         if( area->isInArea( node ) )
-            for( int k = 0; k < 9; k++ )
-                node.values[k] = values[k];
+            for( int k = 0; k < node.getSizeOfPDE(); k++ )
+                node.PDE[k] = PDE[k];
     }
 }
         
-void Mesh::setInitialState(Area* area, std::function<void(CalcNode& node)> setter)
+void Mesh::setInitialState(Area* area, std::function<void(Node& node)> setter)
 {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         if (area->isInArea(node))
             setter(node);
     }
@@ -209,7 +210,7 @@ void Mesh::setBorderCondition(Area* area, unsigned int num)
 {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         if( area->isInArea( node ) )
             node.setBorderConditionId(num);
     }
@@ -219,7 +220,7 @@ void Mesh::setContactCondition(Area* area, unsigned int num)
 {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         if( area->isInArea( node ) )
             node.setContactConditionId(num);
     }
@@ -228,7 +229,7 @@ void Mesh::setContactCondition(Area* area, unsigned int num)
 void Mesh::setRheology(unsigned char matId) {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         node.setMaterialId( matId );
     }
 }
@@ -236,7 +237,7 @@ void Mesh::setRheology(unsigned char matId) {
 void Mesh::setRheology(unsigned char matId, Area* area) {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         if( area->isInArea(node) )
         {
             node.setMaterialId( matId );
@@ -248,7 +249,7 @@ void Mesh::transfer(float x, float y, float z)
 {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         node.coords[0] += x;
         node.coords[1] += y;
         node.coords[2] += z;
@@ -279,7 +280,7 @@ void Mesh::scale(float x0, float y0, float z0,
 {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         node.coords[0] = (node.coords[0] - x0)*scaleX + x0;
         node.coords[1] = (node.coords[1] - y0)*scaleY + y0;
         node.coords[2] = (node.coords[2] - z0)*scaleZ + z0;
@@ -307,7 +308,7 @@ void Mesh::applyRheology(RheologyCalculator* rc)
 {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         if( node.isLocal() )
             rc->doCalc(node, node);
     }
@@ -317,9 +318,9 @@ void Mesh::clearNodesState()
 {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         if( node.isLocal() )
-            node.clearState();
+            node.clearErrorFlags();
     }
 };
 
@@ -327,46 +328,35 @@ void Mesh::clearContactState()
 {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         if( node.isLocal() )
                         node.setInContact(false);
     }
 }
 
-void Mesh::processMaterialFailure(FailureModel* failureModel, const float tau)
-{
-    for(int i = 0; i < getNodesNumber(); i++)
-    {
-        CalcNode& node = getNodeByLocalIndex(i);
-        if( node.isLocal() && !node.isBorder())
-        {
-            failureModel->checkFailure(node, tau);
-            failureModel->applyCorrection(node, tau);
-        }
-    }
-}
+//void Mesh::processMaterialFailure(FailureModel* failureModel, const float tau)
+//{
+//    for(int i = 0; i < getNodesNumber(); i++)
+//    {
+//        Node& node = getNodeByLocalIndex(i);
+//        if( node.isLocal() && !node.isBorder())
+//        {
+//            failureModel->checkFailure(node, tau);
+//            failureModel->applyCorrection(node, tau);
+//        }
+//    }
+//}
 
 void Mesh::applyCorrectors()
 {
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         if( node.isLocal() )
         {
-            node.getRheologyMatrix()->applyCorrector(node);
+            // TODO@next - rheology model has to be here
+			//node.getRheologyMatrix()->applyCorrector(node);
         }
-    }
-}
-
-void Mesh::processStressState()
-{
-    // FIXME  remove these obsolete code since there is no necessary to recalculate
-    // stresses components because now corresponding getter has lazy init stuff
-    for(int i = 0; i < getNodesNumber(); i++)
-    {
-        CalcNode& node = getNodeByLocalIndex(i);
-        if( node.isLocal() )
-            node.calcMainStressComponents();
     }
 }
 
@@ -375,14 +365,14 @@ void Mesh::moveCoords(float tau)
     LOG_DEBUG("Moving mesh coords");
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         if( node.isLocal() && node.isFirstOrder() )
         {
-            CalcNode& newNode = getNewNode( node.number );
+            Node& newNode = getNewNode( node.number );
             for(int j = 0; j < 3; j++)
             {
                 // Move node
-                node.coords[j] += node.values[j]*tau;
+                node.coords[j] += node.PDE[j]*tau;
                 newNode.coords[j] = node.coords[j];
                 // Move mesh outline if necessary
                 // TODO - this does not 'clean' outline areas where there is no nodes anymore
@@ -406,7 +396,7 @@ float Mesh::getMaxEigenvalue()
     float maxLambda = 0;
     for(int i = 0; i < getNodesNumber(); i++)
     {
-        CalcNode& node = getNodeByLocalIndex(i);
+        Node& node = getNodeByLocalIndex(i);
         if (!node.isUsed())
             continue;
         RheologyMatrixPtr m = node.getRheologyMatrix();
@@ -463,7 +453,7 @@ bool Mesh::hasNode(int index)
     return itr != nodesMap.end();
 }
 
-CalcNode& Mesh::getNode(int index)
+Node& Mesh::getNode(int index)
 {
     assert_ge(index, 0 );
     unordered_map<int, int>::const_iterator itr;
@@ -472,7 +462,7 @@ CalcNode& Mesh::getNode(int index)
     return nodes[itr->second];
 }
 
-CalcNode& Mesh::getNewNode(int index) {
+Node& Mesh::getNewNode(int index) {
     assert_ge(index, 0 );
     unordered_map<int, int>::const_iterator itr;
     itr = nodesMap.find(index);
@@ -480,7 +470,7 @@ CalcNode& Mesh::getNewNode(int index) {
     return new_nodes[itr->second];
 }
 
-CalcNode& Mesh::getNodeByLocalIndex(unsigned int index) {
+Node& Mesh::getNodeByLocalIndex(unsigned int index) {
     assert_ge(index, 0);
     assert_lt(index, nodes.size());
     return nodes[index];
@@ -493,7 +483,7 @@ int Mesh::getNodeLocalIndex(int index) const{
     return ( itr != nodesMap.end() ? itr->second : -1 );
 }
 
-void Mesh::addNode(CalcNode& node) {
+void Mesh::addNode(Node& node) {
     if( nodesNumber == nodesStorageSize )
         // FIXME what is this?
         // why not to use a propper allocator for container?
@@ -533,7 +523,7 @@ void Mesh::defaultNextPartStep(float tau, int stage)
     LOG_DEBUG("Processing border nodes");
     for( MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr ) {
         int i = itr->first;
-        CalcNode& node = getNode(i);
+        Node& node = getNode(i);
         if( node.isLocal() && node.isBorder() )
 			method->doNextPartStep( node, getNewNode(i), tau, stage, this );
     }
@@ -542,18 +532,18 @@ void Mesh::defaultNextPartStep(float tau, int stage)
     LOG_DEBUG("Processing inner nodes");
     for( MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr ) {
         int i = itr->first;
-        CalcNode& node = getNode(i);
+        Node& node = getNode(i);
         if( node.isLocal() && node.isInner() )
                 method->doNextPartStep( node, getNewNode(i), tau, stage, this );
     }
 }
 
 void Mesh::copyValues() {
-	LOG_DEBUG("Copying values");
+	LOG_DEBUG("Copying PDE");
     for( MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr ) {
         int i = itr->first;
-        CalcNode& node = getNode(i);
+        Node& node = getNode(i);
         if( node.isLocal() )
-            memcpy( node.values, getNewNode(i).values, VALUES_NUMBER * sizeof(float) );
+            memcpy( node.PDE, getNewNode(i).PDE, node.getSizeOfPDE() * sizeof(float) );
     }
 }

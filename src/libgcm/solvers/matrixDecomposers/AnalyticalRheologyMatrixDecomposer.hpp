@@ -2,7 +2,7 @@
 #define ANALYTICAL_RHEOLOGY_MATRIX_DECOMPOSER_HPP
 
 #include "libgcm/solvers/matrixDecomposers/RheologyMatrixDecomposer.hpp"
-#include "libgcm/util/Math.hpp"
+#include "libgcm/Math.hpp"
 
 #include "libgcm/util/Exception.hpp"
 #include <assert.h>

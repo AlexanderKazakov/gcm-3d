@@ -12,7 +12,7 @@
 namespace gcm {
 
     class AABB;
-    class CalcNode;
+    class Node;
 
     class CollisionDetector    {
 
@@ -27,16 +27,16 @@ namespace gcm {
         virtual std::string getType () const = 0;
         void set_threshold(float value);
         float get_threshold();
-        virtual void find_collisions(std::vector<CalcNode> &virt_nodes) = 0;
+        virtual void find_collisions(std::vector<Node> &virt_nodes) = 0;
         bool find_intersection(AABB &outline1, AABB &outline2, AABB &intersection);
         // return elements that are in intersection
-        virtual void find_nodes_in_intersection(Mesh* mesh, AABB &intersection, std::vector<CalcNode> &result);
-        void find_nodes_in_intersection(BasicCubicMesh* mesh, AABB& intersection, std::vector<CalcNode>& result);
+        virtual void find_nodes_in_intersection(Mesh* mesh, AABB &intersection, std::vector<Node> &result);
+        void find_nodes_in_intersection(BasicCubicMesh* mesh, AABB& intersection, std::vector<Node>& result);
         void find_nodes_in_intersection(Mesh* mesh, AABB &intersection, std::vector<int> &result);
         // number returned surface elements (nodes and triangles) sequentially
-        //void renumber_surface(std::vector<TriangleFirstOrder> &faces, std::vector<CalcNode> &nodes);
+        //void renumber_surface(std::vector<TriangleFirstOrder> &faces, std::vector<Node> &nodes);
         // returns surface elements (nodes and triangles) renumbered sequentially
-        //void renumber_volume(std::vector<Tetrahedron_1st_order> &tetrs, std::vector<CalcNode> &nodes);
+        //void renumber_volume(std::vector<Tetrahedron_1st_order> &tetrs, std::vector<Node> &nodes);
         void set_static(bool state);
         bool is_static();
     };

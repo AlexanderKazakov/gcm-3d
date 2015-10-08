@@ -1,7 +1,7 @@
 #include "libgcm/snapshot/VTKEulerMeshSnapshotWriter.hpp"
 
 #include "libgcm/Math.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/mesh/euler/EulerMesh.hpp"
 
 using namespace gcm;
@@ -62,7 +62,7 @@ namespace gcm
     }
 
     template<>
-    CalcNode& MeshNodeIterator<EulerMesh, 0>::operator*()
+    Node& MeshNodeIterator<EulerMesh, 0>::operator*()
     {
         return mesh->getNodeByEulerMeshIndex(static_cast<data_t*>(data)->index);
     }

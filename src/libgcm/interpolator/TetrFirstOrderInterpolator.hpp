@@ -16,14 +16,14 @@
 
 
 namespace gcm {
-    class CalcNode;
+    class Node;
 
     class TetrFirstOrderInterpolator : public TetrInterpolator {
     public:
         TetrFirstOrderInterpolator();
         ~TetrFirstOrderInterpolator();
-        void interpolate( CalcNode& node,
-                CalcNode& node0, CalcNode& node1, CalcNode& node2, CalcNode& node3 );
+        void interpolate( Node& node,
+                Node& node0, Node& node1, Node& node2, Node& node3 );
     private:
         USE_LOGGER;
     };

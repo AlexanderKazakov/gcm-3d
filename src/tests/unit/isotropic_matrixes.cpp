@@ -3,7 +3,7 @@
 #include "libgcm/rheology/Material.hpp"
 #include "libgcm/rheology/setters/IsotropicRheologyMatrixSetter.hpp"
 #include "libgcm/rheology/decomposers/IsotropicRheologyMatrixDecomposer.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/Engine.hpp"
 
 #include <gtest/gtest.h>
@@ -16,7 +16,7 @@ TEST(IsotropicMatrix3D, FuzzyMultiplication)
 {
     srand(time(NULL));
 
-    CalcNode isotropicNode;
+    Node isotropicNode;
 
     for (int k = 0; k < ITERATIONS; k++) {
         real la = 1.0e+9 * (double) rand() / RAND_MAX;
@@ -50,7 +50,7 @@ TEST(IsotropicMatrix3D, FuzzyElasticVelocities)
 {
     srand(time(NULL));
 
-    CalcNode isotropicNode;
+    Node isotropicNode;
 
     for (int k = 0; k < ITERATIONS; k++) {
         real la = 1.0e+9 * (double) rand() / RAND_MAX;

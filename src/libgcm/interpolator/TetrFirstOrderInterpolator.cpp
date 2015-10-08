@@ -6,7 +6,7 @@
  */
 #include "libgcm/interpolator/TetrFirstOrderInterpolator.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 
@@ -20,7 +20,7 @@ TetrFirstOrderInterpolator::~TetrFirstOrderInterpolator()
 {
 }
 
-void TetrFirstOrderInterpolator::interpolate(CalcNode& node, CalcNode& node0, CalcNode& node1, CalcNode& node2, CalcNode& node3)
+void TetrFirstOrderInterpolator::interpolate(Node& node, Node& node0, Node& node1, Node& node2, Node& node3)
 {
     LOG_TRACE("Start interpolation");
 
@@ -128,16 +128,17 @@ void TetrFirstOrderInterpolator::interpolate(CalcNode& node, CalcNode& node0, Ca
         }
     }
 
-    for (int i = 0; i < 9; i++) {
-        node.values[i] = (node0.values[i] * factor[0]
-                + node1.values[i] * factor[1]
-                + node2.values[i] * factor[2]
-                + node3.values[i] * factor[3]);
+    for (int i = 0; i < node.getSizeOfPDE(); i++) {
+        node.PDE[i] = (node0.PDE[i] * factor[0]
+                + node1.PDE[i] * factor[1]
+                + node2.PDE[i] * factor[2]
+                + node3.PDE[i] * factor[3]);
     }
 
-    node.setRho(node0.getRho() * factor[0] + node1.getRho() * factor[1]
-                + node2.getRho() * factor[2] + node3.getRho() * factor[3]);
-    node.setMaterialId(node0.getMaterialId());
+	//	TODO@next - do smth with rho in interpolators
+//    node.setRho(node0.getRho() * factor[0] + node1.getRho() * factor[1]
+//                + node2.getRho() * factor[2] + node3.getRho() * factor[3]);
+//    node.setMaterialId(node0.getMaterialId());
 
     LOG_TRACE("Interpolation done");
 }

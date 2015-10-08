@@ -15,9 +15,9 @@ namespace gcm
     public:
         AdhesionContactDestroyCalculator();
         ~AdhesionContactDestroyCalculator();
-        void doCalc(CalcNode& cur_node, CalcNode& new_node, CalcNode& virt_node,
-                                RheologyMatrixPtr matrix, std::vector<CalcNode>& previousNodes, bool inner[],
-                                RheologyMatrixPtr virt_matrix, std::vector<CalcNode>& virtPreviousNodes, bool virt_inner[],
+        void doCalc(Node& cur_node, Node& new_node, Node& virt_node,
+                                RheologyMatrixPtr matrix, std::vector<Node>& previousNodes, bool inner[],
+                                RheologyMatrixPtr virt_matrix, std::vector<Node>& virtPreviousNodes, bool virt_inner[],
                                 float outer_normal[], float scale);
     private:
         SlidingContactCalculator* scc;

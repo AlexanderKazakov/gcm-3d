@@ -1,7 +1,7 @@
 #include "libgcm/util/formats/VtuTetrFileReader.hpp"
 
 #include "libgcm/util/AABB.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/GCMDispatcher.hpp"
 
 using namespace gcm;
@@ -92,13 +92,13 @@ void VtuTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
     vtkIntArray *publicFlags = (vtkIntArray*) g->GetPointData ()->GetArray("publicFlags");
     vtkIntArray *privateFlags = (vtkIntArray*) g->GetPointData ()->GetArray("privateFlags");
 
-    vector<CalcNode*>* nodes = new vector<CalcNode*>;
+    vector<Node*>* nodes = new vector<Node*>;
     for( int i = 0; i < g->GetNumberOfPoints(); i++ )
     {
         double* dp = g->GetPoint(i);
         if( dispatcher->isMine( dp, mesh->getBody()->getId() ) )
         {
-            CalcNode* node = new CalcNode();
+            Node* node = new Node();
             node->number = i;
             node->coords[0] = dp[0];
             node->coords[1] = dp[1];
@@ -132,7 +132,7 @@ void VtuTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
     nodes->clear();
     delete nodes;
 
-    vector<TetrFirstOrder*>* tetrs = new vector<TetrFirstOrder*>;
+    vector<TetrahedronFirstOrder*>* tetrs = new vector<TetrahedronFirstOrder*>;
 
     for( int i = 0; i < g->GetNumberOfCells(); i++ )
     {
@@ -150,7 +150,7 @@ void VtuTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
                     || mesh->hasNode(vert[1])
                     || mesh->hasNode(vert[2])
                     || mesh->hasNode(vert[3]) )
-                tetrs->push_back( new TetrFirstOrder( number, vert ) );
+                tetrs->push_back( new TetrahedronFirstOrder( number, vert ) );
     }
 
     LOG_DEBUG("File contains " << g->GetNumberOfCells() << " tetrs");
@@ -160,11 +160,11 @@ void VtuTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
     mesh->createTetrs( tetrs->size() );
     for(unsigned int i = 0; i < tetrs->size(); i++)
     {
-        TetrFirstOrder* tetr = tetrs->at(i);
+        TetrahedronFirstOrder* tetr = tetrs->at(i);
         mesh->addTetr( *tetr );
         for(int j = 0; j < 4; j++)
-            if( ! mesh->hasNode( tetr->verts[j] ) )
-                remoteNodes[tetr->verts[j]] = i;
+            if( ! mesh->hasNode( tetr->vertices[j] ) )
+                remoteNodes[tetr->vertices[j]] = i;
     }
     tetrs->clear();
     delete tetrs;
@@ -175,7 +175,7 @@ void VtuTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
     LOG_DEBUG("We expect " << remoteNodes.size() << " nodes" );
     int remoteNodesCount = 0;
 
-    CalcNode tmpNode;
+    Node tmpNode;
     for( int i = 0; i < g->GetNumberOfPoints(); i++ )
     {
         if( remoteNodes.find( i ) != remoteNodes.end() )

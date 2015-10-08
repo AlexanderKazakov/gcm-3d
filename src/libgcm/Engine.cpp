@@ -62,18 +62,18 @@ Engine::Engine()
     LOG_DEBUG("Registering default rheology calculators");
     registerRheologyCalculator( new DummyRheologyCalculator() );
     defaultRheoCalcType = "DummyRheologyCalculator";
-    LOG_DEBUG("Registering failure models");
-    registerFailureModel( new NoFailureModel() );
-    registerFailureModel( new CrackFailureModel() );
-    registerFailureModel( new ScalarFailureModel() );
-    registerFailureModel( new ContinualFailureModel() );
-    registerFailureModel( new DebugFailureModel() );
-    registerFailureModel( new HashinFailureModel() );
-    registerFailureModel( new TsaiHillFailureModel() );
-    registerFailureModel( new TsaiWuFailureModel() );
-    registerFailureModel( new DruckerPragerFailureModel() );
-    registerFailureModel( new PuckFailureModel() );
-    defaultFailureModelType = "NoFailureModel";
+//    LOG_DEBUG("Registering failure models");
+//    registerFailureModel( new NoFailureModel() );
+//    registerFailureModel( new CrackFailureModel() );
+//    registerFailureModel( new ScalarFailureModel() );
+//    registerFailureModel( new ContinualFailureModel() );
+//    registerFailureModel( new DebugFailureModel() );
+//    registerFailureModel( new HashinFailureModel() );
+//    registerFailureModel( new TsaiHillFailureModel() );
+//    registerFailureModel( new TsaiWuFailureModel() );
+//    registerFailureModel( new DruckerPragerFailureModel() );
+//    registerFailureModel( new PuckFailureModel() );
+//    defaultFailureModelType = "NoFailureModel";
     LOG_DEBUG("Registering default calculators");
     registerVolumeCalculator( new SimpleVolumeCalculator() );
     registerBorderCalculator( new ExternalVelocityCalculator() );
@@ -96,7 +96,6 @@ Engine::Engine()
     LOG_DEBUG("Creating dispatcher");
     dispatcher = new DummyDispatcher();
     LOG_DEBUG("Creating data bus");
-    dataBus = new DataBus();
     LOG_DEBUG("Creating collision detector");
     colDet = new BruteforceCollisionDetector();
     LOG_INFO("GCM engine initialized");
@@ -142,9 +141,6 @@ void Engine::clear() {
 void Engine::cleanUp()
 {
     clear();
-    delete dataBus;
-    //delete vtkSnapshotWriter;
-    //delete vtkDumpWriter;
     delete colDet;
     for (auto plugin: plugins)
         delete plugin;
@@ -237,13 +233,13 @@ void Engine::registerRheologyCalculator(RheologyCalculator* rheologyCalculator)
     LOG_DEBUG("Registered rheology calculator: " << rheologyCalculator->getType());
 }
 
-void Engine:: registerFailureModel(FailureModel *model)
-{
-    if (!model)
-        THROW_INVALID_ARG("Failure model parameter cannot be NULL");
-    failureModels[model->getType()] = model;
-    LOG_DEBUG("Registered failure model: " << model->getType());
-}
+//void Engine:: registerFailureModel(FailureModel *model)
+//{
+//    if (!model)
+//        THROW_INVALID_ARG("Failure model parameter cannot be NULL");
+//    failureModels[model->getType()] = model;
+//    LOG_DEBUG("Registered failure model: " << model->getType());
+//}
 
 unsigned char Engine::addMaterial(MaterialPtr material)
 {
@@ -388,10 +384,10 @@ RheologyCalculator* Engine::getRheologyCalculator(string type)
     return rheologyCalculators.find(type) != rheologyCalculators.end() ? rheologyCalculators[type] : NULL;
 }
 
-FailureModel* Engine::getFailureModel(string type)
-{
-    return failureModels.find(type) != failureModels.end() ? failureModels[type] : NULL;
-}
+//FailureModel* Engine::getFailureModel(string type)
+//{
+//    return failureModels.find(type) != failureModels.end() ? failureModels[type] : NULL;
+//}
 
 BorderCondition* Engine::getBorderCondition(unsigned int num)
 {
@@ -410,7 +406,7 @@ void Engine::addBody(Body* body)
     bodies.push_back(body);
 }
 
-CalcNode& Engine::getVirtNode(unsigned int i)
+Node& Engine::getVirtNode(unsigned int i)
 {
     assert_ge(i, 0);
     assert_lt(i, virtNodes.size());
@@ -459,9 +455,7 @@ void Engine::doNextStepBeforeStages(const float maxAllowedStep, float& actualTim
     }
     LOG_DEBUG( "Local time step " << tau );
 
-    // Sync time step across processes, get final value
     if (tau > maxAllowedStep) tau = maxAllowedStep;
-    dataBus->syncTimeStep(&tau);
     actualTimeStep = tau;
     LOG_INFO("Started step "<< currentTimeStep << ". Current time: " << currentTime << ". "
                 << "Time step: " << tau << ".");
@@ -469,25 +463,12 @@ void Engine::doNextStepBeforeStages(const float maxAllowedStep, float& actualTim
     // Set contact threshold
     colDet->set_threshold( calculateRecommendedContactTreshold(tau) );
 
-    // Sync remote data
-    LOG_DEBUG("Syncing outlines");
-    dataBus->syncOutlines();
-    LOG_DEBUG("Syncing outlines done");
-
-    LOG_DEBUG("Syncing remote nodes");
-    dataBus->syncNodes(tau);
-    LOG_DEBUG("Syncing remote nodes done");
-
     for( unsigned int i = 0; i < bodies.size(); i++ )
     {
         Mesh* mesh = bodies[i]->getMeshes();
         LOG_DEBUG("Checking topology for mesh " << mesh->getId() );
         mesh->checkTopology(tau);
         LOG_DEBUG("Checking topology done");
-
-        LOG_DEBUG("Looking for missed nodes");
-        dataBus->syncMissedNodes(mesh, tau);
-        LOG_DEBUG("Looking for missed nodes done");
 
         //LOG_DEBUG("Processing response from cracks");
         //mesh->processCrackResponse();
@@ -514,9 +495,6 @@ void Engine::doNextStepStages(const float time_step)
     {
         LOG_DEBUG("Doing stage " << randomPermutation[j] << " that goes " << 
 		           j << "-th in the random sequence of stages");
-        LOG_DEBUG("Syncing remote nodes");
-        dataBus->syncNodes(time_step);
-        LOG_DEBUG("Syncing remote nodes done");
 
         for( unsigned int i = 0; i < bodies.size(); i++ ) {
             Mesh* mesh = bodies[i]->getMeshes();
@@ -553,13 +531,10 @@ void Engine::doNextStepAfterStages(const float time_step) {
         LOG_DEBUG( "Applying rheology for mesh " << mesh->getId() );
         mesh->applyRheology(rc);
         LOG_DEBUG( "Applying rheology done" );
-        LOG_DEBUG( "Processing stress state for mesh " << mesh->getId() );
-        mesh->processStressState();
-        LOG_DEBUG( "Processing stress state done" );
-        string failureType = getDefaultFailureModelType();
-        LOG_DEBUG( "Processing failure for mesh " << mesh->getId() << " using " << failureType << " model" );
-        mesh->processMaterialFailure( getFailureModel(failureType), time_step );
-        LOG_DEBUG( "Processing failure done" );
+//        string failureType = getDefaultFailureModelType();
+//        LOG_DEBUG( "Processing failure for mesh " << mesh->getId() << " using " << failureType << " model" );
+//        mesh->processMaterialFailure( getFailureModel(failureType), time_step );
+//        LOG_DEBUG( "Processing failure done" );
         if( getMeshesMovable() && mesh->getMovable() )
         {
             LOG_DEBUG( "Moving mesh " << mesh->getId() );
@@ -584,26 +559,14 @@ void Engine::setCurrentTime(float time) {
     currentTime = time;
 }
 
-void Engine::syncNodes() {
-    LOG_DEBUG("Syncing remote nodes");
-    dataBus->syncNodes(-1);
-    LOG_DEBUG("Syncing remote nodes done");
-}
-
-void Engine::syncOutlines() {
-    LOG_DEBUG("Syncing outlines");
-    dataBus->syncOutlines();
-    LOG_DEBUG("Syncing outlines");
-}
-
 void Engine::determineTypeOfCollisionDetector() {
-	bool useStaticCollisionDetector = true;
-	for( unsigned int i = 0; i < bodies.size(); i++ ) {
-		Mesh* mesh = bodies[i]->getMeshes();
-		if( !( (mesh->getType() == launcher::BasicCubicMeshLoader::MESH_TYPE) ||
-		       (mesh->getType() == launcher::RectangularCutCubicMeshLoader::MESH_TYPE) ) )
-			useStaticCollisionDetector = false;
-	}
+//	bool useStaticCollisionDetector = true;
+//	for( unsigned int i = 0; i < bodies.size(); i++ ) {
+//		Mesh* mesh = bodies[i]->getMeshes();
+//		if( !( (mesh->getType() == launcher::BasicCubicMeshLoader::MESH_TYPE) ||
+//		       (mesh->getType() == launcher::RectangularCutCubicMeshLoader::MESH_TYPE) ) )
+//			useStaticCollisionDetector = false;
+//	}
 //	if( useStaticCollisionDetector )
 //		colDet->set_static(true);
 }
@@ -740,10 +703,6 @@ void Engine::setStepsPerSnap(int number) {
     stepsPerSnap = number;
 }
 
-DataBus* Engine::getDataBus() {
-    return dataBus;
-}
-
 AABB Engine::getScene() {
     return scene;
 }
@@ -795,15 +754,15 @@ string Engine::getDefaultRheologyCalculatorType()
     return defaultRheoCalcType;
 }
 
-void Engine::setDefaultFailureModelType(string modelType)
-{
-    defaultFailureModelType = modelType;
-}
+//void Engine::setDefaultFailureModelType(string modelType)
+//{
+//    defaultFailureModelType = modelType;
+//}
 
-string Engine::getDefaultFailureModelType()
-{
-    return defaultFailureModelType;
-}
+//string Engine::getDefaultFailureModelType()
+//{
+//    return defaultFailureModelType;
+//}
 
 void Engine::setCollisionDetectorStatic(bool val)
 {
@@ -833,7 +792,7 @@ void Engine::setGmshVerbosity(float verbosity) {
     gmshVerbosity = verbosity;
 }
 
-bool Engine::interpolateNode(CalcNode& node)
+bool Engine::interpolateNode(Node& node)
 {
     for( unsigned int i = 0; i < bodies.size(); i++ )
     {
@@ -844,13 +803,13 @@ bool Engine::interpolateNode(CalcNode& node)
     return false;
 }
         
-void Engine::setRheologyMatrices(function<RheologyMatrixPtr (const CalcNode&)> getMatrixForNode)
+void Engine::setRheologyMatrices(function<RheologyMatrixPtr (const Node&)> getMatrixForNode)
 {
     for (auto& b: bodies)
         for (auto& m: b->getMeshesVector())
             for (int i = 0; i < m->getNodesNumber(); i++)
             {
-                CalcNode& node = m->getNodeByLocalIndex(i);
+                Node& node = m->getNodeByLocalIndex(i);
                 if (node.isUsed() || node.isLocal(false))
                     node.setRheologyMatrix(getMatrixForNode(node));
             }

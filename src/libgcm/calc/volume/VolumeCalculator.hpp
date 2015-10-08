@@ -16,7 +16,7 @@
 
 namespace gcm
 {
-    class CalcNode;
+    class Node;
     /*
      * Base class for inner points calculators
      */
@@ -29,8 +29,8 @@ namespace gcm
         /*
          * Calculate next state for the given node
          */
-        virtual void doCalc(CalcNode& new_node, RheologyMatrixPtr matrix,
-                                                std::vector<CalcNode>& previousNodes) = 0;
+        virtual void doCalc(Node& new_node, RheologyMatrixPtr matrix,
+                                                std::vector<Node>& previousNodes) = 0;
         /*
          * Returns type of the calculator
          */

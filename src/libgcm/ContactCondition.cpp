@@ -1,6 +1,6 @@
 #include "libgcm/ContactCondition.hpp"
 
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 
 using namespace gcm;
 using std::vector;
@@ -21,9 +21,9 @@ ContactCondition::~ContactCondition() {
 
 }
 
-void ContactCondition::doCalc(float time, CalcNode& cur_node, CalcNode& new_node, CalcNode& virt_node,
-                              RheologyMatrixPtr matrix, vector<CalcNode>& previousNodes, bool inner[],
-                              RheologyMatrixPtr virt_matrix, vector<CalcNode>& virtPreviousNodes, 
+void ContactCondition::doCalc(float time, Node& cur_node, Node& new_node, Node& virt_node,
+                              RheologyMatrixPtr matrix, vector<Node>& previousNodes, bool inner[],
+                              RheologyMatrixPtr virt_matrix, vector<Node>& virtPreviousNodes, 
                               bool virt_inner[], float outer_normal[])
 {
     calc->doCalc(cur_node, new_node, virt_node, matrix, previousNodes, inner,

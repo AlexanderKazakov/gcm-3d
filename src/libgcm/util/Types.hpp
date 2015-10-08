@@ -41,7 +41,7 @@ namespace gcm
         {
         }
 
-        // FIXME this operator is WA to ease migration from union to vector in CalcNode
+        // FIXME this operator is WA to ease migration from union to vector in Node
         // This code should be removed immediately after refactoring is done
         operator T*()
         {

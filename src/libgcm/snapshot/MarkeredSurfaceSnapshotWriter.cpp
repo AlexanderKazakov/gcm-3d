@@ -48,7 +48,7 @@ string MarkeredSurfaceSnapshotWriter::dump(Mesh* mesh, int step, string fileName
     for(auto f: _mesh->getSurface().getMarkerFaces())
     {
         for( int z = 0; z < 3; z++)
-            tetra->GetPointIds()->SetId( z, f.verts[z]);
+            tetra->GetPointIds()->SetId( z, f.vertices[z]);
         tetra->GetPointIds()->SetId(3, lastPoint);
         grid->InsertNextCell(tetra->GetCellType(),tetra->GetPointIds());
     }

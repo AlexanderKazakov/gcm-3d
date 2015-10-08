@@ -2,7 +2,7 @@
 
 #include "libgcm/util/AABB.hpp"
 #include "libgcm/mesh/tetr/TetrMeshFirstOrder.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/GCMDispatcher.hpp"
 
 using namespace gcm;
@@ -184,7 +184,7 @@ void Ani3DTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDis
 
     infile >> number_of_nodes;
     LOG_DEBUG("File contains " << number_of_nodes << " nodes");
-    vector<CalcNode*>* nodes = new vector<CalcNode*>;
+    vector<Node*>* nodes = new vector<Node*>;
 
     for(int i = 0; i < number_of_nodes; i++)
     {
@@ -192,7 +192,7 @@ void Ani3DTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDis
         infile >> coords[0] >> coords[1] >> coords[2];
         if( ignoreDispatcher || dispatcher->isMine( coords, mesh->getBody()->getId() ) )
         {
-            CalcNode* node = new CalcNode();
+            Node* node = new Node();
             node->number = i;
             node->coords[0] = coords[0];
             node->coords[1] = coords[1];
@@ -219,7 +219,7 @@ void Ani3DTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDis
     infile >> number_of_elements;
     LOG_DEBUG("File contains " << number_of_elements << " elements");
 
-    vector<TetrFirstOrder*>* tetrs = new vector<TetrFirstOrder*>;
+    vector<TetrahedronFirstOrder*>* tetrs = new vector<TetrahedronFirstOrder*>;
 
     for(int i = 0; i < number_of_elements; i++)
     {
@@ -237,7 +237,7 @@ void Ani3DTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDis
                 || mesh->hasNode(vert[1])
                 || mesh->hasNode(vert[2])
                 || mesh->hasNode(vert[3]) )
-            tetrs->push_back( new TetrFirstOrder( number, vert ) );
+            tetrs->push_back( new TetrahedronFirstOrder( number, vert ) );
 	else
 	{
 	    LOG_DEBUG("Unkndes: " << tetrsCount <<" v: " <<vert[0] <<" " <<vert[1] <<" " <<vert[2] <<" "  <<vert[3] 
@@ -253,11 +253,11 @@ void Ani3DTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDis
     mesh->createTetrs( tetrs->size() );
     for(unsigned int i = 0; i < tetrs->size(); i++)
     {
-        TetrFirstOrder* tetr = tetrs->at(i);
+        TetrahedronFirstOrder* tetr = tetrs->at(i);
         mesh->addTetr( *tetr );
         for(int j = 0; j < 4; j++)
-            if( ! mesh->hasNode( tetr->verts[j] ) )
-                remoteNodes[tetr->verts[j]] = i;
+            if( ! mesh->hasNode( tetr->vertices[j] ) )
+                remoteNodes[tetr->vertices[j]] = i;
     }
     tetrs->clear();
     delete tetrs;
@@ -277,7 +277,7 @@ void Ani3DTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDis
         THROW_INVALID_INPUT( "Can not open ani3d:out file" );
 
     infile >> number_of_nodes;
-    CalcNode tmpNode;
+    Node tmpNode;
     for(int i = 0; i < number_of_nodes; i++)
     {
         infile >> tmpNode.coords[0] >> tmpNode.coords[1] >> tmpNode.coords[2];

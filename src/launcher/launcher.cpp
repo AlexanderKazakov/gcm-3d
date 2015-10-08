@@ -421,7 +421,6 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
 
     // run dispatcher
     engine.getDispatcher()->prepare(engine.getNumberOfWorkers(), &globalScene);
-    engine.getDataBus()->syncOutlines();
     for( int i = 0; i < engine.getNumberOfWorkers(); i++)
     {
         LOG_DEBUG("Area scheduled for worker " << i << ": " << *(engine.getDispatcher()->getOutline(i)));
@@ -580,7 +579,7 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
         auto useValues = valuesNodes.size() == 1;
         real values[9];
 
-        std::function<void(CalcNode&)> setter;
+        std::function<void(Node&)> setter;
 
         if (useValues)
         {
@@ -642,7 +641,7 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
                 THROW_INVALID_INPUT("Invalid P-wave type specified");
             auto compression = type == "compression";
 
-            setter = [=](CalcNode& node)
+            setter = [=](Node& node)
             {
                 setIsotropicElasticPWave(node, dir, amplitudeScale, compression);
             };
@@ -844,7 +843,7 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
         matrices.push_back(makeRheologyMatrixPtr(material, setter, decomposer, corrector));
     }
 
-    engine.setRheologyMatrices([&matrices](const CalcNode& node) -> RheologyMatrixPtr
+    engine.setRheologyMatrices([&matrices](const Node& node) -> RheologyMatrixPtr
         {
             return matrices[node.getMaterialId()];
         }
@@ -858,7 +857,7 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
     LOG_DEBUG("Scene loaded");
 }
 
-void launcher::setIsotropicElasticPWave(CalcNode& node, const Vector3& direction, real amplitudeScale, bool compression)
+void launcher::setIsotropicElasticPWave(Node& node, const Vector3& direction, real amplitudeScale, bool compression)
 {
     assert_gt(amplitudeScale, 0.0);
 

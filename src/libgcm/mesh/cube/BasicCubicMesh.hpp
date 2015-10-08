@@ -15,17 +15,9 @@
 
 namespace gcm
 {
-    class CalcNode;
+    class Node;
 
     class BasicCubicMesh: public Mesh {
-
-    // Hopefully we will never need these 'friends' back
-/*    friend class VTKSnapshotWriter;
-    friend class DataBus;
-    friend class CollisionDetector;
-    friend class BruteforceCollisionDetector;
-*/
-
     protected:
         LineFirstOrderInterpolator* interpolator1;
 		LineSecondOrderInterpolator* interpolator2;
@@ -34,7 +26,7 @@ namespace gcm
         void calcMinH();
         void preProcessGeometry() override;
 
-        virtual int findNeighbourPoint(CalcNode& node, float dx, float dy, float dz, 
+        virtual int findNeighbourPoint(Node& node, float dx, float dy, float dz, 
 		                       bool debug, float* coords, bool* innerPoint);
 
         virtual void findNearestsNodes(const vector3r& coords, int N, std::vector< std::pair<int,float> >& result);
@@ -57,17 +49,17 @@ namespace gcm
         void doNextPartStep(float tau, int stage) override;
         void checkTopology(float tau);
 
-        void findBorderNodeNormal(const CalcNode& node, float* x, float* y, float* z, bool debug) override;
+        void findBorderNodeNormal(const Node& node, float* x, float* y, float* z, bool debug) override;
 
-        bool interpolateNode(CalcNode& origin, float dx, float dy, float dz, bool debug,
-                                CalcNode& targetNode, bool& isInnerPoint) override;
+        bool interpolateNode(Node& origin, float dx, float dy, float dz, bool debug,
+                                Node& targetNode, bool& isInnerPoint) override;
 
-        bool interpolateNode(CalcNode& node) override;
+        bool interpolateNode(Node& node) override;
 
         bool interpolateBorderNode(real x, real y, real z, 
-                                real dx, real dy, real dz, CalcNode& node) override;
+                                real dx, real dy, real dz, Node& node) override;
         bool interpolateBorderNode_old(real x, real y, real z,
-                                        real dx, real dy, real dz, CalcNode& node);
+                                        real dx, real dy, real dz, Node& node);
 
         void setNumX(int _numX);
         void setNumY(int _numY);

@@ -3,6 +3,7 @@
 
 #include "libgcm/calc/contact/AdhesionContactCalculator.hpp"
 #include "libgcm/calc/contact/SlidingContactCalculator.hpp"
+#include "libgcm/util/areas/Area.hpp"
 
 namespace gcm
 {
@@ -12,9 +13,9 @@ namespace gcm
         ClosedFractureContactCalculator();
         ~ClosedFractureContactCalculator();
 		void setFracArea(Area* area);
-        void doCalc(CalcNode& cur_node, CalcNode& new_node, CalcNode& virt_node,
-                    RheologyMatrixPtr matrix, std::vector<CalcNode>& previousNodes, bool inner[],
-                    RheologyMatrixPtr virt_matrix, std::vector<CalcNode>& virtPreviousNodes, 
+        void doCalc(Node& cur_node, Node& new_node, Node& virt_node,
+                    RheologyMatrixPtr matrix, std::vector<Node>& previousNodes, bool inner[],
+                    RheologyMatrixPtr virt_matrix, std::vector<Node>& virtPreviousNodes, 
 					bool virt_inner[], float outer_normal[], float scale);
     private:
 		Area* fracArea;

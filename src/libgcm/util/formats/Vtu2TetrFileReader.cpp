@@ -1,7 +1,7 @@
 #include "libgcm/util/formats/Vtu2TetrFileReader.hpp"
 
 #include "libgcm/util/AABB.hpp"
-#include "libgcm/node/CalcNode.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/GCMDispatcher.hpp"
 
 using namespace gcm;
@@ -109,13 +109,13 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
     vtkIntArray *privateFlags = (vtkIntArray*) g->GetPointData ()->GetArray("privateFlags");
     vtkIntArray *nodeBorderConditionId = (vtkIntArray*) g->GetPointData ()->GetArray("borderConditionId");
 
-    vector<CalcNode*>* nodes = new vector<CalcNode*>;
+    vector<Node*>* nodes = new vector<Node*>;
     for( int i = 0; i < g->GetNumberOfPoints(); i++ )
     {
         double* dp = g->GetPoint(i);
         if( ignoreDispatcher || dispatcher->isMine( dp, mesh->getBody()->getId() ) )
         {
-            CalcNode* node = new CalcNode();
+            Node* node = new Node();
             node->number = nodeNumber->GetValue(i);
             node->coords[0] = dp[0];
             node->coords[1] = dp[1];
@@ -160,13 +160,13 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
     vtkIntArray* tetr1stOrderNodes = (vtkIntArray*) g->GetCellData ()->GetArray ("tetr1stOrderNodes");
     vtkIntArray* tetrNumber = (vtkIntArray*) g->GetCellData ()->GetArray ("tetrNumber");
     assert_eq(tetr1stOrderNodes->GetNumberOfComponents (), 4);
-    vector<TetrSecondOrder*>* tetrs = new vector<TetrSecondOrder*>;
+    vector<TetrahedronSecondOrder*>* tetrs = new vector<TetrahedronSecondOrder*>;
 
-    TetrSecondOrder new_tetr;
+    TetrahedronSecondOrder new_tetr;
     for( int i = 0; i < g->GetNumberOfCells(); i++ )
     {
         new_tetr.number = tetrNumber->GetValue(i);
-        tetr1stOrderNodes->GetTupleValue (i, new_tetr.verts);
+        tetr1stOrderNodes->GetTupleValue (i, new_tetr.vertices);
         tetr2ndOrderNodes->GetTupleValue (i, new_tetr.addVerts);
 
         /*vtkTetra *vt = (vtkTetra*) g->GetCell(i);
@@ -177,11 +177,11 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
         vert[2] = vt->GetPointId(2);
         vert[3] = vt->GetPointId(3);*/
 
-        if( mesh->hasNode(new_tetr.verts[0])
-                    || mesh->hasNode(new_tetr.verts[1])
-                    || mesh->hasNode(new_tetr.verts[2])
-                    || mesh->hasNode(new_tetr.verts[3]) )
-                tetrs->push_back( new TetrSecondOrder( new_tetr.number, new_tetr.verts, new_tetr.addVerts ) );
+        if( mesh->hasNode(new_tetr.vertices[0])
+                    || mesh->hasNode(new_tetr.vertices[1])
+                    || mesh->hasNode(new_tetr.vertices[2])
+                    || mesh->hasNode(new_tetr.vertices[3]) )
+                tetrs->push_back( new TetrahedronSecondOrder( new_tetr.number, new_tetr.vertices, new_tetr.addVerts ) );
     }
 
     LOG_DEBUG("File contains " << g->GetNumberOfCells() << " tetrs");
@@ -191,11 +191,11 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
     mesh->createTetrs( tetrs->size() );
     for(unsigned int i = 0; i < tetrs->size(); i++)
     {
-        TetrSecondOrder* tetr = tetrs->at(i);
+        TetrahedronSecondOrder* tetr = tetrs->at(i);
         mesh->addTetr2( *tetr );
         for(int j = 0; j < 4; j++)
-            if( ! mesh->hasNode( tetr->verts[j] ) )
-                remoteNodes[tetr->verts[j]] = i;
+            if( ! mesh->hasNode( tetr->vertices[j] ) )
+                remoteNodes[tetr->vertices[j]] = i;
         for(int j = 0; j < 6; j++)
             if( ! mesh->hasNode( tetr->addVerts[j] ) )
                 remoteNodes[tetr->addVerts[j]] = i;
@@ -213,7 +213,7 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
     LOG_DEBUG("We expect " << remoteNodes.size() << " nodes" );
     int remoteNodesCount = 0;
 
-    CalcNode tmpNode;
+    Node tmpNode;
     for( int i = 0; i < g->GetNumberOfPoints(); i++ )
     {
         if( remoteNodes.find( nodeNumber->GetValue(i) ) != remoteNodes.end() )
@@ -256,11 +256,11 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
 
     for( int i = 0; i < mesh->getTetrsNumber(); i++ )
     {
-        TetrSecondOrder& tetr = mesh->getTetr2ByLocalIndex(i);
+        TetrahedronSecondOrder& tetr = mesh->getTetr2ByLocalIndex(i);
         for (int j = 0; j < 4; j++)
-            if ( ! mesh->hasNode(tetr.verts[j]) )
+            if ( ! mesh->hasNode(tetr.vertices[j]) )
             {
-                LOG_ERROR("Can not find node " << tetr.verts[j] << " required by local tetr " << i);
+                LOG_ERROR("Can not find node " << tetr.vertices[j] << " required by local tetr " << i);
                 THROW_BAD_MESH("Missed node");
             }
         for (int j = 0; j < 6; j++)
