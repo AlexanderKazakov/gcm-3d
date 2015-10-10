@@ -26,15 +26,15 @@ namespace gcm
         void calcMinH();
         void preProcessGeometry() override;
 
-        virtual int findNeighbourPoint(Node& node, float dx, float dy, float dz, 
+        virtual uint findNeighbourPoint(Node& node, float dx, float dy, float dz, 
 		                       bool debug, float* coords, bool* innerPoint);
 
-        virtual void findNearestsNodes(const vector3r& coords, int N, std::vector< std::pair<int,float> >& result);
+        virtual void findNearestsNodes(const vector3r& coords, uint N, std::vector< std::pair<uint,float> >& result);
 
         float meshH;
 
         // Number of cubes along axis
-        int numX, numY, numZ;
+        uint numX, numY, numZ;
 
         USE_LOGGER;
 
@@ -61,13 +61,13 @@ namespace gcm
         bool interpolateBorderNode_old(real x, real y, real z,
                                         real dx, real dy, real dz, Node& node);
 
-        void setNumX(int _numX);
-        void setNumY(int _numY);
-        void setNumZ(int _numZ);
+        void setNumX(uint _numX);
+        void setNumY(uint _numY);
+        void setNumZ(uint _numZ);
 
-        int getNumX() const;
-        int getNumY() const;
-        int getNumZ() const;
+        uint getNumX() const;
+        uint getNumY() const;
+        uint getNumZ() const;
         float getH() const;
 
         virtual const SnapshotWriter& getSnaphotter() const override;

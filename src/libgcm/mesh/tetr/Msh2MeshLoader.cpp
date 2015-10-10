@@ -33,7 +33,8 @@ void Msh2MeshLoader::loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispatch
         TetrMeshSecondOrder* soMesh = new TetrMeshSecondOrder();
         soMesh->setBody(body);
 
-        int sd, nn;
+        int sd;
+		uint nn;
         AABB scene;
         GCMDispatcher* myDispatcher = new DummyDispatcher();
         preLoadMesh(&scene, sd, nn, fileName);
@@ -68,7 +69,7 @@ void Msh2MeshLoader::loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispatch
     mesh->preProcess();
 }
 
-void Msh2MeshLoader::preLoadMesh(AABB* scene, int& sliceDirection, int& numberOfNodes, const string& fileName) {
+void Msh2MeshLoader::preLoadMesh(AABB* scene, int& sliceDirection, uint& numberOfNodes, const string& fileName) {
     MshTetrFileReader* reader = new MshTetrFileReader();
     reader->preReadFile(fileName, scene, sliceDirection, numberOfNodes);
     delete reader;

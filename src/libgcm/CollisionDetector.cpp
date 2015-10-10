@@ -51,7 +51,7 @@ bool CollisionDetector::find_intersection(AABB &outline1, AABB &outline2, AABB &
 
 void CollisionDetector::find_nodes_in_intersection(Mesh* mesh, AABB& intersection, vector<Node>& result)
 {
-    for(int i = 0; i < mesh->getNodesNumber(); i++)
+    for(uint i = 0; i < mesh->getNodesNumber(); i++)
     {
         Node& node = mesh->getNodeByLocalIndex(i);
         // FIXME
@@ -97,7 +97,7 @@ void CollisionDetector::find_nodes_in_intersection(BasicCubicMesh* mesh, AABB& i
 
 void CollisionDetector::find_nodes_in_intersection(Mesh* mesh, AABB& intersection, vector<int>& result)
 {
-    for(int i = 0; i < mesh->getNodesNumber(); i++)
+    for(uint i = 0; i < mesh->getNodesNumber(); i++)
     {
         Node& node = mesh->getNodeByLocalIndex(i);
         // FIXME

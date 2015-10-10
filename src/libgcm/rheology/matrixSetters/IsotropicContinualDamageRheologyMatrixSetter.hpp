@@ -4,7 +4,7 @@
 #include <math.h>
 
 #include "libgcm/rheology/matrixSetters/RheologyMatrixSetter.hpp"
-#include "libgcm/nodes/IdealElasticContinualDamageNode.hpp"
+#include "libgcm/node/IdealElasticContinualDamageNode.hpp"
 
 namespace gcm
 {

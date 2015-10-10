@@ -23,7 +23,7 @@ namespace gcm {
 		              int numX, int numY, int numZ,
 					  int minX, int minY, int minZ,
 					  int maxX, int maxY, int maxZ);
-        void preLoadMesh(AABB* scene, int& sliceDirection, int& numberOfNodes, 
+        void preLoadMesh(AABB* scene, int& sliceDirection, uint& numberOfNodes, 
 		                 float h, int numX, int numY, int numZ);
     };
 }

@@ -1,6 +1,7 @@
 #include "libgcm/util/formats/Ani3DTetrFileReader.hpp"
 
 #include "libgcm/util/AABB.hpp"
+#include "libgcm/Body.hpp"
 #include "libgcm/mesh/tetr/TetrMeshFirstOrder.hpp"
 #include "libgcm/node/Node.hpp"
 #include "libgcm/GCMDispatcher.hpp"
@@ -22,7 +23,7 @@ Ani3DTetrFileReader::~Ani3DTetrFileReader()
 
 }
 
-void Ani3DTetrFileReader::preReadFile(string file, AABB* scene, int& sliceDirection, int& numberOfNodes)
+void Ani3DTetrFileReader::preReadFile(string file, AABB* scene, int& sliceDirection, uint& numberOfNodes)
 {
     scene->minX = numeric_limits<float>::infinity();
     scene->minY = numeric_limits<float>::infinity();
@@ -32,7 +33,7 @@ void Ani3DTetrFileReader::preReadFile(string file, AABB* scene, int& sliceDirect
     scene->maxZ = - numeric_limits<float>::infinity();
 
     string str;
-    int tmp_int;
+//    int tmp_int;
     float tmp_float;
     int number_of_nodes;
 
@@ -168,10 +169,10 @@ void Ani3DTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDis
     assert_true(mesh);
     assert_true(dispatcher);
     int tetrsCount = 0;
-    int fileVer;
+//    int fileVer;
     string str;
     int tmp_int;
-    float tmp_float;
+//    float tmp_float;
     int number_of_nodes;
     int number_of_elements;
 
@@ -224,8 +225,8 @@ void Ani3DTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDis
     for(int i = 0; i < number_of_elements; i++)
     {
         tetrsCount++;
-        int number = tetrs->size();
-        int vert[4];
+        uint number = tetrs->size();
+        uint vert[4];
         infile >> vert[0] >> vert[1] >> vert[2] >> vert[3] >> tmp_int;
 
         if( (vert[0] <= 0) || (vert[1] <= 0) || (vert[2] <= 0) || (vert[3] <= 0) )

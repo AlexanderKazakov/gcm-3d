@@ -19,7 +19,7 @@ void launcher::Vtu2MeshZoneLoader::parseDesc(const xml::Node& desc, string& id, 
     fileName = ffls.lookupFile(desc["file"]);
 }
 
-void launcher::Vtu2MeshZoneLoader::preLoadMesh(const xml::Node& desc, AABB& aabb, int& sliceDirection, int& numberOfNodes)
+void launcher::Vtu2MeshZoneLoader::preLoadMesh(const xml::Node& desc, AABB& aabb, int& sliceDirection, uint& numberOfNodes)
 {
     string fileName, id;
     

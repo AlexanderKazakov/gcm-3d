@@ -1,6 +1,5 @@
 #include "launcher/loaders/mesh/MarkeredMeshGeoLoader.hpp"
 #include "libgcm/mesh/euler/markers/MarkeredSurfaceGeoGenerator.hpp"
-
 #include "libgcm/Engine.hpp"
 
 #include <boost/lexical_cast.hpp>
@@ -42,7 +41,7 @@ void launcher::MarkeredMeshGeoLoader::parseDesc(const xml::Node& desc, string& i
     cellSize.z = lexical_cast<real>(strs[2]);
 }
 
-void launcher::MarkeredMeshGeoLoader::preLoadMesh(const xml::Node& desc, AABB& aabb, int& sliceDirection, int& numberOfNodes)
+void launcher::MarkeredMeshGeoLoader::preLoadMesh(const xml::Node& desc, AABB& aabb, int& sliceDirection, uint& numberOfNodes)
 {
     // Nothing to do here
 }

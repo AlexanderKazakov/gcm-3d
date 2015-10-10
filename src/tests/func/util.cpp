@@ -2,9 +2,9 @@
 
 #include "launcher/launcher.hpp"
 #include "launcher/util/FileFolderLookupService.hpp"
-#include "libgcm/node/Node.hpp"
+#include "libgcm/node/CalcNode.hpp"
 #include "libgcm/Math.hpp"
-#include "libgcm/util/Logging.hpp"
+#include "libgcm/Logging.hpp"
 
 #include <iostream>
 #include <vector>
@@ -27,7 +27,7 @@ bfs::path getDataFileName(int stepNum)
     return getTestDataDirName() / ("step" + std::to_string(stepNum) + ".data");
 }
 
-void dumpPoint(Node& analytical, Node& numerical, SnapshotLine line, int stepNum)
+void dumpPoint(CalcNode& analytical, CalcNode& numerical, SnapshotLine line, int stepNum)
 {
     ofstream datafile;
     datafile.open(getDataFileName(stepNum).string(), ios::app);
@@ -41,7 +41,7 @@ void dumpPoint(Node& analytical, Node& numerical, SnapshotLine line, int stepNum
     // Dump data to file
     datafile << dist << " ";
     for(int v = 0; v < GCM_MATRIX_SIZE; v++ )
-        datafile << analytical.PDE[v] << " " << numerical.PDE[v] << " ";
+        datafile << analytical.values[v] << " " << numerical.values[v] << " ";
     datafile << "\n";
 
     datafile.close();
@@ -61,15 +61,15 @@ void drawValues(std::vector<std::string> valuesToDraw, int stepNum, std::vector<
         return;
     }
 
-    vector<std::string> PDE {"vx", "vy", "vz", "sxx", "sxy", "sxz", "syy", "syz", "szz"};
-    for(unsigned int i = 0; i < PDE.size(); i++)
+    vector<std::string> values {"vx", "vy", "vz", "sxx", "sxy", "sxz", "syy", "syz", "szz"};
+    for(unsigned int i = 0; i < values.size(); i++)
     {
-        if( ! shouldDraw(PDE[i], valuesToDraw) )
+        if( ! shouldDraw(values[i], valuesToDraw) )
             continue;
 
         int dataColumnIndex = (i+1)*2;
         bfs::path dataFileName = getDataFileName(stepNum);
-        bfs::path pngFileName = getTestDataDirName() / (PDE[i] + "." + std::to_string(stepNum) + ".png");
+        bfs::path pngFileName = getTestDataDirName() / (values[i] + "." + std::to_string(stepNum) + ".png");
 
         // Set term and target png file
         std::string cmd = std::string("set term pngcairo; ")
@@ -89,10 +89,10 @@ void drawValues(std::vector<std::string> valuesToDraw, int stepNum, std::vector<
         // Plot command itself
         cmd = cmd + "plot \"" + dataFileName.string() + '"'
                             + " using 1:" + std::to_string(dataColumnIndex) + " with lines "
-                            + "title " + '"' + PDE[i] + " analytical" + '"' + ", "
+                            + "title " + '"' + values[i] + " analytical" + '"' + ", "
                             + '"' + dataFileName.string() + '"'
                             + " using 1:" + std::to_string(dataColumnIndex+1) + " with lines "
-                            + "title " + '"' + PDE[i] + " numerical" + '"';
+                            + "title " + '"' + values[i] + " numerical" + '"';
 
         // Execute
         fprintf(gnuplot, "%s\n", cmd.c_str());
@@ -103,7 +103,7 @@ void drawValues(std::vector<std::string> valuesToDraw, int stepNum, std::vector<
 }
 
 // TODO: change norm (current norm depends on number of points too heavily)
-void runTaskAsTest(std::string taskFile, void(*setAnalytical)(Node&, float, Engine&),
+void runTaskAsTest(std::string taskFile, void(*setAnalytical)(CalcNode&, float, Engine&),
                     int stepsNum, SnapshotLine line, std::vector<std::string> valuesToDraw,
                     float ALLOWED_VALUE_DEVIATION_PERCENT, int ALLOWED_NUMBER_OF_BAD_NODES )
 {
@@ -117,7 +117,7 @@ void runTaskAsTest(std::string taskFile, void(*setAnalytical)(Node&, float, Engi
         bfs::create_directories(resDirName);
 
         float time = 0.0;
-        Node node;
+        CalcNode node;
 
         std::vector<ValueLimit> valueLimits;
         valueLimits.resize(9);
@@ -142,7 +142,7 @@ void runTaskAsTest(std::string taskFile, void(*setAnalytical)(Node&, float, Engi
         engine.setTimeStep(dt);
 
         // Create snap nodes
-        Node* snapNodes = new Node[line.numberOfPoints];
+        CalcNode* snapNodes = new CalcNode[line.numberOfPoints];
         // Determine line size
         float dx[3];
         for (int k = 0; k < 3; k++)
@@ -164,14 +164,14 @@ void runTaskAsTest(std::string taskFile, void(*setAnalytical)(Node&, float, Engi
             // Check velocity
             for(int v = 0; v < 3; v++ )
             {
-                if( fabs(node.PDE[v]) > velocityNorm )
-                    velocityNorm = fabs(node.PDE[v]);
+                if( fabs(node.values[v]) > velocityNorm )
+                    velocityNorm = fabs(node.values[v]);
             }
             // Check pressure
             for(int v = 3; v < GCM_MATRIX_SIZE; v++ )
             {
-                if( fabs(node.PDE[v]) > pressureNorm )
-                    pressureNorm = fabs(node.PDE[v]);
+                if( fabs(node.values[v]) > pressureNorm )
+                    pressureNorm = fabs(node.values[v]);
             }
         }
 
@@ -197,16 +197,16 @@ void runTaskAsTest(std::string taskFile, void(*setAnalytical)(Node&, float, Engi
                 // Dump data to file
                 dumpPoint(node, snapNodes[i], line, t);
 
-                // Check PDE
+                // Check values
                 for(int v = 0; v < GCM_MATRIX_SIZE; v++ )
                 {
-                    float delta = fabs(node.PDE[v] - snapNodes[i].PDE[v]);
+                    float delta = fabs(node.values[v] - snapNodes[i].values[v]);
                     float norm = (v < 3 ? velocityNorm : pressureNorm);
                     if( delta > norm * ALLOWED_VALUE_DEVIATION_PERCENT )
                     {
                         badNodes++;
                         LOG_INFO("Bad nodes: " << node << "\n" << "VS" << snapNodes[i]);
-                        LOG_INFO("Compare PDE[" << v << "], delta " << delta << ", norm " << norm );
+                        LOG_INFO("Compare values[" << v << "], delta " << delta << ", norm " << norm );
                         break;
                     }
                 }
@@ -214,10 +214,10 @@ void runTaskAsTest(std::string taskFile, void(*setAnalytical)(Node&, float, Engi
                 // Update limits
                 for(int v = 0; v < GCM_MATRIX_SIZE; v++ )
                 {
-                    if( snapNodes[i].PDE[v] < valueLimits[v].min )
-                        valueLimits[v].min = snapNodes[i].PDE[v];
-                    if( snapNodes[i].PDE[v] > valueLimits[v].max )
-                        valueLimits[v].max = snapNodes[i].PDE[v];
+                    if( snapNodes[i].values[v] < valueLimits[v].min )
+                        valueLimits[v].min = snapNodes[i].values[v];
+                    if( snapNodes[i].values[v] > valueLimits[v].max )
+                        valueLimits[v].max = snapNodes[i].values[v];
                 }
             }
 

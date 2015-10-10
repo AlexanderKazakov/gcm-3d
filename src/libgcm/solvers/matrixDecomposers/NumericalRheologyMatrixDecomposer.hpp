@@ -2,7 +2,7 @@
 #define NUMERICAL_RHEOLOGY_MATRIX_DECOMPOSER_HPP 
 
 #include "libgcm/solvers/matrixDecomposers/RheologyMatrixDecomposer.hpp"
-#include "libgcm/util/Exception.hpp"
+#include "libgcm/Exception.hpp"
 
 #include <iostream>
 #include <gsl/gsl_eigen.h>

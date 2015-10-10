@@ -7,7 +7,7 @@
 #include "libgcm/util/Logging.hpp"
 #include "libgcm/util/areas/Area.hpp"
 #include "libgcm/linal/Vector3.hpp"
-#include "libgcm/node/Node.hpp"
+#include "libgcm/node/IdealElasticNode.hpp"
 #include "libgcm/calc/contact/ClosedFractureContactCalculator.hpp"
 #include "libgcm/calc/contact/OpenFractureContactCalculator.hpp"
 
@@ -29,7 +29,8 @@ namespace launcher {
 
     };
         
-    void setIsotropicElasticPWave(gcm::Node& node, const gcm::linal::Vector3& direction, gcm::real amplitudeScale, bool compression);
+    void setIsotropicElasticPWave(gcm::Node& node, 
+		const gcm::linal::Vector3& direction, gcm::real amplitudeScale, bool compression);
 }
 
 

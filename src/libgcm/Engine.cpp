@@ -46,8 +46,8 @@ Engine::Engine()
 {
     gsl_set_error_handler(GSLErrorHandler);
 
-    rank = MPI::COMM_WORLD.Get_rank();
-    numberOfWorkers = MPI::COMM_WORLD.Get_size();
+    rank = 0; //MPI::COMM_WORLD.Get_rank();
+    numberOfWorkers = 1; //MPI::COMM_WORLD.Get_size();
     // get logger
     INIT_LOGGER("gcm.Engine");
     LOG_DEBUG("GCM engine created");
@@ -148,12 +148,12 @@ void Engine::cleanUp()
     LOG_INFO("Clean up done");
 }
 
-int Engine::getRank()
+uint Engine::getRank()
 {
     return rank;
 }
 
-int Engine::getNumberOfWorkers()
+uint Engine::getNumberOfWorkers()
 {
     return numberOfWorkers;
 }
@@ -807,7 +807,7 @@ void Engine::setRheologyMatrices(function<RheologyMatrixPtr (const Node&)> getMa
 {
     for (auto& b: bodies)
         for (auto& m: b->getMeshesVector())
-            for (int i = 0; i < m->getNodesNumber(); i++)
+            for (uint i = 0; i < m->getNodesNumber(); i++)
             {
                 Node& node = m->getNodeByLocalIndex(i);
                 if (node.isUsed() || node.isLocal(false))

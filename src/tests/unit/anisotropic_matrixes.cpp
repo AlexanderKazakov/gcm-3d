@@ -6,7 +6,7 @@
 
 #include "libgcm/Math.hpp"
 #include "libgcm/rheology/Material.hpp"
-#include "libgcm/node/Node.hpp"
+#include "libgcm/node/CalcNode.hpp"
 #include "libgcm/Exception.hpp"
 #include "libgcm/rheology/setters/IsotropicRheologyMatrixSetter.hpp"
 #include "libgcm/rheology/setters/AnisotropicRheologyMatrixSetter.hpp"
@@ -141,7 +141,7 @@ void testDecomposition(MaterialGenerator generator)
 {
     srand(0);
     for (int count = 0; count < ITERATIONS; count++) {
-        Node anisotropicNode;
+        CalcNode anisotropicNode;
 
         auto mat = generator("test");
         auto matrix = makeRheologyMatrixPtr<AnisotropicRheologyMatrixSetter, DecomposerImplementation>(mat);
@@ -192,7 +192,7 @@ void testIsotropicTransition()
         real mu = ISOTROPIC_MU_MIN + (ISOTROPIC_MU_MAX - ISOTROPIC_MU_MIN) * (double) rand() / RAND_MAX;
         real rho = RHO_MIN + (RHO_MAX - RHO_MIN) * (double) rand() / RAND_MAX;
 
-        Node node;
+        CalcNode node;
 
         auto m = makeMaterialPtr("AnisotropicMatrix3D_IsotropicTransition", rho, la, mu);
 
@@ -228,7 +228,7 @@ void compareInitialMatrices(MaterialGenerator generator)
 {
     srand(0);
     for (int count = 0; count < ITERATIONS; count++) {
-        Node anisotropicNode;        
+        CalcNode anisotropicNode;        
         auto mat = generator("test");
 
         auto analyticalMatrix = makeRheologyMatrixPtr<AnisotropicRheologyMatrixSetter, AnalyticalRheologyMatrixDecomposer>(mat);
@@ -260,7 +260,7 @@ void compareEigenvalues(MaterialGenerator generator)
 {
     srand(0);
     for (int count = 0; count < ITERATIONS; count++) {
-        Node anisotropicNode;
+        CalcNode anisotropicNode;
         auto mat = generator("test");
 
         auto matrix1 = makeRheologyMatrixPtr<AnisotropicRheologyMatrixSetter, DecomposerImplementation1>(mat);

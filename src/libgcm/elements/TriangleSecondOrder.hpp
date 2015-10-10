@@ -15,7 +15,7 @@ namespace gcm {
         /*
          * List of additional vertices on edges
          */
-        uint secondaryVertices[3];
+        uint addVerts[3];
     };
 }
 
@@ -27,7 +27,7 @@ namespace std {
             os << " " << tri.vertices[i];
         os << "\n\tAdditional vertices:";
         for( uint i = 0; i < 3; i++ )
-            os << " " << tri.secondaryVertices[i];
+            os << " " << tri.addVerts[i];
         return os;
     }
 }

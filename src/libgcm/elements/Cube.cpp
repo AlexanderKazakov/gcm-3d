@@ -4,7 +4,7 @@ using namespace gcm;
 
 Cube::Cube() {
     for( int j = 0; j < 8; j++ )
-        vertices[j] = -1;
+        vertices[j] = (uint) -1;
 }
 
 Cube::Cube(uint n, uint v[8]) {

@@ -29,7 +29,7 @@ void VTKSnapshotWriter::dumpMeshSpecificData(TetrMeshSecondOrder* mesh, vtkSmart
     map<int, int> snapNodeMap;
     int snapNodeCount = 0;
 
-    for(int i = 0; i < mesh->getNodesNumber(); i++)
+    for(uint i = 0; i < mesh->getNodesNumber(); i++)
     {
         Node& node = mesh->getNodeByLocalIndex(i);
         if(node.isFirstOrder())
@@ -40,7 +40,7 @@ void VTKSnapshotWriter::dumpMeshSpecificData(TetrMeshSecondOrder* mesh, vtkSmart
     }
 
     auto tetra=vtkSmartPointer<vtkTetra>::New();
-    for(int i = 0; i < mesh->getTetrsNumber(); i++)
+    for(uint i = 0; i < mesh->getTetrsNumber(); i++)
     {
         TetrahedronSecondOrder& tetr = mesh->getTetr2ByLocalIndex(i);
         for( int z = 0; z < 4; z++)

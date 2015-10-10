@@ -33,7 +33,8 @@ void Ani3D2MeshLoader::loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispat
         TetrMeshSecondOrder* soMesh = new TetrMeshSecondOrder();
         soMesh->setBody(body);
 
-        int sd, nn;
+        int sd;
+		uint nn;
         AABB scene;
         GCMDispatcher* myDispatcher = new DummyDispatcher();
         preLoadMesh(&scene, sd, nn, fileName);
@@ -69,7 +70,7 @@ void Ani3D2MeshLoader::loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispat
     mesh->preProcess();
 }
 
-void Ani3D2MeshLoader::preLoadMesh(AABB* scene, int& sliceDirection, int& numberOfNodes, const string& fileName) {
+void Ani3D2MeshLoader::preLoadMesh(AABB* scene, int& sliceDirection, uint& numberOfNodes, const string& fileName) {
     Ani3DTetrFileReader* reader = new Ani3DTetrFileReader();
     reader->preReadFile(fileName, scene, sliceDirection, numberOfNodes);
     delete reader;

@@ -26,7 +26,7 @@ VTKCubicSnapshotWriter::VTKCubicSnapshotWriter() {
 void VTKCubicSnapshotWriter::dumpMeshSpecificData(BasicCubicMesh* mesh, 
 	vtkSmartPointer<vtkStructuredGrid>& grid, vtkSmartPointer<vtkPoints>& points) const
 {
-    for(int i = 0; i < mesh->getNodesNumber(); i++)
+    for(uint i = 0; i < mesh->getNodesNumber(); i++)
     {
         Node& node = mesh->getNodeByLocalIndex(i);
         points->InsertNextPoint( node.coords[0], node.coords[1], node.coords[2] );

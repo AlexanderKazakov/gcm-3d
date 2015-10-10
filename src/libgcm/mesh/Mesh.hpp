@@ -19,11 +19,12 @@
 #define STORAGE_ONDEMAND_GROW_RATE 1.25
 
 
-typedef std::unordered_map<int, int>::const_iterator MapIter;
+typedef std::unordered_map<uint, uint>::const_iterator MapIter;
 
 namespace gcm {
     class Node;
-    class Body;
+	class RheologyModel;
+	class Body;
     /*
      * Base class for all meshes
      */
@@ -73,9 +74,9 @@ namespace gcm {
          */
         std::vector<Node> nodes;
         std::vector<Node> new_nodes;
-        std::unordered_map<int, int> nodesMap;
-        int nodesNumber;
-        int nodesStorageSize;
+        std::unordered_map<uint, uint> nodesMap;
+        uint nodesNumber;
+        uint nodesStorageSize;
 
         bool movable;
 
@@ -185,14 +186,14 @@ namespace gcm {
         // It allows to remove nodesMap complexity (required by parallel impl) from children classes.
         // We do believe that all children classes will use the same node storage.
         // If it's not the case, we need to convert these functions into virtual.
-        int getNodesNumber();
-        int getNumberOfLocalNodes();
-        void createNodes(int number);
-        bool hasNode(int index);
-        Node& getNode(int index);
-        Node& getNewNode(int index);
-        int getNodeLocalIndex(int index) const;
-        Node& getNodeByLocalIndex(unsigned int index);
+        uint getNodesNumber();
+        uint getNumberOfLocalNodes();
+        void createNodes(uint number);
+        bool hasNode(uint index);
+        Node& getNode(uint index);
+        Node& getNewNode(uint index);
+        uint getNodeLocalIndex(uint index) const;
+        Node& getNodeByLocalIndex(uint index);
         void addNode(Node& node);
 
         /*
@@ -224,7 +225,7 @@ namespace gcm {
          */
         void setBody(Body *body);
 
-        void setBodyNum(unsigned char id);
+        void setBodyNum(uchar id);
         /*
          * Returns mesh body.
          */
@@ -238,12 +239,12 @@ namespace gcm {
 
         void setInitialState(Area* area, float* PDE);
         void setInitialState(Area* area, std::function<void(Node& node)> setter);
-		void setBorderCondition(Area* area, unsigned int num);
-		void setContactCondition(Area* area, unsigned int num);
+		void setBorderCondition(Area* area, uint num);
+		void setContactCondition(Area* area, uint num);
 		void setRheologyModel(RheologyModel *_model);
-		RheologyModel *getRheologyModel();
-        void setRheology(unsigned char matId);
-        void setRheology(unsigned char matId, Area* area);
+		RheologyModel* getRheologyModel();
+        void setRheology(uchar matId);
+        void setRheology(uchar matId, Area* area);
 
         virtual void transfer(float x, float y, float z);
 		void scale(float x0, float y0, float z0, 

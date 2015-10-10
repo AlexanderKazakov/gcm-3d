@@ -2,7 +2,7 @@
 #define FINITE_STRAIN_ELASTIC_RHEOLOGY_MATRIX_SETTER_HPP
 
 #include "libgcm/rheology/matrixSetters/RheologyMatrixSetter.hpp"
-#include "libgcm/nodes/FiniteStrainIdealElasticNode.hpp"
+#include "libgcm/node/FiniteStrainIdealElasticNode.hpp"
 
 namespace gcm
 {

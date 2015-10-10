@@ -6,6 +6,8 @@
  */
 #include "libgcm/method/InterpolationFixedAxis.hpp"
 
+#include "libgcm/Engine.hpp"
+
 using namespace gcm;
 using std::string;
 using std::vector;

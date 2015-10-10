@@ -5,7 +5,7 @@ using namespace gcm;
 
 TetrahedronFirstOrder::TetrahedronFirstOrder() {
     for( int j = 0; j < 4; j++ )
-        vertices[j] = -1;
+        vertices[j] = (uint) -1;
 }
 
 TetrahedronFirstOrder::TetrahedronFirstOrder(uint n, uint v[4]) {

@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "libgcm/node/Node.hpp"
+#include "libgcm/node/CalcNode.hpp"
 
 #define ITERATIONS 1000
 
@@ -12,12 +12,12 @@ using namespace gcm;
 TEST(MainStresses, FuzzCalculate) {
     srand(time(NULL));
 
-    Node node;
+    CalcNode node;
 
     for( int i = 0; i < ITERATIONS; i++ )
     {
         for( int j = 0; j < 9; j++ )
-            node.PDE[j]= (float) rand() / RAND_MAX;
+            node.values[j]= (float) rand() / RAND_MAX;
 
         float s[3];
         node.clearState();

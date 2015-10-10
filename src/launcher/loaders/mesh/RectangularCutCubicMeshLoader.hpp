@@ -26,7 +26,7 @@ namespace launcher
 				gcm::RectangularCutCubicMesh* mesh) override;
         public:
             void preLoadMesh(const xml::Node& desc, gcm::AABB& aabb, 
-				int& sliceDirection, int& numberOfNodes);
+				int& sliceDirection, uint& numberOfNodes);
 
             const static std::string MESH_TYPE;
     };

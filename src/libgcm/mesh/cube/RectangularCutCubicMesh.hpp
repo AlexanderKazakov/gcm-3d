@@ -13,11 +13,11 @@ namespace gcm
 		
         void preProcessGeometry() override;
 		
-		int findNeighbourPoint(Node& node, float dx, float dy, float dz, 
+		uint findNeighbourPoint(Node& node, float dx, float dy, float dz, 
 		                       bool debug, float* coords, bool* innerPoint) override;
         USE_LOGGER;
 
-        void findNearestsNodes(const vector3r& coords, int N, std::vector< std::pair<int,float> >& result) override;
+        void findNearestsNodes(const vector3r& coords, uint N, std::vector< std::pair<uint,float> >& result) override;
 
     public:
 		RectangularCutCubicMesh();

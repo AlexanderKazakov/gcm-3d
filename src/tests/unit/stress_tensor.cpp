@@ -78,7 +78,7 @@ protected:
 
 TEST_F(StressTensorWaves, IsotropicElasticPWaveAlongX)
 {
-    Node node;
+    CalcNode node;
 
     auto& engine = Engine::getInstance();
     auto mat = engine.getMaterial("StressTensorWavesMaterial");
@@ -118,7 +118,7 @@ TEST_F(StressTensorWaves, IsotropicElasticPWaveAlongX)
 
 TEST_F(StressTensorWaves, IsotropicElasticPWaveAlongY)
 {
-    Node node;
+    CalcNode node;
 
     auto& engine = Engine::getInstance();
     auto mat = engine.getMaterial("StressTensorWavesMaterial");
@@ -158,7 +158,7 @@ TEST_F(StressTensorWaves, IsotropicElasticPWaveAlongY)
 
 TEST_F(StressTensorWaves, IsotropicElasticPWaveAlongZ)
 {
-    Node node;
+    CalcNode node;
 
     auto& engine = Engine::getInstance();
     auto mat = engine.getMaterial("StressTensorWavesMaterial");

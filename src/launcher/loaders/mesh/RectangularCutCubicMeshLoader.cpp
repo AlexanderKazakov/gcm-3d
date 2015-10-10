@@ -1,7 +1,6 @@
 #include "launcher/loaders/mesh/RectangularCutCubicMeshLoader.hpp"
 #include "libgcm/mesh/cube/RectangularCutCubicMeshGenerator.hpp"
 #include "launcher/util/xml.hpp"
-
 #include "libgcm/Engine.hpp"
 
 #include <boost/lexical_cast.hpp>
@@ -24,7 +23,7 @@ void launcher::RectangularCutCubicMeshLoader::parseDesc(const xml::Node& desc, s
 }
 
 void launcher::RectangularCutCubicMeshLoader::preLoadMesh(const xml::Node& desc,
-	AABB& aabb, int& sliceDirection, int& numberOfNodes)
+	AABB& aabb, int& sliceDirection, uint& numberOfNodes)
 {
     string id;
     float h;

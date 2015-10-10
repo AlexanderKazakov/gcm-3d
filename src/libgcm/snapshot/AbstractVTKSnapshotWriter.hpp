@@ -7,7 +7,11 @@
 #include "libgcm/node/IdealElasticNode.hpp"
 #include "libgcm/util/Logging.hpp"
 
+#ifdef CONFIG_VTK_5
+#include <vtkstd/string>
+#else
 #include <vtkStdString.h>
+#endif
 #include <vtkStructuredGrid.h>
 #include <vtkUnstructuredGrid.h>
 #include <vtkXMLStructuredGridWriter.h>
@@ -31,8 +35,14 @@ namespace gcm
      protected:
         MeshType* mesh;
         uint index = 0;
+		void* data = nullptr;
+        USE_LOGGER;
      public:
-        MeshNodeIterator(MeshType* _mesh): mesh(_mesh)
+		MeshNodeIterator(MeshType* mesh): mesh(mesh)
+        {
+        }
+
+        ~MeshNodeIterator()
         {
         }
 
@@ -261,8 +271,7 @@ namespace gcm
            // Write file
            auto writer = vtkSmartPointer<GridWriterType>::New();
            writer->SetFileName(fileName.c_str());
-#define VTK_5_8 // TODO@next - remove this shit
-#ifdef VTK_5_8
+#ifdef CONFIG_VTK_5
            writer->SetInput(grid);
 #else 
 		   writer->SetInputData(grid);

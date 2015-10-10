@@ -21,7 +21,7 @@ namespace gcm {
         Vtu2MeshZoneLoader();
         ~Vtu2MeshZoneLoader();
          void loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispatcher, const std::string& fileName);
-         void preLoadMesh(AABB* scene, int& sliceDirection, int& numberOfNodes, const std::string& fileName);
+         void preLoadMesh(AABB* scene, int& sliceDirection, uint& numberOfNodes, const std::string& fileName);
     };
 }
 

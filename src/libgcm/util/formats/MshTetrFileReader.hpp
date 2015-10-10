@@ -28,7 +28,7 @@ namespace gcm {
         MshTetrFileReader();
         ~MshTetrFileReader();
         void readFile( std::string file, TetrMeshFirstOrder* mesh, GCMDispatcher* dispatcher, int rank, bool ignoreDispatcher);
-        void preReadFile(std::string file, AABB* scene, int& sliceDirection, int& numberOfNodes);
+        void preReadFile(std::string file, AABB* scene, int& sliceDirection, uint& numberOfNodes);
     };
 }
 

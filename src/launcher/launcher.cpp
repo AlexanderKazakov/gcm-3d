@@ -26,15 +26,15 @@
 #include "libgcm/ContactCondition.hpp"
 #include "libgcm/Exception.hpp"
 
-#include "libgcm/rheology/setters/IsotropicRheologyMatrixSetter.hpp"
-#include "libgcm/rheology/setters/IsotropicDamagedRheologyMatrixSetter.hpp"
-#include "libgcm/rheology/setters/AnisotropicRheologyMatrixSetter.hpp"
-#include "libgcm/rheology/setters/AnisotropicDamagedRheologyMatrixSetter.hpp"
-#include "libgcm/rheology/setters/PrandtlRaussPlasticityRheologyMatrixSetter.hpp"
-#include "libgcm/rheology/decomposers/IsotropicRheologyMatrixDecomposer.hpp"
-#include "libgcm/rheology/decomposers/NumericalRheologyMatrixDecomposer.hpp"
-#include "libgcm/rheology/decomposers/AnalyticalRheologyMatrixDecomposer.hpp"
-#include "libgcm/rheology/correctors/IdealPlasticFlowCorrector.hpp"
+#include "libgcm/rheology/matrixSetters/IsotropicElasticRheologyMatrixSetter.hpp"
+#include "libgcm/rheology/matrixSetters/IsotropicContinualDamageRheologyMatrixSetter.hpp"
+#include "libgcm/rheology/matrixSetters/AnisotropicElasticRheologyMatrixSetter.hpp"
+//#include "libgcm/rheology/matrixSetters/AnisotropicContinualDamageRheologyMatrixSetter.hpp"
+//#include "libgcm/rheology/matrixSetters/PrandtlRaussPlasticityRheologyMatrixSetter.hpp"
+#include "libgcm/solvers/matrixDecomposers/IsotropicElasticRheologyMatrixDecomposer.hpp"
+#include "libgcm/solvers/matrixDecomposers/NumericalRheologyMatrixDecomposer.hpp"
+#include "libgcm/solvers/matrixDecomposers/AnalyticalRheologyMatrixDecomposer.hpp"
+#include "libgcm/solvers/correctors/IdealPlasticFlowCorrector.hpp"
 #include "libgcm/rheology/Plasticity.hpp"
 #include "libgcm/rheology/Failure.hpp"
 
@@ -202,7 +202,7 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
     {
         xml::Node defaultFailureModel = defaultFailureModelList.front();
         string type = defaultFailureModel["type"];
-        engine.setDefaultFailureModelType(type);
+//        engine.setDefaultFailureModelType(type);
         LOG_INFO("Default failure model set to: " + type);
     }
     
@@ -343,7 +343,7 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
 
             AABB localScene;
             int slicingDirection;
-            int numberOfNodes;
+            uint numberOfNodes;
 
             if (type == Geo2MeshLoader::MESH_TYPE)
                 Geo2MeshLoader::getInstance().preLoadMesh(meshNode, localScene, slicingDirection, numberOfNodes);
@@ -421,7 +421,7 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
 
     // run dispatcher
     engine.getDispatcher()->prepare(engine.getNumberOfWorkers(), &globalScene);
-    for( int i = 0; i < engine.getNumberOfWorkers(); i++)
+    for( uint i = 0; i < engine.getNumberOfWorkers(); i++)
     {
         LOG_DEBUG("Area scheduled for worker " << i << ": " << *(engine.getDispatcher()->getOutline(i)));
     }
@@ -579,7 +579,7 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
         auto useValues = valuesNodes.size() == 1;
         real values[9];
 
-        std::function<void(Node&)> setter;
+        std::function<void(gcm::Node&)> setter;
 
         if (useValues)
         {
@@ -641,7 +641,7 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
                 THROW_INVALID_INPUT("Invalid P-wave type specified");
             auto compression = type == "compression";
 
-            setter = [=](Node& node)
+            setter = [=](gcm::Node& node)
             {
                 setIsotropicElasticPWave(node, dir, amplitudeScale, compression);
             };
@@ -659,7 +659,7 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
                    engine.getBody(i)->setInitialState(stateArea, values);
                 else
                    engine.getBody(i)->setInitialState(stateArea, setter);
-                engine.getBody(i)->getMeshes()->processStressState();
+//                engine.getBody(i)->getMeshes()->processStressState();
             }
         }
     }
@@ -771,23 +771,25 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
             if (plasticityType == PLASTICITY_TYPE_NONE)
             {
                 corrector = nullptr;
-                setter = makeSetterPtr<IsotropicRheologyMatrixSetter>();
-                decomposer = makeDecomposerPtr<IsotropicRheologyMatrixDecomposer>();
+                setter = makeSetterPtr<IsotropicElasticRheologyMatrixSetter>();
+                decomposer = makeDecomposerPtr<IsotropicElasticRheologyMatrixDecomposer>();
             }
             else if (plasticityType == PLASTICITY_TYPE_PRANDTL_RAUSS)
             {
-                corrector = nullptr;
-                setter = makeSetterPtr<PrandtlRaussPlasticityRheologyMatrixSetter>();
-                if (matrixDecompositionImplementation == "numerical")
-                    decomposer = makeDecomposerPtr<NumericalRheologyMatrixDecomposer>();
-                else
-                    decomposer = makeDecomposerPtr<AnalyticalRheologyMatrixDecomposer>();
+				THROW_UNSUPPORTED("This was not working in previous gcm-3d \
+				 so we don't move to next version");
+//                corrector = nullptr;
+//                setter = makeSetterPtr<PrandtlRaussPlasticityRheologyMatrixSetter>();
+//                if (matrixDecompositionImplementation == "numerical")
+//                    decomposer = makeDecomposerPtr<NumericalRheologyMatrixDecomposer>();
+//                else
+//                    decomposer = makeDecomposerPtr<AnalyticalRheologyMatrixDecomposer>();
             }
             else if (plasticityType == PLASTICITY_TYPE_PRANDTL_RAUSS_CORRECTOR)
             {
                 corrector = makeCorrectorPtr<IdealPlasticFlowCorrector>();
-                setter = makeSetterPtr<IsotropicRheologyMatrixSetter>();
-                decomposer = makeDecomposerPtr<IsotropicRheologyMatrixDecomposer>();
+                setter = makeSetterPtr<IsotropicElasticRheologyMatrixSetter>();
+                decomposer = makeDecomposerPtr<IsotropicElasticRheologyMatrixDecomposer>();
             }
             else
             {
@@ -797,14 +799,14 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
             if (failureMode == FAILURE_MODE_DISCRETE)
             {
                 corrector = nullptr;
-                setter = makeSetterPtr<IsotropicRheologyMatrixSetter>();
-                decomposer = makeDecomposerPtr<IsotropicRheologyMatrixDecomposer>();
+                setter = makeSetterPtr<IsotropicElasticRheologyMatrixSetter>();
+                decomposer = makeDecomposerPtr<IsotropicElasticRheologyMatrixDecomposer>();
             }
             else if (failureMode == FAILURE_MODE_CONTINUAL)
             {
                 corrector = nullptr;
-                setter = makeSetterPtr<IsotropicDamagedRheologyMatrixSetter>();
-                decomposer = makeDecomposerPtr<IsotropicRheologyMatrixDecomposer>();
+                setter = makeSetterPtr<IsotropicContinualDamageRheologyMatrixSetter>();
+                decomposer = makeDecomposerPtr<IsotropicElasticRheologyMatrixDecomposer>();
             }
             else
             {
@@ -822,12 +824,13 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
             if (failureMode == FAILURE_MODE_DISCRETE)
             {
                 corrector = nullptr;
-                setter = makeSetterPtr<AnisotropicRheologyMatrixSetter>();
+                setter = makeSetterPtr<AnisotropicElasticRheologyMatrixSetter>();
             }
             else if (failureMode == FAILURE_MODE_CONTINUAL)
             {
-                corrector = nullptr;
-                setter = makeSetterPtr<AnisotropicDamagedRheologyMatrixSetter>();
+				THROW_UNSUPPORTED("Not implemented yet");
+//                corrector = nullptr;
+//                setter = makeSetterPtr<AnisotropicContinualDamageRheologyMatrixSetter>();
             }
             else
             {
@@ -840,10 +843,10 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
                 decomposer = makeDecomposerPtr<AnalyticalRheologyMatrixDecomposer>();
         }
 
-        matrices.push_back(makeRheologyMatrixPtr(material, setter, decomposer, corrector));
+        matrices.push_back(makeRheologyMatrixPtr(9, material, setter, decomposer)); //, corrector));
     }
 
-    engine.setRheologyMatrices([&matrices](const Node& node) -> RheologyMatrixPtr
+    engine.setRheologyMatrices([&matrices](const gcm::Node& node) -> RheologyMatrixPtr
         {
             return matrices[node.getMaterialId()];
         }
@@ -857,17 +860,20 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
     LOG_DEBUG("Scene loaded");
 }
 
-void launcher::setIsotropicElasticPWave(Node& node, const Vector3& direction, real amplitudeScale, bool compression)
+void launcher::setIsotropicElasticPWave(gcm::Node& node, 
+	const gcm::linal::Vector3& direction, gcm::real amplitudeScale, bool compression)
 {
     assert_gt(amplitudeScale, 0.0);
+	assert_true(node.getType() == gcm::IDEAL_ELASTIC_NODE_TYPE);
+	auto& ienode = static_cast<gcm::IdealElasticNode&> (node);
 
     const MaterialPtr& mat = node.getMaterial();
-
+	
     auto la = mat->getLa();
     auto  mu = mat->getMu();
     auto  rho = mat->getRho();
 
-    auto pWaveVelocity = sqrt(la + 2 * mu / rho);
+    auto pWaveVelocity = sqrt( (la + 2 * mu) / rho );
 
     auto dir = vectorNormalize(direction);
 
@@ -898,16 +904,16 @@ void launcher::setIsotropicElasticPWave(Node& node, const Vector3& direction, re
 
     tensor.transform(s);
 
-    node.sxx = tensor.xx;
-    node.sxy = tensor.xy;
-    node.sxz = tensor.xz;
-    node.syy = tensor.yy;
-    node.syz = tensor.yz;
-    node.szz = tensor.zz;
+    ienode.sxx() = tensor.xx;
+    ienode.sxy() = tensor.xy;
+    ienode.sxz() = tensor.xz;
+    ienode.syy() = tensor.yy;
+    ienode.syz() = tensor.yz;
+    ienode.szz() = tensor.zz;
 
     auto velocity = (compression ? -1 : 1) * vectorNormalize(dir)*pWaveVelocity*amplitudeScale;
 
-    node.vx = velocity.x;
-    node.vy = velocity.y;
-    node.vz = velocity.z;
+    ienode.vx() = velocity.x;
+    ienode.vy() = velocity.y;
+    ienode.vz() = velocity.z;
 }

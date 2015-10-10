@@ -1,7 +1,8 @@
 #include "libgcm/util/formats/Vtu2TetrFileReader.hpp"
 
+#include "libgcm/Body.hpp"
 #include "libgcm/util/AABB.hpp"
-#include "libgcm/node/Node.hpp"
+#include "libgcm/node/IdealElasticNode.hpp"
 #include "libgcm/GCMDispatcher.hpp"
 
 using namespace gcm;
@@ -20,7 +21,7 @@ Vtu2TetrFileReader::~Vtu2TetrFileReader()
 
 }
 
-void Vtu2TetrFileReader::preReadFile(string file, AABB* scene, int& sliceDirection, int& numberOfNodes)
+void Vtu2TetrFileReader::preReadFile(string file, AABB* scene, int& sliceDirection, uint& numberOfNodes)
 {
     scene->minX = numeric_limits<float>::infinity();
     scene->minY = numeric_limits<float>::infinity();
@@ -103,7 +104,7 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
     vtkDoubleArray *syz = (vtkDoubleArray*) g->GetPointData()->GetArray("syz");
     vtkDoubleArray *szz = (vtkDoubleArray*) g->GetPointData()->GetArray("szz");
     vtkIntArray *matId = (vtkIntArray*) g->GetPointData()->GetArray("materialID");
-    vtkDoubleArray *rho = (vtkDoubleArray*) g->GetPointData()->GetArray("rho");
+//    vtkDoubleArray *rho = (vtkDoubleArray*) g->GetPointData()->GetArray("rho");
     vtkIntArray *nodeNumber = (vtkIntArray*) g->GetPointData ()->GetArray("nodeNumber");
     vtkIntArray *publicFlags = (vtkIntArray*) g->GetPointData ()->GetArray("publicFlags");
     vtkIntArray *privateFlags = (vtkIntArray*) g->GetPointData ()->GetArray("privateFlags");
@@ -115,23 +116,23 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
         double* dp = g->GetPoint(i);
         if( ignoreDispatcher || dispatcher->isMine( dp, mesh->getBody()->getId() ) )
         {
-            Node* node = new Node();
+            IdealElasticNode* node = new IdealElasticNode();
             node->number = nodeNumber->GetValue(i);
             node->coords[0] = dp[0];
             node->coords[1] = dp[1];
             node->coords[2] = dp[2];
             vel->GetTupleValue(i, v);
-            node->vx = v[0];
-            node->vy = v[1];
-            node->vz = v[2];
-            node->sxx = sxx->GetValue(i);
-            node->sxy = sxy->GetValue(i);
-            node->sxz = sxz->GetValue(i);
-            node->syy = syy->GetValue(i);
-            node->syz = syz->GetValue(i);
-            node->szz = szz->GetValue(i);
+            node->vx() = v[0];
+            node->vy() = v[1];
+            node->vz() = v[2];
+            node->sxx() = sxx->GetValue(i);
+            node->sxy() = sxy->GetValue(i);
+            node->sxz() = sxz->GetValue(i);
+            node->syy() = syy->GetValue(i);
+            node->syz() = syz->GetValue(i);
+            node->szz() = szz->GetValue(i);
             node->setMaterialId( matId->GetValue(i) );
-            node->setRho( rho->GetValue(i) );
+            //node->setRho( rho->GetValue(i) );
             node->setPublicFlags( publicFlags->GetValue(i) );
             node->setPrivateFlags( privateFlags->GetValue(i) );
             node->setBorderConditionId( nodeBorderConditionId->GetValue(i) );
@@ -166,8 +167,8 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
     for( int i = 0; i < g->GetNumberOfCells(); i++ )
     {
         new_tetr.number = tetrNumber->GetValue(i);
-        tetr1stOrderNodes->GetTupleValue (i, new_tetr.vertices);
-        tetr2ndOrderNodes->GetTupleValue (i, new_tetr.addVerts);
+        tetr1stOrderNodes->GetTupleValue (i, (int*) new_tetr.vertices);
+        tetr2ndOrderNodes->GetTupleValue (i, (int*) new_tetr.addVerts);
 
         /*vtkTetra *vt = (vtkTetra*) g->GetCell(i);
 
@@ -213,7 +214,7 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
     LOG_DEBUG("We expect " << remoteNodes.size() << " nodes" );
     int remoteNodesCount = 0;
 
-    Node tmpNode;
+    IdealElasticNode tmpNode;
     for( int i = 0; i < g->GetNumberOfPoints(); i++ )
     {
         if( remoteNodes.find( nodeNumber->GetValue(i) ) != remoteNodes.end() )
@@ -224,17 +225,17 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
             tmpNode.coords[1] = dp[1];
             tmpNode.coords[2] = dp[2];
             vel->GetTupleValue(i, v);
-            tmpNode.vx = v[0];
-            tmpNode.vy = v[1];
-            tmpNode.vz = v[2];
-            tmpNode.sxx = sxx->GetValue(i);
-            tmpNode.sxy = sxy->GetValue(i);
-            tmpNode.sxz = sxz->GetValue(i);
-            tmpNode.syy = syy->GetValue(i);
-            tmpNode.syz = syz->GetValue(i);
-            tmpNode.szz = szz->GetValue(i);
+            tmpNode.vx() = v[0];
+            tmpNode.vy() = v[1];
+            tmpNode.vz() = v[2];
+            tmpNode.sxx() = sxx->GetValue(i);
+            tmpNode.sxy() = sxy->GetValue(i);
+            tmpNode.sxz() = sxz->GetValue(i);
+            tmpNode.syy() = syy->GetValue(i);
+            tmpNode.syz() = syz->GetValue(i);
+            tmpNode.szz() = szz->GetValue(i);
             tmpNode.setMaterialId( matId->GetValue(i) );
-            tmpNode.setRho( rho->GetValue(i) );
+            //tmpNode.setRho( rho->GetValue(i) );
             tmpNode.setPublicFlags( publicFlags->GetValue(i) );
             tmpNode.setPrivateFlags( privateFlags->GetValue(i) );
             tmpNode.setBorderConditionId( nodeBorderConditionId->GetValue(i) );
@@ -254,7 +255,7 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
 
     LOG_DEBUG("Checking tetrs and nodes");
 
-    for( int i = 0; i < mesh->getTetrsNumber(); i++ )
+    for( uint i = 0; i < mesh->getTetrsNumber(); i++ )
     {
         TetrahedronSecondOrder& tetr = mesh->getTetr2ByLocalIndex(i);
         for (int j = 0; j < 4; j++)

@@ -591,11 +591,11 @@ inline void createLocalBasis(float n[], float n1[], float n2[])
     vectorProduct(n[0], n[1], n[2], n1[0], n1[1], n1[2], &n2[0], &n2[1], &n2[2]);
 };
 
-inline void shiftArrayLeft( int* arr, int n )
+inline void shiftArrayLeft( uint* arr, int n )
 {
     assert_gt(n, 0);
     int a0 = arr[0];
-    memmove(arr, arr+1, (n-1)*sizeof(int));
+    memmove(arr, arr+1, (n-1)*sizeof(uint));
     arr[n-1] = a0;
 };
 

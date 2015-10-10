@@ -1,7 +1,8 @@
 #include "libgcm/util/formats/VtuTetrFileReader.hpp"
 
+#include "libgcm/Body.hpp"
 #include "libgcm/util/AABB.hpp"
-#include "libgcm/node/Node.hpp"
+#include "libgcm/node/IdealElasticNode.hpp"
 #include "libgcm/GCMDispatcher.hpp"
 
 using namespace gcm;
@@ -21,7 +22,7 @@ VtuTetrFileReader::~VtuTetrFileReader()
 
 }
 
-void VtuTetrFileReader::preReadFile(string file, AABB* scene, int& sliceDirection, int& numberOfNodes)
+void VtuTetrFileReader::preReadFile(string file, AABB* scene, int& sliceDirection, uint& numberOfNodes)
 {
     scene->minX = numeric_limits<float>::infinity();
     scene->minY = numeric_limits<float>::infinity();
@@ -88,7 +89,7 @@ void VtuTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
     vtkDoubleArray *syz = (vtkDoubleArray*) g->GetPointData()->GetArray("syz");
     vtkDoubleArray *szz = (vtkDoubleArray*) g->GetPointData()->GetArray("szz");
     vtkIntArray *matId = (vtkIntArray*) g->GetPointData()->GetArray("materialID");
-    vtkDoubleArray *rho = (vtkDoubleArray*) g->GetPointData()->GetArray("rho");
+//    vtkDoubleArray *rho = (vtkDoubleArray*) g->GetPointData()->GetArray("rho");
     vtkIntArray *publicFlags = (vtkIntArray*) g->GetPointData ()->GetArray("publicFlags");
     vtkIntArray *privateFlags = (vtkIntArray*) g->GetPointData ()->GetArray("privateFlags");
 
@@ -98,23 +99,23 @@ void VtuTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
         double* dp = g->GetPoint(i);
         if( dispatcher->isMine( dp, mesh->getBody()->getId() ) )
         {
-            Node* node = new Node();
+            IdealElasticNode* node = new IdealElasticNode();
             node->number = i;
             node->coords[0] = dp[0];
             node->coords[1] = dp[1];
             node->coords[2] = dp[2];
             vel->GetTupleValue(i, v);
-            node->vx = v[0];
-            node->vy = v[1];
-            node->vz = v[2];
-            node->sxx = sxx->GetValue(i);
-            node->sxy = sxy->GetValue(i);
-            node->sxz = sxz->GetValue(i);
-            node->syy = syy->GetValue(i);
-            node->syz = syz->GetValue(i);
-            node->szz = szz->GetValue(i);
+            node->vx() = v[0];
+            node->vy() = v[1];
+            node->vz() = v[2];
+            node->sxx() = sxx->GetValue(i);
+            node->sxy() = sxy->GetValue(i);
+            node->sxz() = sxz->GetValue(i);
+            node->syy() = syy->GetValue(i);
+            node->syz() = syz->GetValue(i);
+            node->szz() = szz->GetValue(i);
             node->setMaterialId( matId->GetValue(i) );
-            node->setRho( rho->GetValue(i) );
+            //node->setRho( rho->GetValue(i) );
             node->setPublicFlags( publicFlags->GetValue(i) );
             node->setPrivateFlags( privateFlags->GetValue(i) );
             node->setPlacement(true);
@@ -136,11 +137,11 @@ void VtuTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
 
     for( int i = 0; i < g->GetNumberOfCells(); i++ )
     {
-        int number = tetrs->size();
+        uint number = tetrs->size();
 
         vtkTetra *vt = (vtkTetra*) g->GetCell(i);
 
-        int vert[4];
+        uint vert[4];
         vert[0] = vt->GetPointId(0);
         vert[1] = vt->GetPointId(1);
         vert[2] = vt->GetPointId(2);
@@ -175,7 +176,7 @@ void VtuTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
     LOG_DEBUG("We expect " << remoteNodes.size() << " nodes" );
     int remoteNodesCount = 0;
 
-    Node tmpNode;
+    IdealElasticNode tmpNode;
     for( int i = 0; i < g->GetNumberOfPoints(); i++ )
     {
         if( remoteNodes.find( i ) != remoteNodes.end() )
@@ -186,17 +187,17 @@ void VtuTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
             tmpNode.coords[1] = dp[1];
             tmpNode.coords[2] = dp[2];
             vel->GetTupleValue(i, v);
-            tmpNode.vx = v[0];
-            tmpNode.vy = v[1];
-            tmpNode.vz = v[2];
-            tmpNode.sxx = sxx->GetValue(i);
-            tmpNode.sxy = sxy->GetValue(i);
-            tmpNode.sxz = sxz->GetValue(i);
-            tmpNode.syy = syy->GetValue(i);
-            tmpNode.syz = syz->GetValue(i);
-            tmpNode.szz = szz->GetValue(i);
+            tmpNode.vx() = v[0];
+            tmpNode.vy() = v[1];
+            tmpNode.vz() = v[2];
+            tmpNode.sxx() = sxx->GetValue(i);
+            tmpNode.sxy() = sxy->GetValue(i);
+            tmpNode.sxz() = sxz->GetValue(i);
+            tmpNode.syy() = syy->GetValue(i);
+            tmpNode.syz() = syz->GetValue(i);
+            tmpNode.szz() = szz->GetValue(i);
             tmpNode.setMaterialId( matId->GetValue(i) );
-            tmpNode.setRho( rho->GetValue(i) );
+            //tmpNode.setRho( rho->GetValue(i) );
             tmpNode.setPublicFlags( publicFlags->GetValue(i) );
             tmpNode.setPrivateFlags( privateFlags->GetValue(i) );
             tmpNode.setPlacement(false);

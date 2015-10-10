@@ -21,7 +21,7 @@ void Vtu2MeshLoader::loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispatch
     mesh->preProcess();
 }
 
-void Vtu2MeshLoader::preLoadMesh(AABB* scene, int& sliceDirection, int& numberOfNodes, const string& fileName) {
+void Vtu2MeshLoader::preLoadMesh(AABB* scene, int& sliceDirection, uint& numberOfNodes, const string& fileName) {
     Vtu2TetrFileReader* reader = new Vtu2TetrFileReader();
     reader->preReadFile(fileName, scene, sliceDirection, numberOfNodes);
     delete reader;

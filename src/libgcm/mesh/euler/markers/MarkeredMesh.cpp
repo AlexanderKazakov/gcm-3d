@@ -333,7 +333,7 @@ void MarkeredMesh::reconstructBorder()
         int z = index.z;
 
         float minDist = numeric_limits<float>::infinity();
-        int _i, _j, _k = -1;
+        int _i = -1 , _j = -1, _k = -1;
 
         for (int i = -5; i <= 5; i+=2)
             for (int j = -5; j <= 5; j+=2)

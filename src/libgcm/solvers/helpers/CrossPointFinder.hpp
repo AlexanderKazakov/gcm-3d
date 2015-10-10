@@ -3,9 +3,8 @@
 
 #include "libgcm/rheology/GcmMatrix.hpp"
 #include "libgcm/rheology/Material.hpp"
-#include "libgcm/nodes/Node.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/util/Logging.hpp"
-#include "libgcm/util/Vector3.hpp"
 #include "libgcm/util/Types.hpp"
 
 #include <memory>

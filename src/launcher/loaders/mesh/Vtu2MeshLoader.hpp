@@ -22,7 +22,7 @@ namespace launcher
             void parseDesc(const xml::Node& desc, std::string& id, std::string& fileName);
             void loadMesh(const xml::Node& desc, gcm::TetrMeshSecondOrder* mesh) override;
         public:
-            void preLoadMesh(const xml::Node& desc, gcm::AABB& aabb, int& sliceDirection, int& numberOfNodes);
+            void preLoadMesh(const xml::Node& desc, gcm::AABB& aabb, int& sliceDirection, uint& numberOfNodes);
 
             const static std::string MESH_TYPE;
     };

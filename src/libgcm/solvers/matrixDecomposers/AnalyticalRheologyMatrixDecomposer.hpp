@@ -4,7 +4,7 @@
 #include "libgcm/solvers/matrixDecomposers/RheologyMatrixDecomposer.hpp"
 #include "libgcm/Math.hpp"
 
-#include "libgcm/util/Exception.hpp"
+#include "libgcm/Exception.hpp"
 #include <assert.h>
 
 namespace gcm

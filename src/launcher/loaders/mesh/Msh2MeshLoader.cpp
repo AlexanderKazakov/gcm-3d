@@ -1,5 +1,6 @@
 #include "launcher/loaders/mesh/Msh2MeshLoader.hpp"
 #include "launcher/util/FileFolderLookupService.hpp"
+#include "libgcm/Engine.hpp"
 
 #include <boost/lexical_cast.hpp>
 
@@ -18,7 +19,7 @@ void launcher::Msh2MeshLoader::parseDesc(const xml::Node& desc, string& id, stri
     fileName = ffls.lookupFile(desc["file"]);
 }
 
-void launcher::Msh2MeshLoader::preLoadMesh(const xml::Node& desc, AABB& aabb, int& sliceDirection, int& numberOfNodes)
+void launcher::Msh2MeshLoader::preLoadMesh(const xml::Node& desc, AABB& aabb, int& sliceDirection, uint& numberOfNodes)
 {
     string fileName, id;
     

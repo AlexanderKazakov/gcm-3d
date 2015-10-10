@@ -21,7 +21,7 @@ namespace gcm {
         ~BasicCubicMeshGenerator();
         void loadMesh(BasicCubicMesh* mesh, GCMDispatcher* dispatcher, float h,
 		              int numX, int numY, int numZ);
-        void preLoadMesh(AABB* scene, int& sliceDirection, int& numberOfNodes, 
+        void preLoadMesh(AABB* scene, int& sliceDirection, uint& numberOfNodes, 
 		                 float h, int numX, int numY, int numZ);
     };
 }

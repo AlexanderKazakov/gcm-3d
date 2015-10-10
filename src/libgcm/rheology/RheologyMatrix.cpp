@@ -22,6 +22,10 @@ RheologyMatrix::RheologyMatrix(uchar size, const MaterialPtr& material,
     }
 }
 
+RheologyMatrix::RheologyMatrix(const RheologyMatrix& that) 
+{
+}
+
 RheologyMatrix::~RheologyMatrix()
 {
 }

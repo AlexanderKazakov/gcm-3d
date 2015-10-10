@@ -43,7 +43,7 @@ void RectangularCutCubicMeshGenerator::loadMesh(RectangularCutCubicMesh* mesh,
 }
 
 void RectangularCutCubicMeshGenerator::preLoadMesh(AABB* scene, int& sliceDirection, 
-	int& numberOfNodes, float h, int numX, int numY, int numZ)
+	uint& numberOfNodes, float h, int numX, int numY, int numZ)
 {
     sliceDirection = 0;
     numberOfNodes = (numX + 1) * (numY + 1) * (numZ + 1);

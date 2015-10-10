@@ -14,24 +14,24 @@ namespace gcm
         TetrMesh();
         virtual ~TetrMesh();
 
-        virtual int getTetrsNumber() = 0;
-        virtual int getTriangleNumber() = 0;
+        virtual uint getTetrsNumber() = 0;
+        virtual uint getTriangleNumber() = 0;
 
         virtual void addTetr(TetrahedronFirstOrder& tetr) = 0;
 
-        virtual TetrahedronFirstOrder& getTetr(unsigned int index) = 0;
+        virtual TetrahedronFirstOrder& getTetr(uint index) = 0;
 
-        virtual TetrahedronFirstOrder& getTetrByLocalIndex(unsigned int index) = 0;
+        virtual TetrahedronFirstOrder& getTetrByLocalIndex(uint index) = 0;
 
-        virtual TriangleFirstOrder& getTriangle(int index) = 0;
+        virtual TriangleFirstOrder& getTriangle(uint index) = 0;
 
-        virtual bool hasTetr(unsigned int index) = 0;
+        virtual bool hasTetr(uint index) = 0;
 
-        virtual void createTetrs(int number) = 0;
+        virtual void createTetrs(uint number) = 0;
 
-        virtual void createTriangles(int number) = 0;
+        virtual void createTriangles(uint number) = 0;
 		
-		virtual bool belongsToTetr(int nodeNum, int tetrNum, int faceNum) = 0;
+		virtual bool belongsToTetr(uint nodeNum, uint tetrNum, uint faceNum) = 0;
 
         /*void preProcessGeometry();
 
@@ -39,7 +39,7 @@ namespace gcm
 
         float getMinH();
 
-        void doNextPartStep(float tau, int stage);
+        void doNextPartStep(float tau, uint stage);
 
         void checkTopology(float tau);*/
     };

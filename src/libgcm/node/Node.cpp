@@ -1,5 +1,7 @@
 #include "libgcm/node/Node.hpp"
 
+#include "libgcm/Engine.hpp"
+
 using namespace gcm;
 using std::copy;
 
@@ -17,8 +19,8 @@ Node::Node(uchar sizeOfValuesInPDE,
 	ODE = PDE = NULL;
 }
 
-Node::Node(int num, const vector3r& coords) :
-           number(number), coords(coords)
+Node::Node(uint num, const vector3r& coords) :
+           number(num), coords(coords)
 {
 	ODE = PDE = NULL;
 }
@@ -33,7 +35,7 @@ void Node::clear() {
 	memset(ODE, 0, sizeOfODE * sizeof (gcm::real));
 }
 
-void Node::initMemory(real *buffer, int nodeNum) {
+void Node::initMemory(real *buffer, uint nodeNum) {
     real* startAddr = buffer + nodeNum * (sizeOfPDE + sizeOfODE);
     PDE = new (startAddr) real[sizeOfPDE];
     ODE = new (startAddr + sizeOfPDE) real[sizeOfODE];
@@ -74,11 +76,6 @@ uchar Node::getSizeOfPDE() const
 uchar Node::getSizeOfODE() const
 {
     return sizeOfODE;
-}
-
-uchar Node::getPublicFlags() const
-{
-    return publicFlags.flags;
 }
 
 void Node::setPublicFlags(uchar flags)
@@ -138,10 +135,10 @@ RheologyMatrixPtr Node::getRheologyMatrix() const
     return rheologyMatrix;
 }
 
-/*MaterialPtr Node::getMaterial() const
+MaterialPtr Node::getMaterial() const
 {
     return Engine::getInstance().getMaterial(materialId);
-}*/
+}
 
 void Node::setPlacement(bool local)
 {
@@ -163,20 +160,20 @@ void Node::setUsed(bool value)
 
 bool Node::isFirstOrder() const
 {
-    return publicFlags.order == 0;
+    return publicFlags.isHighOrder == 0;
 }
 
 bool Node::isSecondOrder() const
 {
-    return publicFlags.order == 1;
+    return publicFlags.isHighOrder == 1;
 }
 
 void Node::setOrder(uchar order)
 {
     switch (order) {
-    case 1: publicFlags.order = 0;
+    case 1: publicFlags.isHighOrder = 0;
         break;
-    case 2: publicFlags.order = 1;
+    case 2: publicFlags.isHighOrder = 1;
         break;
     case 0: THROW_INVALID_ARG("Invalid node order specified");
     default: THROW_UNSUPPORTED("Only first and second order nodes are supported at the moment");
@@ -305,4 +302,57 @@ void Node::setBadNeighbors(unsigned int axisNum)
 void Node::clearErrorFlags()
 {
     errorFlags.flags = 0;
+}
+
+void Node::setXNeighError()
+{
+    errorFlags.badNeighborsX = true;
+}
+
+void Node::setYNeighError()
+{
+    errorFlags.badNeighborsY = true;
+}
+
+void Node::setZNeighError()
+{
+    errorFlags.badNeighborsZ = true;
+}
+
+void Node::setNormalError()
+{
+    errorFlags.badOuterNormal = true;
+}
+
+void Node::setNeighError(unsigned int axisNum)
+{
+    switch (axisNum) {
+    case 0: setXNeighError();
+        break;
+    case 1: setYNeighError();
+        break;
+    case 2: setZNeighError();
+        break;
+    default: THROW_INVALID_ARG("Invalid axis number specified");
+    }
+}
+
+void Node::setContactCalculationError()
+{
+    errorFlags.contactCalculation = true;
+}
+
+uchar Node::getPrivateFlags() const
+{
+    return privateFlags.flags;
+}
+
+void Node::setPrivateFlags(uchar flags)
+{
+    privateFlags.flags = flags;
+}
+
+uchar Node::getPublicFlags() const
+{
+    return publicFlags.flags;
 }

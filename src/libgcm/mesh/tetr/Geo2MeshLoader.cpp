@@ -48,7 +48,7 @@ void Geo2MeshLoader::createMshFile(string fileName, float tetrSize)
     {
         if( engine.getRank() != 0 )
         {
-            MPI::COMM_WORLD.Barrier();
+            //MPI::COMM_WORLD.Barrier();
             createdFiles[fileName] = true;
             return;
         }
@@ -73,8 +73,8 @@ void Geo2MeshLoader::createMshFile(string fileName, float tetrSize)
     gmshModel.writeMSH (getMshFileName(fileName));
     createdFiles[fileName] = true;
 
-    if (engine.getNumberOfWorkers() > 1)
-        MPI::COMM_WORLD.Barrier();
+//    if (engine.getNumberOfWorkers() > 1)
+//        MPI::COMM_WORLD.Barrier();
 }
 
 void Geo2MeshLoader::loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispatcher, string fileName, float tetrSize)
@@ -93,7 +93,8 @@ void Geo2MeshLoader::loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispatch
         TetrMeshSecondOrder* soMesh = new TetrMeshSecondOrder();
 //        soMesh->setBody(body);
 
-        int sd, nn;
+        int sd;
+		uint nn;
         AABB scene;
         GCMDispatcher* myDispatcher = new DummyDispatcher();
         preLoadMesh(&scene, sd, nn, fileName, tetrSize);
@@ -114,7 +115,7 @@ void Geo2MeshLoader::loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispatch
         LOG_DEBUG("Worker 0 completed generating second order mesh");
     }
 
-    MPI::COMM_WORLD.Barrier();
+    //MPI::COMM_WORLD.Barrier();
 
     LOG_DEBUG("Starting reading mesh");
     Vtu2TetrFileReader* reader = new Vtu2TetrFileReader();
@@ -124,7 +125,7 @@ void Geo2MeshLoader::loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispatch
     mesh->preProcess();
 }
 
-void Geo2MeshLoader::preLoadMesh(AABB* scene, int& sliceDirection, int& numberOfNodes, string fileName, float tetrSize) {
+void Geo2MeshLoader::preLoadMesh(AABB* scene, int& sliceDirection, uint& numberOfNodes, string fileName, float tetrSize) {
     if (!isMshFileCreated(fileName))
         createMshFile(fileName, tetrSize);
     MshTetrFileReader* reader = new MshTetrFileReader();

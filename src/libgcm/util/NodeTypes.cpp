@@ -1,13 +1,13 @@
 #include "libgcm/util/NodeTypes.hpp"
 
-#include "libgcm/nodes/Node.hpp"
-#include "libgcm/nodes/IdealElasticNode.hpp"
-#include "libgcm/nodes/IdealElasticWithMicrocracksNode.hpp"
-#include "libgcm/nodes/FiniteStrainIdealElasticNode.hpp"
-#include "libgcm/nodes/IdealElasticContinualDamageNode.hpp"
+#include "libgcm/node/Node.hpp"
+#include "libgcm/node/IdealElasticNode.hpp"
+#include "libgcm/node/IdealElasticWithMicrocracksNode.hpp"
+#include "libgcm/node/FiniteStrainIdealElasticNode.hpp"
+#include "libgcm/node/IdealElasticContinualDamageNode.hpp"
 
 
-#include "libgcm/util/Exception.hpp"
+#include "libgcm/Exception.hpp"
 
 namespace gcm
 {

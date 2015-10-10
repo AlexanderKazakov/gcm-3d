@@ -38,6 +38,19 @@ protected:
 		};
 	} PublicFlags;
 
+	// private flags container
+
+	typedef union {
+		uchar flags;
+
+		struct {
+			uchar local : 1;
+			uchar used : 1;
+			uchar border : 1;
+			mutable uchar mainStressCalculated : 1;
+		};
+	} PrivateFlags;
+	
 	/**
 	 * Error flags container type.
 	 */
@@ -49,6 +62,7 @@ protected:
 			uchar badNeighborsY : 1;
 			uchar badNeighborsZ : 1;
 			uchar badOuterNormal : 1;
+			uchar contactCalculation : 1;
 		};
 	} ErrorFlags;
 
@@ -56,6 +70,10 @@ protected:
 	 * Node public flags. These flags are to synchronized using MPI.
 	 */
 	PublicFlags publicFlags;
+	/**
+	 * Node private flags. 
+	 */
+	PrivateFlags privateFlags;
 	/**
 	 * Node flags to indicate different issues with this node during calculations.
 	 */
@@ -95,15 +113,6 @@ protected:
 	RheologyMatrixPtr rheologyMatrix;
 
 	/**
-	 * Sets public flags.
-	 */
-	void setPublicFlags(uchar flags);
-	/**
-	 * Sets error flags.
-	 */
-	void setErrorFlags(uchar flags);
-
-	/**
 	 * Sets node type.
 	 * Argument must be an id of some Node subclass.
 	 * The list of possible types is defined in Types.hpp
@@ -116,7 +125,7 @@ public:
 	/**
 	 * Number of the node.
 	 */
-	int number;
+	uint number;
 	/**
 	 * Node coords.
 	 */
@@ -146,7 +155,7 @@ public:
 	 *
 	 * @param num Number of the node
 	 */
-	// Node(int num);
+	// Node(uint num);
 	/**
 	 * Constructor. Creates node with specified number assigned
 	 * and set coordinates.
@@ -154,7 +163,7 @@ public:
 	 * @param num Number of the node
 	 * @param coords Node coords
 	 */
-	Node(int num, const vector3r& coords);
+	Node(uint num, const vector3r& coords);
 	/**
 	 * Assign operator
 	 */
@@ -167,7 +176,7 @@ public:
 	/**
 	 * Number of pair node in contact. FIXME
 	 */
-	int contactNodeNum;
+	uint contactNodeNum;
 	/**
 	 * Contact direction. FIXME
 	 */
@@ -188,7 +197,7 @@ public:
 	 * @param buffer pointer to pre-allocated for all nodes memory 
 	 * @param nodeNum index number of the node among all nodes
 	 */
-	void initMemory(real *buffer, int nodeNum);
+	void initMemory(real *buffer, uint nodeNum);
 	/** 
 	 * Returns node type. The value is an id of some Node subclass.
 	 * The list of possible types is defined in Types.hpp.
@@ -225,7 +234,7 @@ public:
 	 *
 	 * @return Material.
 	 */
-//	MaterialPtr getMaterial() const /*override*/;
+	MaterialPtr getMaterial() const;
 	/**
 	 * Sets rheology matrix for node.
 	 */
@@ -401,6 +410,7 @@ public:
 	 * @return Public flags
 	 */
 	uchar getPublicFlags() const;
+	uchar getPrivateFlags() const;
 	/**
 	 * Returns error flags for node.
 	 *
@@ -433,6 +443,40 @@ public:
 	 * @return Id of the contact condition.
 	 */
 	uchar getContactConditionId() const;
+	
+	/**
+	* Sets node xneigh error flag. TODO document
+	*/
+	void setXNeighError();
+	/**
+	* Sets node yneigh error flag. TODO document
+	*/
+	void setYNeighError();
+	/**
+	* Sets node zneigh error flag. TODO document
+	*/
+	void setZNeighError();
+	/**
+	* Sets node outer normal error flag. TODO document
+	*/
+	void setNormalError();
+	/**
+	* Sets node neigh error flag depending on specified axis. TODO document
+	*
+	* @param axisName Number of axis to set error flag for.
+	*/
+	void setNeighError(unsigned int axisNum);
+	/**
+	* Sets node contact calculation error. TODO document
+	*/
+	void setContactCalculationError();
+	
+	// sets private flags
+	void setPrivateFlags(uchar flags);
+	// sets public flags
+	void setPublicFlags(uchar flags);
+	// sets error flags
+	void setErrorFlags(uchar flags);
 
 	/**
 	 * Constant to access custom flag1 using getCustomFlag / setCustomFlag.
@@ -458,18 +502,19 @@ namespace std {
 inline std::ostream& operator<<(std::ostream &os, const gcm::Node &node) {
 	os << "\n\tNode number: " << node.number << "\n";
 	os << "\tCoords:";
-	for (int i = 0; i < 3; i++)
+	for (uint i = 0; i < 3; i++)
 		os << " " << node.coords[i];
 	os << "\n\tValues in PDE:";
-	for (int i = 0; i < node.getSizeOfPDE(); i++)
+	for (gcm::uchar i = 0; i < node.getSizeOfPDE(); i++)
 		os << " " << node.PDE[i];
 	os << "\n\tValues in ODE:";
-	for (int i = 0; i < node.getSizeOfODE(); i++)
+	for (gcm::uchar i = 0; i < node.getSizeOfODE(); i++)
 		os << " " << node.ODE[i];
 	os << "\n\tFlags: " << node.getPublicFlags();
 	os << "\n\tErrors: " << node.getErrorFlags();
 	return os;
 }
 }
+
 
 #endif

@@ -3,5 +3,5 @@
 using namespace gcm;
 
 Element::Element() {
-	number = -1;
+	number = (uint) -1;
 }

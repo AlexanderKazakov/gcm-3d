@@ -35,14 +35,14 @@ namespace gcm
         TetrFirstOrderInterpolator* interpolator;
 
     protected:
-        std::unordered_map<int, int> tetrsMap;
+        std::unordered_map<uint, uint> tetrsMap;
 
         // Cache for characteristics hits
         bool charactCacheAvailable();
-        bool checkCharactCache(const Node& node, float dx, float dy, float dz, int& tetrNum);
-        void updateCharactCache(const Node& node, float dx, float dy, float dz, int tetrNum);
-        int getCharactCacheIndex(const Node& node, float dx, float dy, float dz);
-        std::unordered_map<int, int> charactCache[18];
+        bool checkCharactCache(const Node& node, float dx, float dy, float dz, uint& tetrNum);
+        void updateCharactCache(const Node& node, float dx, float dy, float dz, uint tetrNum);
+        uint getCharactCacheIndex(const Node& node, float dx, float dy, float dz);
+        std::unordered_map<uint, uint> charactCache[18];
         // Spatial index based on KD-Tree
         struct kdtree* kdtree;
         void initSpatialIndex();
@@ -55,15 +55,15 @@ namespace gcm
         std::vector<TetrahedronFirstOrder> tetrs1;
         std::vector<TriangleFirstOrder> border1;
 
-        int tetrsNumber;
-        int tetrsStorageSize;
-        int faceNumber;
-        int faceStorageSize;
+        uint tetrsNumber;
+        uint tetrsStorageSize;
+        uint faceNumber;
+        uint faceStorageSize;
 
-        std::vector< std::vector<int> > volumeElements;
-        std::vector< std::vector<int> > borderElements;
-        std::vector<int>& getVolumeElementsForNode(int index);
-        std::vector<int>& getBorderElementsForNode(int index);
+        std::vector< std::vector<uint> > volumeElements;
+        std::vector< std::vector<uint> > borderElements;
+        std::vector<uint>& getVolumeElementsForNode(uint index);
+        std::vector<uint>& getBorderElementsForNode(uint index);
 
         void build_surface_reverse_lookups();
         void build_volume_reverse_lookups();
@@ -73,18 +73,18 @@ namespace gcm
         void check_unused_nodes();
         void verifyTetrahedraVertices ();
 
-        bool isTriangleBorder(int v[4], bool* needSwap, bool debug);
-        bool isTriangleBorder(int v[4], bool* needSwap);
-        bool isTriangleBorder(int v[4], bool debug);
-        bool isTriangleBorder(int v[4]);
+        bool isTriangleBorder(uint v[4], bool* needSwap, bool debug);
+        bool isTriangleBorder(uint v[4], bool* needSwap);
+        bool isTriangleBorder(uint v[4], bool debug);
+        bool isTriangleBorder(uint v[4]);
         /*
          * Adds triangle to border and simultaneously checks its orientation
          */
-        TriangleFirstOrder createBorderTriangle(int v[4], int number);
-        void find_border_elem_normal(int border_element_index, float* x, float* y, float* z);
+        TriangleFirstOrder createBorderTriangle(uint v[4], uint number);
+        void find_border_elem_normal(uint border_element_index, float* x, float* y, float* z);
 
-        float get_solid_angle(int node_index, int tetr_index);
-        float tetr_h(int i);
+        float get_solid_angle(uint node_index, uint tetr_index);
+        float tetr_h(uint i);
 
         void logMeshStats();
 
@@ -101,13 +101,13 @@ namespace gcm
 
         USE_LOGGER;
 
-        int expandingScanForOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
-		int orientedExpandingScanForOwnerTetr (const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
-		int virtExpandingScanForOwnerTetr(const Node& _node, float _dx, float _dy, float _dz, bool debug, float* coords, bool* innerPoint);
-        int newExpandingScanForOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
-		void getPotentialOwnerTetrs(float x, float y, float z, std::vector<int>& tetrs);
-        int fastScanForOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug);
-        int findOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
+        uint expandingScanForOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
+		uint orientedExpandingScanForOwnerTetr (const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
+		uint virtExpandingScanForOwnerTetr(const Node& _node, float _dx, float _dy, float _dz, bool debug, float* coords, bool* innerPoint);
+        uint newExpandingScanForOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
+		void getPotentialOwnerTetrs(float x, float y, float z, std::vector<uint>& tetrs);
+        uint fastScanForOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug);
+        uint findOwnerTetr(const Node& node, float dx, float dy, float dz, bool debug, float* coords, bool* innerPoint);
         bool isInnerPoint(const Node& node, float dx, float dy, float dz, bool debug);
 
         gsl_matrix *T;
@@ -122,27 +122,27 @@ namespace gcm
         virtual ~TetrMeshFirstOrder();
         //void copyMesh(TetrMeshFirstOrder* src);
 
-        int getTetrsNumber();
-        int getTriangleNumber();
+        uint getTetrsNumber();
+        uint getTriangleNumber();
 
         void addTetr(TetrahedronFirstOrder& tetr);
         /*
          * Returns tetr by its index.
          */
-        TetrahedronFirstOrder& getTetr(unsigned int index);
+        TetrahedronFirstOrder& getTetr(uint index);
 
-        TetrahedronFirstOrder& getTetrByLocalIndex(unsigned int index);
+        TetrahedronFirstOrder& getTetrByLocalIndex(uint index);
 
-        bool hasTetr(unsigned int index);
+        bool hasTetr(uint index);
 
-        TriangleFirstOrder& getTriangle(int index);
+        TriangleFirstOrder& getTriangle(uint index);
         // FIXME should two functions belowe be moved outside this class?
         /*
          * Creates tetrahedrons.
          */
-        void createTetrs(int number);
+        void createTetrs(uint number);
 
-        void createTriangles(int number);
+        void createTriangles(uint number);
 
         void preProcessGeometry();
 
@@ -169,7 +169,7 @@ namespace gcm
         bool interpolateBorderNode(real x, real y, real z, 
                                 real dx, real dy, real dz, Node& node);
 		
-		bool belongsToTetr(int nodeNum, int tetrNum, int faceNum);
+		bool belongsToTetr(uint nodeNum, uint tetrNum, uint faceNum);
 
         virtual const SnapshotWriter& getSnaphotter() const override;
         virtual const SnapshotWriter& getDumper() const override;

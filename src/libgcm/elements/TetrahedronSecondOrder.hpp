@@ -15,7 +15,7 @@ namespace gcm {
         /*
          * List of additional vertices on edges
          */
-        uint secondaryVertices[6];
+        uint addVerts[6];
     };
 }
 
@@ -27,7 +27,7 @@ namespace std {
             os << " " << tetr.vertices[i];
         os << "\n\tAdditional vertices:";
         for( uint i = 0; i < 6; i++ )
-            os << " " << tetr.secondaryVertices[i];
+            os << " " << tetr.addVerts[i];
         return os;
     }
 }

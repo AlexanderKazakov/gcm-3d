@@ -1,6 +1,5 @@
 #include "launcher/loaders/mesh/BasicCubicMeshLoader.hpp"
 #include "libgcm/mesh/cube/BasicCubicMeshGenerator.hpp"
-
 #include "libgcm/Engine.hpp"
 
 #include <boost/lexical_cast.hpp>
@@ -22,7 +21,7 @@ void launcher::BasicCubicMeshLoader::parseDesc(const xml::Node& desc, string& id
 	numZ = lexical_cast<int>(desc["numZ"]);
 }
 
-void launcher::BasicCubicMeshLoader::preLoadMesh(const xml::Node& desc, AABB& aabb, int& sliceDirection, int& numberOfNodes)
+void launcher::BasicCubicMeshLoader::preLoadMesh(const xml::Node& desc, AABB& aabb, int& sliceDirection, uint& numberOfNodes)
 {
     string id;
     float h;

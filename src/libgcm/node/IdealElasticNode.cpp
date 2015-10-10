@@ -156,7 +156,7 @@ real IdealElasticNode::getPressure() const
 // See http://www.toehelp.ru/theory/sopromat/6.html
 vector3r IdealElasticNode::getPrincipalStresses() const
 {
-    double mainStresses[3];
+    real mainStresses[3];
     double a = -getStressInvariantJ1();
     double b = getStressInvariantJ2();
     double c = -getStressInvariantJ3();

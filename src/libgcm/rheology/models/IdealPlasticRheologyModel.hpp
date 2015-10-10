@@ -7,7 +7,7 @@
 #include "libgcm/rheology/matrixSetters/IsotropicElasticRheologyMatrixSetter.hpp"
 #include "libgcm/solvers/matrixDecomposers/IsotropicElasticRheologyMatrixDecomposer.hpp"
 #include "libgcm/solvers/correctors/IdealPlasticFlowCorrector.hpp"
-#include "libgcm/nodes/IdealElasticNode.hpp"
+#include "libgcm/node/IdealElasticNode.hpp"
 #include "libgcm/util/Logging.hpp"
 #include "libgcm/rheology/models/RheologyModel.hpp"
 

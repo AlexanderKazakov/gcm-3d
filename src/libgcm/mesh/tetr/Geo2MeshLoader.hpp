@@ -40,7 +40,7 @@ namespace gcm {
     public:
         Geo2MeshLoader();
         ~Geo2MeshLoader();
-        void preLoadMesh(AABB* scene, int& sliceDirection, int& numberOfNodes, std::string fileName, float tetrSize);
+        void preLoadMesh(AABB* scene, int& sliceDirection, uint& numberOfNodes, std::string fileName, float tetrSize);
         void loadMesh(TetrMeshSecondOrder* mesh, GCMDispatcher* dispatcher, std::string fileName, float tetrSize);
         void cleanUp();
     };

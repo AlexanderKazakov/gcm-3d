@@ -182,9 +182,10 @@ namespace gcm
     }
 
     template<typename SetterType, typename DecomposerType>
-    RheologyMatrixPtr  makeRheologyMatrixPtr(MaterialPtr material)
+    RheologyMatrixPtr  makeRheologyMatrixPtr(uchar size, MaterialPtr material)
     {
-        return makeRheologyMatrixPtr(material, makeSetterPtr<SetterType>(), makeDecomposerPtr<DecomposerType>());
+        return makeRheologyMatrixPtr(size, material, makeSetterPtr<SetterType>(),
+			makeDecomposerPtr<DecomposerType>());
     }
 }
 

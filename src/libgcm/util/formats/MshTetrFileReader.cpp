@@ -5,6 +5,8 @@
 #include "libgcm/node/Node.hpp"
 #include "libgcm/GCMDispatcher.hpp"
 
+#include "libgcm/Body.hpp"
+
 using namespace gcm;
 using std::string;
 using std::vector;
@@ -22,7 +24,7 @@ MshTetrFileReader::~MshTetrFileReader()
 
 }
 
-void MshTetrFileReader::preReadFile(string file, AABB* scene, int& sliceDirection, int& numberOfNodes)
+void MshTetrFileReader::preReadFile(string file, AABB* scene, int& sliceDirection, uint& numberOfNodes)
 {
     scene->minX = numeric_limits<float>::infinity();
     scene->minY = numeric_limits<float>::infinity();
@@ -34,7 +36,7 @@ void MshTetrFileReader::preReadFile(string file, AABB* scene, int& sliceDirectio
     string str;
     int tmp_int;
     float tmp_float;
-    int number_of_nodes;
+    uint number_of_nodes;
 
     ifstream infile;
     infile.open(file.c_str(), ifstream::in);
@@ -62,7 +64,7 @@ void MshTetrFileReader::preReadFile(string file, AABB* scene, int& sliceDirectio
     infile >> number_of_nodes;
     LOG_DEBUG("File contains " << number_of_nodes << " nodes");
 
-    for(int i = 0; i < number_of_nodes; i++)
+    for(uint i = 0; i < number_of_nodes; i++)
     {
         infile >> tmp_int;
 
@@ -122,15 +124,15 @@ void MshTetrFileReader::preReadFile(string file, AABB* scene, int& sliceDirectio
     if( minSlice > sliceZ )
         minSlice = sliceZ;
 
-    for(int i = 0; i < number_of_nodes; i++)
+    for(uint i = 0; i < number_of_nodes; i++)
     {
         tmpfile >> tmp_int;
         tmpfile >> x;
         tmpfile >> y;
         tmpfile >> z;
-        int xZoneNum = (int)( (x - scene->minX) / sliceX );
-        int yZoneNum = (int)( (y - scene->minY) / sliceY );
-        int zZoneNum = (int)( (z - scene->minZ) / sliceZ );
+        uint xZoneNum = (uint)( (x - scene->minX) / sliceX );
+        uint yZoneNum = (uint)( (y - scene->minY) / sliceY );
+        uint zZoneNum = (uint)( (z - scene->minZ) / sliceZ );
         distrX[xZoneNum]++;
         distrY[yZoneNum]++;
         distrZ[zZoneNum]++;
@@ -194,13 +196,13 @@ void MshTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
 {
     assert_true(mesh);
     assert_true(dispatcher);
-    int tetrsCount = 0;
+    uint tetrsCount = 0;
     int fileVer;
     string str;
     int tmp_int;
     float tmp_float;
-    int number_of_nodes;
-    int number_of_elements;
+    uint number_of_nodes;
+    uint number_of_elements;
 
     ifstream infile;
     infile.open(file.c_str(), ifstream::in);
@@ -230,7 +232,7 @@ void MshTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
     LOG_DEBUG("File contains " << number_of_nodes << " nodes");
     vector<Node*>* nodes = new vector<Node*>;
 
-    for(int i = 0; i < number_of_nodes; i++)
+    for(uint i = 0; i < number_of_nodes; i++)
     {
         infile >> tmp_int;
         if( tmp_int > 0 )
@@ -259,7 +261,7 @@ void MshTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
 
 
     mesh->createNodes( nodes->size() );
-    for(unsigned int i = 0; i < nodes->size(); i++)
+    for(uint i = 0; i < nodes->size(); i++)
     {
         mesh->addNode( *nodes->at(i) );
     }
@@ -281,9 +283,9 @@ void MshTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
 
     vector<TetrahedronFirstOrder*>* tetrs = new vector<TetrahedronFirstOrder*>;
 
-    for(int i = 0; i < number_of_elements; i++)
+    for(uint i = 0; i < number_of_elements; i++)
     {
-        int number;
+        uint number;
         infile >> number >> tmp_int;
         if(tmp_int != 4) {
             getline(infile, str);
@@ -291,7 +293,7 @@ void MshTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
         } else if (tmp_int == 4) {
             tetrsCount++;
             //number = tetrs->size();
-            int vert[4];
+            uint vert[4];
             if( fileVer == 22 ) {
                 infile >> tmp_int >> tmp_int >> tmp_int
                     >> vert[0] >> vert[1] >> vert[2] >> vert[3];
@@ -316,13 +318,13 @@ void MshTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
     LOG_DEBUG("File contains " << tetrsCount << " tetrs");
     LOG_DEBUG("There are " << tetrs->size() << " local tetrs");
 
-    map<int,int> remoteNodes;
+    map<uint,uint> remoteNodes;
     mesh->createTetrs( tetrs->size() );
-    for(unsigned int i = 0; i < tetrs->size(); i++)
+    for(uint i = 0; i < tetrs->size(); i++)
     {
         TetrahedronFirstOrder* tetr = tetrs->at(i);
         mesh->addTetr( *tetr );
-        for(int j = 0; j < 4; j++)
+        for(uint j = 0; j < 4; j++)
             if( ! mesh->hasNode( tetr->vertices[j] ) )
                 remoteNodes[tetr->vertices[j]] = i;
     }
@@ -341,7 +343,7 @@ void MshTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
 
     LOG_DEBUG("Reading required remote nodes");
     LOG_DEBUG("We expect " << remoteNodes.size() << " nodes" );
-    int remoteNodesCount = 0;
+    uint remoteNodesCount = 0;
 
     infile.open(file.c_str(), ifstream::in);
     if(!infile.is_open())
@@ -364,7 +366,7 @@ void MshTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
 
     infile >> number_of_nodes;
     Node tmpNode;
-    for(int i = 0; i < number_of_nodes; i++)
+    for(uint i = 0; i < number_of_nodes; i++)
     {
         infile >> tmpNode.number;
         infile >> tmpNode.coords[0] >> tmpNode.coords[1] >> tmpNode.coords[2];

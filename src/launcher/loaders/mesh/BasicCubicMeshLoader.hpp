@@ -21,7 +21,7 @@ namespace launcher
             void parseDesc(const xml::Node& desc, std::string& id, float& h, int& numX, int& numY, int& numZ);
             void loadMesh(const xml::Node& desc, gcm::BasicCubicMesh* mesh) override;
         public:
-            void preLoadMesh(const xml::Node& desc, gcm::AABB& aabb, int& sliceDirection, int& numberOfNodes);
+            void preLoadMesh(const xml::Node& desc, gcm::AABB& aabb, int& sliceDirection, uint& numberOfNodes);
 
             const static std::string MESH_TYPE;
     };

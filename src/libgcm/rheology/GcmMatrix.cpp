@@ -1,5 +1,6 @@
 #include "libgcm/rheology/GcmMatrix.hpp"
 #include "libgcm/util/Assertion.hpp"
+#include "libgcm/Math.hpp"
 
 // For fabs())
 #include <cmath>

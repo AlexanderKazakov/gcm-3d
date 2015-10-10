@@ -2,7 +2,7 @@
 #define RIGHT_HAND_SIDE_SOLVER_HPP 
 
 #include "libgcm/rheology/Material.hpp"
-#include "libgcm/nodes/Node.hpp"
+#include "libgcm/node/Node.hpp"
 #include "libgcm/rheology/rightHandSideSetters/RightHandSideSetter.hpp"
 
 
