@@ -37,11 +37,11 @@ namespace gcm {
 		// Rheology model used in the mesh
 		RheologyModel* rheologyModel;
 		// Pointer to memory for nodal data
-		real *valuesInNodes;
+		real* valuesInNodes;
 		// List of mesh nodes on next time layer
         std::vector<Node> newNodes;
 		// Pointer to memory for nodal data
-		real *valuesInNewNodes;
+		real* valuesInNewNodes;
         /*
          * Calculatable flag.
          */
@@ -80,7 +80,7 @@ namespace gcm {
 
         bool movable;
 
-        void initNewNodes();
+        //void initNewNodes();
 
         USE_LOGGER;
 
@@ -98,6 +98,10 @@ namespace gcm {
 
         virtual ~Mesh();
 
+		/**
+		 * Allocate dynamical memory for nodal data (for PDE and ODE values)
+         */
+		void allocateMemoryForNodalData();
 
         // Virtual functions to be implemented by children classes
 
@@ -243,8 +247,8 @@ namespace gcm {
 		void setContactCondition(Area* area, uint num);
 		void setRheologyModel(RheologyModel *_model);
 		RheologyModel* getRheologyModel();
-        void setRheology(uchar matId);
-        void setRheology(uchar matId, Area* area);
+        void setMaterial(uchar matId);
+        void setMaterial(uchar matId, Area* area);
 
         virtual void transfer(float x, float y, float z);
 		void scale(float x0, float y0, float z0, 

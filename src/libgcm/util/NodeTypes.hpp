@@ -15,6 +15,6 @@ namespace gcm
 	const uchar IDEAL_ELASTIC_CONTINUAL_DAMAGE_NODE_TYPE = 3;
 	const uchar FINITE_STRAIN_IDEAL_ELASTIC_NODE_TYPE = 4;
     
-    Node getNewNode(uchar nodeType);
+    Node getNodeOfTheType(uchar nodeType);
 }
 #endif

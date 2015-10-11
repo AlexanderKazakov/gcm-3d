@@ -20,6 +20,9 @@ Mesh::Mesh()
     nodesNumber = 0;
     nodesStorageSize = 0;
     movable = false;
+	rheologyModel = NULL;
+	valuesInNodes = NULL;
+	valuesInNewNodes = NULL;
 }
 
 Mesh::Mesh(string _type) : type(_type)
@@ -29,11 +32,41 @@ Mesh::Mesh(string _type) : type(_type)
     nodesNumber = 0;
     nodesStorageSize = 0;
     movable = false;
+	rheologyModel = NULL;
+	valuesInNodes = NULL;
+	valuesInNewNodes = NULL;
 }
 
 Mesh::~Mesh()
 {
+	if (valuesInNodes != NULL)
+		delete[] valuesInNodes;
 
+	if (valuesInNewNodes != NULL)
+		delete[] valuesInNewNodes;
+}
+
+void Mesh::allocateMemoryForNodalData() {
+	assert_ne(nodesNumber, 0);
+	assert(valuesInNodes == NULL);
+	assert(valuesInNewNodes == NULL);
+	assert_eq(nodes.size(), newNodes.size());
+	// Preparing
+	assert(rheologyModel != NULL);
+	uchar sizeOfValuesInODE = rheologyModel->getSizeOfValuesInODE();
+	uchar sizeOfValuesInPDE = rheologyModel->getSizeOfValuesInPDE();
+	LOG_DEBUG("Mesh: init container for " <<
+		sizeOfValuesInODE + sizeOfValuesInPDE << 
+		" variables per node (both PDE and ODE)\n");
+	// Allocating
+	valuesInNodes = new real[nodes.size() * (sizeOfValuesInODE + sizeOfValuesInPDE)];
+	for(uint i = 0; i < nodes.size(); i++) {
+		nodes[i].initMemory(valuesInNodes, i);
+	}
+	valuesInNewNodes = new real[newNodes.size() * (sizeOfValuesInODE + sizeOfValuesInPDE)];
+	for(uint i = 0; i < newNodes.size(); i++) {
+		newNodes[i].initMemory(valuesInNewNodes, i);
+	}
 }
 
 string Mesh::getType()
@@ -118,24 +151,24 @@ const AABB& Mesh::getExpandedOutline() const
     return expandedOutline;
 }
 
-void Mesh::initNewNodes()
-{
-    for(uint i = 0; i < getNodesNumber(); i++)
-    {
-        Node& node = getNodeByLocalIndex(i);
-        Node& newNode = getNewNode( node.number );
-        newNode.coords = node.coords;
-        copy(node.PDE, node.PDE + node.getSizeOfPDE(), newNode.PDE);
-        copy(node.ODE, node.ODE + node.getSizeOfODE(), newNode.ODE);
-        newNode.setMaterialId(node.getMaterialId());
-        newNode.setContactConditionId(node.getContactConditionId());
-    }
-}
+//void Mesh::initNewNodes()
+//{
+//    for(uint i = 0; i < getNodesNumber(); i++)
+//    {
+//        Node& node = getNodeByLocalIndex(i);
+//        Node& newNode = getNewNode( node.number );
+//        newNode.coords = node.coords;
+//        copy(node.PDE, node.PDE + node.getSizeOfPDE(), newNode.PDE);
+//        copy(node.ODE, node.ODE + node.getSizeOfODE(), newNode.ODE);
+//        newNode.setMaterialId(node.getMaterialId());
+//        newNode.setContactConditionId(node.getContactConditionId());
+//    }
+//}
 
 void Mesh::preProcess()
 {
     LOG_DEBUG("Preprocessing mesh started.");
-    initNewNodes();
+    //initNewNodes();
     calcMinH();
 	createOutline();
     preProcessGeometry();
@@ -187,6 +220,7 @@ void Mesh::createOutline()
 
 void Mesh::setInitialState(Area* area, float* PDE)
 {
+	assert(valuesInNodes != NULL);
     for(uint i = 0; i < getNodesNumber(); i++)
     {
         Node& node = getNodeByLocalIndex(i);
@@ -198,6 +232,7 @@ void Mesh::setInitialState(Area* area, float* PDE)
         
 void Mesh::setInitialState(Area* area, std::function<void(Node& node)> setter)
 {
+	assert(valuesInNodes != NULL);
     for(uint i = 0; i < getNodesNumber(); i++)
     {
         Node& node = getNodeByLocalIndex(i);
@@ -208,6 +243,7 @@ void Mesh::setInitialState(Area* area, std::function<void(Node& node)> setter)
 
 void Mesh::setBorderCondition(Area* area, uint num)
 {
+	assert(valuesInNodes != NULL);
     for(uint i = 0; i < getNodesNumber(); i++)
     {
         Node& node = getNodeByLocalIndex(i);
@@ -218,6 +254,7 @@ void Mesh::setBorderCondition(Area* area, uint num)
 
 void Mesh::setContactCondition(Area* area, uint num)
 {
+	assert(valuesInNodes != NULL);
     for(uint i = 0; i < getNodesNumber(); i++)
     {
         Node& node = getNodeByLocalIndex(i);
@@ -235,7 +272,7 @@ RheologyModel* Mesh::getRheologyModel() {
 	return rheologyModel;
 }
 
-void Mesh::setRheology(uchar matId) {
+void Mesh::setMaterial(uchar matId) {
     for(uint i = 0; i < getNodesNumber(); i++)
     {
         Node& node = getNodeByLocalIndex(i);
@@ -243,7 +280,7 @@ void Mesh::setRheology(uchar matId) {
     }
 }
 
-void Mesh::setRheology(uchar matId, Area* area) {
+void Mesh::setMaterial(uchar matId, Area* area) {
     for(uint i = 0; i < getNodesNumber(); i++)
     {
         Node& node = getNodeByLocalIndex(i);
@@ -449,8 +486,8 @@ uint Mesh::getNumberOfLocalNodes()
 
 void Mesh::createNodes(uint number) {
     LOG_DEBUG("Creating nodes storage, size: " << (uint)(number*STORAGE_OVERCOMMIT_RATIO));
-    nodes.resize((uint)(number*STORAGE_OVERCOMMIT_RATIO));
-    new_nodes.resize((uint)(number*STORAGE_OVERCOMMIT_RATIO));
+    nodes.reserve((uint)(number*STORAGE_OVERCOMMIT_RATIO));
+    new_nodes.reserve((uint)(number*STORAGE_OVERCOMMIT_RATIO));
     nodesStorageSize = number*STORAGE_OVERCOMMIT_RATIO;
 }
 
@@ -494,11 +531,10 @@ uint Mesh::getNodeLocalIndex(uint index) const {
 
 void Mesh::addNode(Node& node) {
     if( nodesNumber == nodesStorageSize )
-        // FIXME what is this?
-        // why not to use a propper allocator for container?
         createNodes((nodesStorageSize+1)*STORAGE_ONDEMAND_GROW_RATE);
     assert_lt(nodesNumber, nodesStorageSize );
-    nodes[nodesNumber] = node;
+    nodes.push_back(node);
+	newNodes.push_back(node);
     nodesMap[node.number] = nodesNumber;
     nodesNumber++;
 }
@@ -548,11 +584,12 @@ void Mesh::defaultNextPartStep(float tau, int stage)
 }
 
 void Mesh::copyValues() {
-	LOG_DEBUG("Copying PDE");
+	LOG_DEBUG("Copying values");
     for( MapIter itr = nodesMap.begin(); itr != nodesMap.end(); ++itr ) {
         uint i = itr->first;
         Node& node = getNode(i);
         if( node.isLocal() )
             memcpy( node.PDE, getNewNode(i).PDE, node.getSizeOfPDE() * sizeof(float) );
+		// TODO@next deal with ODE copying
     }
 }

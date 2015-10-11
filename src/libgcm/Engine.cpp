@@ -148,6 +148,14 @@ void Engine::cleanUp()
     LOG_INFO("Clean up done");
 }
 
+void Engine::allocateMemoryForNodalData() {
+	for (uint i = 0; i < bodies.size(); i++) {
+		LOG_DEBUG("Allocating dynamical memory for body " << i);
+		Mesh* mesh = bodies[i]->getMeshes();
+		mesh->allocateMemoryForNodalData();
+	}
+}
+
 uint Engine::getRank()
 {
     return rank;

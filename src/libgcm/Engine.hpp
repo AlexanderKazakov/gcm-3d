@@ -176,6 +176,11 @@ namespace gcm
     public:
         void clear();
         void cleanUp();
+		/**
+		 * After all the meshes is loaded and we know the number of nodes in each one,
+		 * it's time to allocate dynamical memory for nodal data (PDE and ODE values)
+         */
+		void allocateMemoryForNodalData();
         /*
          * Returns process rank.
          */

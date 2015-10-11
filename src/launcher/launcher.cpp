@@ -43,6 +43,7 @@
 #include "libgcm/linal/RotationMatrix.hpp"
 #include "libgcm/calc/contact/AdhesionContactCalculator.hpp"
 #include "libgcm/calc/contact/SlidingContactCalculator.hpp"
+#include "libgcm/rheology/models/IdealElasticRheologyModel.hpp"
 
 namespace ba = boost::algorithm;
 namespace bfs = boost::filesystem;
@@ -324,14 +325,6 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
         LOG_DEBUG("Loading body '" << id << "'");
         // create body instance
         Body* body = new Body(id);
-        body->setRheologyCalculatorType(engine.getDefaultRheologyCalculatorType());
-        // set rheology
-        NodeList rheologyNodes = bodyNode.getChildrenByName("rheology");
-        if (rheologyNodes.size() > 1)
-            THROW_INVALID_INPUT("Only one rheology element allowed for body declaration");
-        if (rheologyNodes.size()) {
-            // We can do smth here when we have more than one rheology calculators
-        }
 
         // preload meshes for dispatcher
         NodeList meshNodes = bodyNode.getChildrenByName("mesh");
@@ -460,6 +453,21 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
         }
         engine.getDispatcher()->setTransferVector(dX, dY, dZ, id);
 
+		// set rheology
+		body->setRheologyCalculatorType(engine.getDefaultRheologyCalculatorType());
+        NodeList rheologyNodes = bodyNode.getChildrenByName("rheology");
+		if(rheologyNodes.size() == 1) {
+			std::string rheologyType = rheologyNodes[0].getAttributeByName("type");
+			if(rheologyType == "elastic")
+				body->getMeshes()->setRheologyModel(new IdealElasticRheologyModel);
+			else if(rheologyType == "elastic_with_continual_damage")
+				THROW_UNSUPPORTED("Not implemented yet");
+			else
+				THROW_UNSUPPORTED("Not implemented yet");
+		} else if (rheologyNodes.size() > 1)
+			THROW_INVALID_INPUT("Only one rheology element allowed for body declaration");
+        LOG_DEBUG("Body '" << id << "' loaded");
+		// TODO - set rheologyModel to mesh before it starts load
         // load meshes
         NodeList meshNodes = bodyNode.getChildrenByName("mesh");
         for(auto& meshNode: meshNodes)
@@ -542,23 +550,27 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
             
             if (areaNodes.size() == 0)
             {
-                mesh->setRheology( matId );
+                mesh->setMaterial( matId );
             }
             else if (areaNodes.size() == 1)
             {
                 Area* matArea = readArea(areaNodes.front());
                 if(matArea == NULL)
                     THROW_INVALID_INPUT("Can not read area");
-                mesh->setRheology( matId, matArea );
+                mesh->setMaterial( matId, matArea );
             }
             else
             {
                 THROW_INVALID_INPUT("Only one or zero area elements are allowed for material");
-            }
+            }	
         }
-        LOG_DEBUG("Body '" << id << "' loaded");
+
     }
 
+	LOG_DEBUG("Starting memory allocation for nodal data");
+	engine.allocateMemoryForNodalData();
+	LOG_DEBUG("Memory for nodal data is allocated");
+	
     NodeList initialStateNodes = rootNode.xpath("/task/initialState" + (initialStateGroup == "" ? "" : "[@group=\"" + initialStateGroup + "\"]"));
     if (initialStateGroup != "" && initialStateNodes.size() == 0)
         THROW_INVALID_ARG("Initial state group not found");
