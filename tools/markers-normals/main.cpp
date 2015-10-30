@@ -76,7 +76,7 @@ public:
         for (int i = 0; i < 8; i++)
         	m.setCellInnerFlag(i, true);
 
-        m.getNodeByLocalIndex(13).setIsBorder(true);
+        m.getNodeByLocalIndex(13).setBorder(true);
 
         updateNormal();
     }

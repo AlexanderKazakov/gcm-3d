@@ -1,4 +1,4 @@
-<task numberOfSnaps="80" stepsPerSnap="2">
+<task numberOfSnaps="3" stepsPerSnap="1">
 	<system>
 		<defaultContactCalculator type="AdhesionContactCalculator" />
 		<meshMovement type="none" />
@@ -71,24 +71,21 @@
                 <mesh>layer2</mesh>
                 <mesh>layer3</mesh>
             </meshes>
-            <plotOverLine from="0;0;-10" to="0;0;10" output="szz_%(step)02d.png">
+            <plotOverLine from="0;0;-2.5" to="0;0;5" output="szz_%(step)02d.png">
                 <title>Wave propogation over the contact (along Z axis)</title>
                 <quantities>
                     <quantity>sxx</quantity>
                     <quantity>szz</quantity>
                 </quantities>
                 <axes>
-                    <left from="-1000" to="1000"/>
-                    <bottom from="-10" to="10"/>
+                    <left from="-100" to="100"/>
+                    <bottom from="-2.5" to="5"/>
                 </axes>
             </plotOverLine>
             <render3d output="szz_clipped_%(step)02d.png">
                 <title>Wave propogation over the contact (along Z axis)</title>
-                <quantity min="-1000" max="1000">szz</quantity>
-                <camera position="-40;0;0" up="0;1;0" focal="0;0;0" angle="30" />
-                <thresholds>
-                    <threshold scalar="cellStatus" min="1" max="1" />
-                </thresholds>
+                <quantity min="-100" max="100">szz</quantity>
+                <camera position="-40;0;0" up="0;0;1" focal="0;0;1.25" angle="30" />
                 <clips>
                     <clip origin="0;0;0" normal="1;0;0" />
                 </clips>

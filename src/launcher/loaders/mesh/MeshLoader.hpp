@@ -14,12 +14,13 @@ namespace launcher
         protected:
             virtual void loadMesh(const xml::Node& desc, MeshType* mesh) = 0;
         public:
-            MeshType* load(const xml::Node& desc, gcm::Body* body)
+            MeshType* load(const xml::Node& desc, gcm::Body* body, gcm::RheologyModel* rheologyModel)
             {
                 MeshType* mesh = new MeshType();
                 mesh->setId(desc["id"]);
                 mesh->setCalc(desc.getAttributeByName("calc", "false") == "true");
                 mesh->setBody(body);
+				mesh->setRheologyModel(rheologyModel);
                 loadMesh(desc, mesh);
                 return mesh;
             }

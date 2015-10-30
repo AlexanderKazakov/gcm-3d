@@ -82,35 +82,37 @@ protected:
 	/**
 	 * Number of variables in main PDE (size of \vec{u}).
 	 */
-	uchar sizeOfPDE;
+	uchar sizeOfPDE = 0;
 	/**
 	 * Number of variables in supporting ODEs.
 	 */
-	uchar sizeOfODE;
+	uchar sizeOfODE = 0;
 	/**
 	 * Type of node. This id must be unique for each Node subclass.
 	 * This field is *really* important - all objects use it to determine node class.
 	 * The list of possible types is defined in Types.hpp.
 	 */
-	uchar nodeType;
+	uchar nodeType = 0;
 	
 	/**
 	 * Border condition that is used for this node.
+	 * Border condition '1' is 'default' one, since '0' is reserved for 'failsafe' one
 	 */
-	uchar borderConditionId;
+	uchar borderConditionId = 1;
+	
 	/**
 	 * Contact condition that is used for this node.
 	 */
-	uchar contactConditionId;
+	uchar contactConditionId = 0;
 
 	/**
 	 * Node material id.
 	 */
-	uchar materialId;
+	uchar materialId = 0;
 	/**
 	 * Rheology matrix pointer.
 	 */
-	RheologyMatrixPtr rheologyMatrix;
+	RheologyMatrixPtr rheologyMatrix = NULL;
 
 	/**
 	 * Sets node type.
@@ -125,20 +127,20 @@ public:
 	/**
 	 * Number of the node.
 	 */
-	uint number;
+	uint number = -1;
 	/**
 	 * Node coords.
 	 */
-	vector3r coords;
+	vector3r coords = {0, 0, 0};
 
 	/**
 	 * Variables in main PDE (size of \vec{u}, >= 9)
 	 */
-	real *PDE;
+	real *PDE = NULL;
 	/**
 	 * Variables in supporting ODEs (may be empty)
 	 */
-	real *ODE;
+	real *ODE = NULL;
 
 	Node();
 	/**
@@ -169,6 +171,10 @@ public:
 	 */
 	void operator=(const Node& orig);
 	/**
+	 * Copy all parameters like nodeType, sizeOfPDE etc of orig
+     */
+	void copyParametersOfNode(const Node& orig);
+	/**
 	 * Destructor
 	 */
 	~Node();
@@ -176,16 +182,16 @@ public:
 	/**
 	 * Number of pair node in contact. FIXME
 	 */
-	uint contactNodeNum;
+	uint contactNodeNum = 0;
 	/**
 	 * Contact direction. FIXME
 	 */
-	uchar contactDirection;
+	uchar contactDirection = 0;
 
 	/**
 	 * Identifier of the body this node belongs to.
 	 */
-	uchar bodyId;
+	uchar bodyId = 0;
 
 	/**
 	 * Set all values in PDE and ODE in the node to zero.

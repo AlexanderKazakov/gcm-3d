@@ -6,23 +6,23 @@
 	<bodies>
 		<body id="cube">
 			<rheology type="elastic" />
-			<mesh id="main" type="geo2" file="models/layer-x-strike.geo" tetrSize="0.2" />
-			<material id="layer1">
-				<area type="box" minX="-2.51" maxX="0.01" minY="-5.01" maxY="5.01" minZ="-5.01" maxZ="5.01"/>
-			</material>
-			<material id="layer2">
+			<mesh id="main" type="geo2" file="models/layer-x-strike.geo" tetrSize="1.0" />
+			<material id="testAnisotropicMaterial" />
+				<!--area type="box" minX="-5.01" maxX="0.01" minY="-5.01" maxY="5.01" minZ="-5.01" maxZ="5.01"/>
+			</material-->
+			<!--material id="layer2">
 				<area type="box" minX="-5.01" maxX="-2.49" minY="-5.01" maxY="5.01" minZ="-5.01" maxZ="5.01"/>
-			</material>
+			</material-->
 		</body>
 	</bodies>
-	<materials>
+	<!--materials>
 		<material name="layer1" rheology="anisotropic" source="testAnisotropicMaterial">
 			<rotate a1="0" a2="0" a3="0"/>
 		</material>
 		<material name="layer2" rheology="anisotropic" source="testAnisotropicMaterial">
 			<rotate a1="90" a2="0" a3="0"/>
 		</material>
-	</materials>
+	</materials-->
 	<initialState>
 		<area type="box" minX="-5.01" maxX="-4.99" minY="-1" maxY="1" minZ="-1" maxZ="1"/>
 		<values vx="30" />

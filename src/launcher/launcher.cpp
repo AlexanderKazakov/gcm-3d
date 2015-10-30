@@ -455,11 +455,12 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
 
 		// set rheology
 		body->setRheologyCalculatorType(engine.getDefaultRheologyCalculatorType());
+		gcm::RheologyModel* rheologyModel = nullptr;
         NodeList rheologyNodes = bodyNode.getChildrenByName("rheology");
 		if(rheologyNodes.size() == 1) {
 			std::string rheologyType = rheologyNodes[0].getAttributeByName("type");
 			if(rheologyType == "elastic")
-				body->getMeshes()->setRheologyModel(new IdealElasticRheologyModel);
+				rheologyModel = new IdealElasticRheologyModel();
 			else if(rheologyType == "elastic_with_continual_damage")
 				THROW_UNSUPPORTED("Not implemented yet");
 			else
@@ -479,21 +480,21 @@ void launcher::Launcher::loadSceneFromFile(string fileName, string initialStateG
             Mesh* mesh = nullptr;
 
             if (type == Geo2MeshLoader::MESH_TYPE)
-                mesh = Geo2MeshLoader::getInstance().load(meshNode, body);
+                mesh = Geo2MeshLoader::getInstance().load(meshNode, body, rheologyModel);
             else if (type == Msh2MeshLoader::MESH_TYPE)
-                mesh = Msh2MeshLoader::getInstance().load(meshNode, body);
+                mesh = Msh2MeshLoader::getInstance().load(meshNode, body, rheologyModel);
             else if (type == Ani3D2MeshLoader::MESH_TYPE)
-                mesh = Ani3D2MeshLoader::getInstance().load(meshNode, body);
+                mesh = Ani3D2MeshLoader::getInstance().load(meshNode, body, rheologyModel);
             else if (type == Vtu2MeshLoader::MESH_TYPE)
-                mesh = Vtu2MeshLoader::getInstance().load(meshNode, body);
+                mesh = Vtu2MeshLoader::getInstance().load(meshNode, body, rheologyModel);
             else if (type == Vtu2MeshZoneLoader::MESH_TYPE)
-                mesh = Vtu2MeshZoneLoader::getInstance().load(meshNode, body);
+                mesh = Vtu2MeshZoneLoader::getInstance().load(meshNode, body, rheologyModel);
             else if (type == BasicCubicMeshLoader::MESH_TYPE)
-                mesh = BasicCubicMeshLoader::getInstance().load(meshNode, body);
+                mesh = BasicCubicMeshLoader::getInstance().load(meshNode, body, rheologyModel);
             else if (type == RectangularCutCubicMeshLoader::MESH_TYPE)
-                mesh = RectangularCutCubicMeshLoader::getInstance().load(meshNode, body);
+                mesh = RectangularCutCubicMeshLoader::getInstance().load(meshNode, body, rheologyModel);
             else if (type == MarkeredMeshGeoLoader::MESH_TYPE)
-                mesh = MarkeredMeshGeoLoader::getInstance().load(meshNode, body);            
+                mesh = MarkeredMeshGeoLoader::getInstance().load(meshNode, body, rheologyModel);            
 	    LOG_INFO("Loaded mesh for body '" << id << "', started attaching to body");
             // attach mesh to body
             body->attachMesh(mesh);

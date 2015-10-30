@@ -180,15 +180,12 @@ namespace gcm
 //
 //            float _norm[3];
 			
-			auto worker_rank = vtkSmartPointer<vtkIntArray>::New();
-            worker_rank->SetName("worker_rank");
 			
             dumpMeshSpecificData(_mesh, grid, points);
 
             for (auto it = MeshNodeIterator<MeshType, snapshotterId>(_mesh); it.hasNext(); it++)
             {
                 auto& node = static_cast<IdealElasticNode&>(*it);
-//				worker_rank->InsertNextValue(_mesh->getRank());
                 border->InsertNextValue(node.isBorder() ? 1 : 0);
 //                used->InsertNextValue(node.isUsed() ? 1 : 0);
 //                contact->InsertNextValue(node.isInContact() ? 1 : 0);
@@ -238,7 +235,6 @@ namespace gcm
 
 			grid->SetPoints(points);
 
-			fd->AddArray(worker_rank);
 			fd->AddArray(border);
 			//fd->AddArray(contact);
 //           fd->AddArray(used);

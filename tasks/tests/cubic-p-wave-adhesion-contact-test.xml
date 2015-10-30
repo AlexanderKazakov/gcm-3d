@@ -1,0 +1,24 @@
+<task numberOfSnaps="5" stepsPerSnap="1">
+	<system>
+		<defaultContactCalculator type="SlidingContactCalculator" />
+		<meshMovement type="none" />
+	</system>
+	<bodies>
+		<body id="cube">
+			<rheology type="elastic" />
+			<mesh id="cube" type="cube" h="1" numX="2" numY="2" numZ="2" />
+			<material id="testMaterial" />
+			<transform type="translate" moveX="0" moveY="0" moveZ="2.001" />
+		</body>
+		<body id="cube2">
+			<rheology type="elastic" />
+			<mesh id="cube2" type="cube" h="1" numX="2" numY="2" numZ="2" />
+			<material id="testMaterial" />
+			<transform type="translate" moveX="0" moveY="0" moveZ="0" />
+		</body>
+	</bodies>
+	<initialState>
+		<area type="box" minX="-10" maxX="10" minY="-10" maxY="10" minZ="2.5" maxZ="3.5"/>
+		<values vz="300" sxx="70000" syy="70000" szz="90000" />
+	</initialState>
+</task>

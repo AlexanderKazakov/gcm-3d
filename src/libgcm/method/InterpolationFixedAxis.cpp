@@ -31,8 +31,8 @@ int InterpolationFixedAxis::getNumberOfStages()
     return 3;
 }
 
-void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node, float time_step, int stage, Mesh* mesh)
-{
+void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node,
+	float time_step, int stage, Mesh* mesh) {
     assert_ge(stage, 0);
     assert_le(stage, 2);
 
@@ -45,16 +45,26 @@ void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node, fl
 
     // Delta x on previous time layer for all the omegas
     //     omega_new_time_layer(ksi) = omega_old_time_layer(ksi+dksi)
-    float dksi[9];
+	//TODO@next - replace dynamical memory at each step
+    float* dksi = new float[cur_node.getSizeOfPDE()];
 
     // If the corresponding point on previous time layer is inner or not
-    bool inner[9];
+    bool* inner = new bool[cur_node.getSizeOfPDE()];
 
     // We will store interpolated nodes on previous time layer here
     // We know that we need five nodes for each direction (corresponding to Lambdas -C1, -C2, 0, C2, C1)
     // TODO  - We can  deal with (lambda == 0) separately
+	
+	// dynamical memory at each step for polymorphism
+	// TODO@next - make it better
     vector<Node> previous_nodes;
-    previous_nodes.resize(9);
+    previous_nodes.resize(cur_node.getSizeOfPDE());
+	float* values_of_previous_nodes = 
+		new float[previous_nodes.size() * (cur_node.getSizeOfPDE() + cur_node.getSizeOfODE())];
+	for(uint i = 0; i < previous_nodes.size(); i++) {
+		previous_nodes[i].copyParametersOfNode(cur_node);
+		previous_nodes[i].initMemory(values_of_previous_nodes, i);
+	}
 
     // Outer normal at current point
     float outer_normal[3];
@@ -75,15 +85,14 @@ void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node, fl
         LOG_TRACE("Start inner node calc");
         if (outer_count == 0)
             // FIXME - hardcoded name
-            engine.getVolumeCalculator("SimpleVolumeCalculator")->doCalc(
-                                                                          new_node, cur_node.getRheologyMatrix(), previous_nodes);
-        else
+            engine.getVolumeCalculator("SimpleVolumeCalculator")->doCalc
+			        (new_node, cur_node.getRheologyMatrix(), previous_nodes);
+			else
             THROW_BAD_MESH("Outer characteristic for internal node detected");
         LOG_TRACE("Done inner node calc");
     }
 
-    if (cur_node.isBorder())
-    {
+    if (cur_node.isBorder()) {
         LOG_TRACE("Start border node calc");
         // FIXME_ASAP - do smth with this!
         // It is not stable now. See ugly hack below.
@@ -134,16 +143,27 @@ void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node, fl
 
                 // Delta x on previous time layer for all the omegas
                 //     omega_new_time_layer(ksi) = omega_old_time_layer(ksi+dksi)
-                float virt_dksi[9];
+                float* virt_dksi = new float[virt_node.getSizeOfPDE()];
 
                 // If the corresponding point on previous time layer is inner or not
-                bool virt_inner[9];
+                bool* virt_inner = new bool[virt_node.getSizeOfPDE()];
 
                 // We will store interpolated nodes on previous time layer here
-                // We know that we need five nodes for each direction (corresponding to Lambdas -C1, -C2, 0, C2, C1)
+                // We know that we need five nodes for each direction 
+				// (corresponding to Lambdas -C1, -C2, 0, C2, C1)
                 // TODO  - We can  deal with (lambda == 0) separately
-                vector<Node> virt_previous_nodes;
-                virt_previous_nodes.resize(9);
+                
+				// dynamical memory at each step for polymorphism
+				// TODO@next - make it better
+				vector<Node> virt_previous_nodes;
+				virt_previous_nodes.resize(virt_node.getSizeOfPDE());
+				float* values_of_virt_previous_nodes =
+					new float[virt_previous_nodes.size() * 
+						(virt_node.getSizeOfPDE() + virt_node.getSizeOfODE())];
+				for (uint i = 0; i < virt_previous_nodes.size(); i++) {
+					virt_previous_nodes[i].copyParametersOfNode(virt_node);
+					virt_previous_nodes[i].initMemory(values_of_virt_previous_nodes, i);
+				}
 
                 // Outer normal at current point
                 float virt_outer_normal[3];
@@ -169,11 +189,11 @@ void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node, fl
                     RheologyMatrixPtr curM = cur_node.getRheologyMatrix();
                     RheologyMatrixPtr virtM = virt_node.getRheologyMatrix();
                     int sign = 0;
-                    for(int i = 0; i < 9; i++) {
+                    for(int i = 0; i < cur_node.getSizeOfPDE(); i++) {
                         if(!inner[i])
                             sign = (curM->getL(i,i) > 0 ? 1 : -1);
                     }
-                    for(int i = 0; i < 9; i++) {
+                    for(int i = 0; i < cur_node.getSizeOfPDE(); i++) {
                         if( virtM->getL(i,i) * sign < 0 )
                             virt_inner[i] = false;
                     }
@@ -190,7 +210,7 @@ void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node, fl
                           << " Virt mesh: " << virtMesh->getId()
                           << "\nReal node: " << cur_node << "\nVirt node: " << virt_node);
                     LOG_DEBUG("There are " << virt_outer_count << " 'outer' characteristics for virt node.");
-                    for (int z = 0; z < 9; z++) {
+                    for (int z = 0; z < cur_node.getSizeOfPDE(); z++) {
                         LOG_DEBUG("Dksi[" << z << "]: " << virt_dksi[z]);
                         LOG_DEBUG("Inner[" << z << "]: " << virt_inner[z]);
                         LOG_DEBUG("PrNodes[" << z << "]: " << virt_previous_nodes[z]);
@@ -203,7 +223,7 @@ void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node, fl
                 //                // we replace 'outer' points data with data of 'paired node' from different axis direction.
                 //
                 //                // For all characteristics of real node and virt node
-                //                /*for(int i = 0; i < 9; i++)
+                //                /*for(int i = 0; i < cur_node.getSizeOfPDE(); i++)
                 //                {
                 //                    float v_x_outer[3];
                 //                    float v_x_virt[3];
@@ -261,8 +281,12 @@ void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node, fl
                 LOG_TRACE("Using calculator: " << engine.getContactCondition(cur_node.getContactConditionId())->calc->getType());
                 LOG_TRACE("Outer normal: " << outer_normal[0] << " " << outer_normal[1] << " " << outer_normal[2]);
                 engine.getContactCondition(cur_node.getContactConditionId())->doCalc(Engine::getInstance().getCurrentTime(), cur_node,
-                                                       new_node, virt_node, cur_node.getRheologyMatrix(), previous_nodes, inner,
-                                                       virt_node.getRheologyMatrix(), virt_previous_nodes, virt_inner, outer_normal);
+					new_node, virt_node, cur_node.getRheologyMatrix(), previous_nodes, inner,
+					virt_node.getRheologyMatrix(), virt_previous_nodes, virt_inner, outer_normal);
+				
+				delete [] virt_dksi;
+				delete [] virt_inner;
+				delete [] values_of_virt_previous_nodes;
             }
             // It means smth went wrong. Just interpolate the values and report bad node.
         }
@@ -270,7 +294,7 @@ void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node, fl
         {
             //LOG_WARN("Outer count: " << outer_count);
             //LOG_WARN("Node: " << cur_node);
-            //for (int z = 0; z < 9; z++) {
+            //for (int z = 0; z < cur_node.getSizeOfPDE(); z++) {
             //    LOG_WARN("Dksi[" << z << "]: " << dksi[z]);
             //    LOG_WARN("Inner[" << z << "]: " << inner[z]);
             //    LOG_WARN("PrNodes[" << z << "]: " << previous_nodes[z]);
@@ -279,36 +303,43 @@ void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node, fl
             // FIXME - implement border and contact completely
             LOG_TRACE("Using calculator: " << engine.getBorderCondition(0)->calc->getType());
             engine.getBorderCondition(0)->doCalc(Engine::getInstance().getCurrentTime(), cur_node,
-                                                  new_node, cur_node.getRheologyMatrix(), previous_nodes, inner, outer_normal);
+				new_node, cur_node.getRheologyMatrix(), previous_nodes, inner, outer_normal);
             cur_node.setNeighError(stage);
         }
         LOG_TRACE("Done border node calc");
     }
+	
+	delete [] dksi;
+	delete [] inner;
+	delete [] values_of_previous_nodes;
 }
 
-void InterpolationFixedAxis::doNextPartStep(Node& cur_node, Node& new_node, float time_step, int stage, Mesh* mesh)
+void InterpolationFixedAxis::doNextPartStep(Node& cur_node, Node& new_node,
+	float time_step, int stage, Mesh* mesh)
 {
     TRACE_ON_EXCEPTION(__doNextPartStep(cur_node, new_node, time_step, stage, mesh));
 }
 
 int InterpolationFixedAxis::prepare_node(Node& cur_node, RheologyMatrixPtr rheologyMatrix,
-                                              float time_step, int stage, Mesh* mesh,
-                                              float* dksi, bool* inner, vector<Node>& previous_nodes,
-                                              float* outer_normal)
+	float time_step, int stage, Mesh* mesh,
+	float* dksi, bool* inner, vector<Node>& previous_nodes,
+	float* outer_normal)
 {
-    return prepare_node(cur_node, rheologyMatrix, time_step, stage, mesh, dksi, inner, previous_nodes, outer_normal, false);
+    return prepare_node(cur_node, rheologyMatrix, time_step, stage, mesh, dksi,
+		inner, previous_nodes, outer_normal, false);
 }
 
 int InterpolationFixedAxis::prepare_node(Node& cur_node, RheologyMatrixPtr rheologyMatrix,
-                                              float time_step, int stage, Mesh* mesh,
-                                              float* dksi, bool* inner, vector<Node>& previous_nodes,
-                                              float* outer_normal, bool debug)
+	float time_step, int stage, Mesh* mesh,
+	float* dksi, bool* inner, vector<Node>& previous_nodes,
+	float* outer_normal, bool debug)
 {
     assert_ge(stage, 0);
     assert_le(stage, 2);
 
     if (cur_node.isBorder())
-        mesh->findBorderNodeNormal(cur_node, &outer_normal[0], &outer_normal[1], &outer_normal[2], false);
+        mesh->findBorderNodeNormal(cur_node, &outer_normal[0], &outer_normal[1],
+			&outer_normal[2], false);
 
     LOG_TRACE("Preparing elastic matrix");
     //  Prepare matrixes  A, Lambda, Omega, Omega^(-1)
@@ -325,27 +356,29 @@ int InterpolationFixedAxis::prepare_node(Node& cur_node, RheologyMatrixPtr rheol
 
     LOG_TRACE("Elastic matrix eigen values:\n" << rheologyMatrix->getL());
 
-    for (int i = 0; i < 9; i++)
+    for (int i = 0; i < cur_node.getSizeOfPDE(); i++)
         dksi[i] = -rheologyMatrix->getL(i, i) * time_step;
 
-    return find_nodes_on_previous_time_layer(cur_node, stage, mesh, dksi, inner, previous_nodes, outer_normal, debug);
+    return find_nodes_on_previous_time_layer(cur_node, stage, mesh,
+		dksi, inner, previous_nodes, outer_normal, debug);
 }
 
 int InterpolationFixedAxis::find_nodes_on_previous_time_layer(Node& cur_node, int stage, Mesh* mesh,
-                                                                   float dksi[], bool inner[], vector<Node>& previous_nodes,
-                                                                   float outer_normal[])
+	float dksi[], bool inner[], vector<Node>& previous_nodes,
+	float outer_normal[]) 
 {
-    return find_nodes_on_previous_time_layer(cur_node, stage, mesh, dksi, inner, previous_nodes, outer_normal, false);
+	return find_nodes_on_previous_time_layer(cur_node, stage, mesh, dksi,
+		inner, previous_nodes, outer_normal, false);
 }
 
 int InterpolationFixedAxis::find_nodes_on_previous_time_layer(Node& cur_node, int stage, Mesh* mesh,
-                                                                   float dksi[], bool inner[], vector<Node>& previous_nodes,
-                                                                   float outer_normal[], bool debug)
+	float dksi[], bool inner[], vector<Node>& previous_nodes,
+	float outer_normal[], bool debug) 
 {
     LOG_TRACE("Start looking for nodes on previous time layer");
     
     // For all omegas
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < cur_node.getSizeOfPDE(); i++) {
         LOG_TRACE("Looking for characteristic " << i);
         // Check prevoius omegas ...
         bool already_found = false;
@@ -435,7 +468,7 @@ int InterpolationFixedAxis::find_nodes_on_previous_time_layer(Node& cur_node, in
     }
 
     int outer_count = 0;
-    for (int i = 0; i < 9; i++)
+    for (int i = 0; i < cur_node.getSizeOfPDE(); i++)
         if (!inner[i])
             outer_count++;
 

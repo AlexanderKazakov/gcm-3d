@@ -26,13 +26,14 @@ void BasicCubicMeshGenerator::loadMesh(BasicCubicMesh* mesh,
                 float x = float(i) * h;
                 float y = float(j) * h;
                 float z = float(k) * h;
-                Node* node = new Node();//(n, x, y, z);
-                node->number = n;
-                node->coords[0] = x;
-                node->coords[1] = y;
-                node->coords[2] = z;
-                node->setPlacement(true);
-                mesh->addNode( *node );
+                Node node = getNodeOfTheType
+					(mesh->getRheologyModel()->getNodeType());//(n, x, y, z);
+                node.number = n;
+                node.coords[0] = x;
+                node.coords[1] = y;
+                node.coords[2] = z;
+                node.setPlacement(true);
+                mesh->addNode( node );
             }
     mesh->preProcess();
 	startNumber += 100000000;

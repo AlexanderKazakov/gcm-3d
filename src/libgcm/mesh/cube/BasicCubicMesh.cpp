@@ -148,7 +148,7 @@ void BasicCubicMesh::findBorderNodeNormal(const Node& node, float* x, float* y, 
     normal[0] = normal[1] = normal[2] = 0.0;
 
 	uint i = node.contactDirection;
-	for( uint cntr = 0; cntr < 3; cntr ++) {
+	for( uint counter = 0; counter < 3; counter ++) {
         if( fabs(node.coords[i] - outline.min_coords[i]) < EQUALITY_TOLERANCE ) {
             normal[i] = -1;
             break;

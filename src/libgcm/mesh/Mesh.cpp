@@ -55,11 +55,14 @@ void Mesh::allocateMemoryForNodalData() {
 	assert(rheologyModel != NULL);
 	uchar sizeOfValuesInODE = rheologyModel->getSizeOfValuesInODE();
 	uchar sizeOfValuesInPDE = rheologyModel->getSizeOfValuesInPDE();
-	LOG_DEBUG("Mesh: init container for " <<
+	LOG_DEBUG("Mesh: allocate container for " <<
 		sizeOfValuesInODE + sizeOfValuesInPDE << 
-		" variables per node (both PDE and ODE)\n");
+		" variables per node (both PDE and ODE) for " <<
+		nodes.size() << " nodes");
 	// Allocating
 	valuesInNodes = new real[nodes.size() * (sizeOfValuesInODE + sizeOfValuesInPDE)];
+	memset(valuesInNodes, 0, 
+		(nodes.size() * (sizeOfValuesInODE + sizeOfValuesInPDE)) * sizeof (real));
 	for(uint i = 0; i < nodes.size(); i++) {
 		nodes[i].initMemory(valuesInNodes, i);
 	}

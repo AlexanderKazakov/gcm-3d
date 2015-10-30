@@ -6,7 +6,9 @@ using namespace gcm;
 using std::copy;
 
 Node::Node() {
-	ODE = PDE = NULL;
+	publicFlags.flags = 0;
+	privateFlags.flags = 0;
+	errorFlags.flags = 0;
 }
 
 Node::Node(uchar sizeOfValuesInPDE,
@@ -16,13 +18,17 @@ Node::Node(uchar sizeOfValuesInPDE,
                    sizeOfODE(sizeOfValuesInODE),
                    nodeType(nodeType)
 {
-	ODE = PDE = NULL;
+	publicFlags.flags = 0;
+	privateFlags.flags = 0;
+	errorFlags.flags = 0;
 }
 
 Node::Node(uint num, const vector3r& coords) :
            number(num), coords(coords)
 {
-	ODE = PDE = NULL;
+	publicFlags.flags = 0;
+	privateFlags.flags = 0;
+	errorFlags.flags = 0;
 }
 
 Node::~Node()
@@ -36,16 +42,18 @@ void Node::clear() {
 }
 
 void Node::initMemory(real *buffer, uint nodeNum) {
+	assert_true(PDE == NULL);
+	assert_true(ODE == NULL);
+	assert_true(buffer != NULL);
     real* startAddr = buffer + nodeNum * (sizeOfPDE + sizeOfODE);
     PDE = new (startAddr) real[sizeOfPDE];
     ODE = new (startAddr + sizeOfPDE) real[sizeOfODE];
 }
 
-
 void Node::operator=(const Node& orig) {
-    assert_true(nodeType == orig.nodeType);
-    assert_true(sizeOfPDE == orig.sizeOfPDE);
-    assert_true(sizeOfODE == orig.sizeOfODE);
+    assert_eq(nodeType, orig.nodeType);
+    assert_eq(sizeOfPDE, orig.sizeOfPDE);
+    assert_eq(sizeOfODE, orig.sizeOfODE);
     assert_true(PDE != NULL);
     assert_true(ODE != NULL);
     publicFlags = orig.publicFlags;
@@ -61,6 +69,23 @@ void Node::operator=(const Node& orig) {
         PDE[i] = orig.PDE[i];
     for (int i = 0; i < sizeOfODE; i++)
         ODE[i] = orig.ODE[i];
+}
+
+void Node::copyParametersOfNode(const Node& orig) {
+	assert_true(PDE == NULL);
+	assert_true(ODE == NULL);
+	nodeType = orig.nodeType;
+	sizeOfPDE = orig.sizeOfPDE;
+	sizeOfODE = orig.sizeOfODE;
+	publicFlags = orig.publicFlags;
+	errorFlags = orig.errorFlags;
+	borderConditionId = orig.borderConditionId;
+	contactConditionId = orig.contactConditionId;
+	bodyId = orig.bodyId;
+	materialId = orig.materialId;
+	rheologyMatrix = orig.rheologyMatrix;
+	number = orig.number;
+	coords = orig.coords;
 }
 
 uchar Node::getType() const
