@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <functional>
 
+#include <libgcm/util/NodeStorage.hpp>
 #include "libgcm/util/AABB.hpp"
 #include "libgcm/util/areas/Area.hpp"
 #include "libgcm/rheology/RheologyCalculator.hpp"
@@ -19,8 +20,6 @@
 #define STORAGE_ONDEMAND_GROW_RATE 1.25
 
 
-typedef std::unordered_map<uint, uint>::const_iterator MapIter;
-
 namespace gcm {
     class Node;
 	class RheologyModel;
@@ -30,36 +29,26 @@ namespace gcm {
      */
     class Mesh {
     private:
-        /*
-         * Mesh type. Used in runtime to determine mesh type.
-         */
+        /* Mesh type. Used in runtime to determine mesh type */
         std::string type;
-		// Rheology model used in the mesh
+		/* Rheology model used in the mesh */
 		RheologyModel* rheologyModel;
-		// Pointer to memory for nodal data
-		real* valuesInNodes;
-		// List of mesh nodes on next time layer
-        std::vector<Node> newNodes;
-		// Pointer to memory for nodal data
-		real* valuesInNewNodes;
-        /*
-         * Calculatable flag.
-         */
+
         bool calc;
-        /*
-         * Mesh id.
-         */
         std::string id;
 
     protected:
-        /*
-         * Body
-         */
+	    /* Container for nodes and their dynamical memory on current time layer */
+	    NodeStorage nodeStorage;
+	    /* Container for nodes and their dynamical memory on next time layer */
+	    NodeStorage newNodeStorage;
+
         Body* body;
 
-        /*
-         * You need to maintain these outlines
-         */
+
+	    /*
+		 * You need to maintain these outlines
+		 */
         // TODO - implement some check that these outlines are maintained really
         AABB outline;
         AABB expandedOutline;
@@ -68,19 +57,7 @@ namespace gcm {
 
         std::string numericalMethodType;
         int numericalMethodOrder;
-
-        /*
-         * List of mesh nodes.
-         */
-        std::vector<Node> nodes;
-        std::vector<Node> new_nodes;
-        std::unordered_map<uint, uint> nodesMap;
-        uint nodesNumber;
-        uint nodesStorageSize;
-
         bool movable;
-
-        //void initNewNodes();
 
         USE_LOGGER;
 
@@ -89,9 +66,6 @@ namespace gcm {
         virtual const SnapshotWriter& getDumper() const = 0;
 
     public:
-        /*
-         * Constructor and destructor.
-         */
         Mesh();
         // See http://stackoverflow.com/questions/461203/when-to-use-virtual-destructors
         Mesh(std::string _type);
@@ -102,6 +76,11 @@ namespace gcm {
 		 * Allocate dynamical memory for nodal data (for PDE and ODE values)
          */
 		void allocateMemoryForNodalData();
+
+	    /**
+	     * Reserve memory in std::vectors
+	     */
+	    void createNodes(uint n);
 
         // Virtual functions to be implemented by children classes
 
@@ -192,37 +171,27 @@ namespace gcm {
         // If it's not the case, we need to convert these functions into virtual.
         uint getNodesNumber();
         uint getNumberOfLocalNodes();
-        void createNodes(uint number);
-        bool hasNode(uint index);
-        Node& getNode(uint index);
-        Node& getNewNode(uint index);
+        bool hasNodeWithGlobalIndex(uint index);
+        Node&getNodeByGlobalIndex(uint index);
+        Node&getNewNodeByGlobalIndex(uint index);
         uint getNodeLocalIndex(uint index) const;
         Node& getNodeByLocalIndex(uint index);
+	    Node& getNewNodeByLocalIndex(uint index);
         void addNode(Node& node);
 
-        /*
-         * Sets mesh id.
-         */
-        void setId(std::string id);
-        /*
-         * Returns mesh id.
-         */
+	    void setId(std::string id);
+	    void setCalc(bool calc);
+	    void setRheologyModel(RheologyModel *_model);
+	    /*
+		 * Returns mesh id.
+		 */
         std::string getId() const;
         /*
          * Returns type of mesh.
          */
         std::string getType();
-        /*
-         * Sets calc flag.
-         */
-        void setCalc(bool calc);
-        /*
-         * Returns calc flag.
-         */
-        bool getCalc();
 
-        void setMovable(bool movable);
-        bool getMovable();
+	    bool getMovable();
 
         /*
          * Sets body mesh belongs to.
@@ -245,8 +214,8 @@ namespace gcm {
         void setInitialState(Area* area, std::function<void(Node& node)> setter);
 		void setBorderCondition(Area* area, uint num);
 		void setContactCondition(Area* area, uint num);
-		void setRheologyModel(RheologyModel *_model);
-		RheologyModel* getRheologyModel();
+
+	    RheologyModel* getRheologyModel();
         void setMaterial(uchar matId);
         void setMaterial(uchar matId, Area* area);
 

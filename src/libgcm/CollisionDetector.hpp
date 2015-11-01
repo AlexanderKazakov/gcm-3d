@@ -27,7 +27,7 @@ namespace gcm {
         virtual std::string getType () const = 0;
         void set_threshold(float value);
         float get_threshold();
-        virtual void find_collisions(std::vector<Node> &virt_nodes) = 0;
+        virtual void find_collisions(NodeStorage &virtNodeStorage) = 0;
         bool find_intersection(AABB &outline1, AABB &outline2, AABB &intersection);
         // return elements that are in intersection
         virtual void find_nodes_in_intersection(Mesh* mesh, AABB &intersection, std::vector<Node> &result);

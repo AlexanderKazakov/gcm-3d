@@ -86,7 +86,7 @@ void CollisionDetector::find_nodes_in_intersection(BasicCubicMesh* mesh, AABB& i
 	        {
 				num = i * (numY + 1) * (numZ + 1) + j * (numZ + 1) + k 
 				      + mesh->getNodeByLocalIndex(0).number;
-				Node& node = mesh->getNode(num);
+				Node& node = mesh->getNodeByGlobalIndex(num);
 		        if ( (node.isLocal ()) && (node.isBorder ()) )
 		        {
 		            if(intersection.isInAABB(node))

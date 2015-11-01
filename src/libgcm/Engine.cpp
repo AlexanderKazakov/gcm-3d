@@ -417,8 +417,8 @@ void Engine::addBody(Body* body)
 Node& Engine::getVirtNode(unsigned int i)
 {
     assert_ge(i, 0);
-    assert_lt(i, virtNodes.size());
-    return virtNodes[i];
+    assert_lt(i, virtNodeStorage.getSize());
+    return virtNodeStorage.getNodeByLocalIndex(i);
 }
 
 void Engine::doNextStep()
@@ -435,7 +435,7 @@ void Engine::doNextStepBeforeStages(const float maxAllowedStep, float& actualTim
     if( ! colDet->is_static() )
     {
         // Clear virtual nodes
-        virtNodes.clear();
+        virtNodeStorage.clear();
 
         // Clear contact state
         for( unsigned int i = 0; i < bodies.size(); i++ )
@@ -486,7 +486,7 @@ void Engine::doNextStepBeforeStages(const float maxAllowedStep, float& actualTim
     // Run collision detector
     if( ! colDet->is_static() || currentTime == 0.0 )
     {
-        colDet->find_collisions(virtNodes);
+        colDet->find_collisions(virtNodeStorage);
     }
     else
     {

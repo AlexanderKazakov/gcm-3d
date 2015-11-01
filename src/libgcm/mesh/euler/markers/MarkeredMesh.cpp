@@ -373,7 +373,7 @@ void MarkeredMesh::reconstructBorder()
 
     for (auto idx: nodesToFix)
     {
-        auto& node = getNode(idx);
+        auto& node = getNodeByGlobalIndex(idx);
         vector3u index;
 
         auto result = getNodeEulerMeshIndex(node, index);

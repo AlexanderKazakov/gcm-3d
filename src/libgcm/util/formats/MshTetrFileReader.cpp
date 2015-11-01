@@ -307,10 +307,10 @@ void MshTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
 
             vert[0]--; vert[1]--; vert[2]--; vert[3]--;
 
-            if( mesh->hasNode(vert[0])
-                    || mesh->hasNode(vert[1])
-                    || mesh->hasNode(vert[2])
-                    || mesh->hasNode(vert[3]) )
+            if(mesh->hasNodeWithGlobalIndex(vert[0])
+                    || mesh->hasNodeWithGlobalIndex(vert[1])
+                    || mesh->hasNodeWithGlobalIndex(vert[2])
+                    || mesh->hasNodeWithGlobalIndex(vert[3]) )
                 tetrs->push_back( new TetrahedronFirstOrder( number, vert ) );
         }
     }
@@ -325,7 +325,7 @@ void MshTetrFileReader::readFile(string file, TetrMeshFirstOrder* mesh, GCMDispa
         TetrahedronFirstOrder* tetr = tetrs->at(i);
         mesh->addTetr( *tetr );
         for(uint j = 0; j < 4; j++)
-            if( ! mesh->hasNode( tetr->vertices[j] ) )
+            if( !mesh->hasNodeWithGlobalIndex(tetr->vertices[j]) )
                 remoteNodes[tetr->vertices[j]] = i;
     }
     tetrs->clear();

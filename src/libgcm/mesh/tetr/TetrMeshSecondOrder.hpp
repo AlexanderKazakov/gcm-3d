@@ -48,8 +48,8 @@ namespace gcm {
         TetrMeshSecondOrder();
         ~TetrMeshSecondOrder();
         void copyMesh(TetrMeshFirstOrder* src);
-        void copyMesh2(TetrMeshSecondOrder* src);
-        void createTetrs(uint number);
+
+	    void createTetrs(uint number);
         void createTriangles(uint number);
         /*
          * Returns tetr by its index.
@@ -62,9 +62,8 @@ namespace gcm {
 
         void addTetr(TetrahedronFirstOrder& tetr);
         void addTetr2(TetrahedronSecondOrder& tetr);
-        void rebuildMaps();
 
-        TriangleFirstOrder& getTriangle(uint index);
+	    TriangleFirstOrder& getTriangle(uint index);
         TriangleSecondOrder& getTriangle2(uint index);
 
         void preProcessGeometry();

@@ -21,8 +21,7 @@ string BruteforceCollisionDetector::getType () const
     return "BruteforceCollisionDetector";
 }
 
-void BruteforceCollisionDetector::find_collisions(vector<Node> &virt_nodes)
-{
+void BruteforceCollisionDetector::find_collisions(NodeStorage &virtNodeStorage) {
     Engine& e = Engine::getInstance();
     AABB intersection;
     vector<Node> local_nodes;
@@ -58,7 +57,7 @@ void BruteforceCollisionDetector::find_collisions(vector<Node> &virt_nodes)
 
                 LOG_DEBUG("Got " << local_nodes.size() << " nodes");
 
-                LOG_DEBUG("Virt nodes size before processing: " << virt_nodes.size());
+                LOG_DEBUG("Virt nodes size before processing: " << virtNodeStorage.getSize());
 
                 // process collisions
                 float direction[3];
@@ -82,6 +81,8 @@ void BruteforceCollisionDetector::find_collisions(vector<Node> &virt_nodes)
                             if (z != m)
                                 direction[z] = 0;
 
+	                    // TODO@next - conception of virtNodeStorage for virtNodes does not work.
+	                    // What if nodes from different meshes has different sizeOfPDE? etc..
                         Node new_node;
                         if( mesh2->interpolateBorderNode(
                                 local_nodes[k].coords[0], local_nodes[k].coords[1], local_nodes[k].coords[2],
@@ -93,17 +94,18 @@ void BruteforceCollisionDetector::find_collisions(vector<Node> &virt_nodes)
                             new_node.contactNodeNum = j;
                             new_node.setCustomFlag(Node::FLAG_1, 1);
 							new_node.contactDirection = m;
-                            (mesh1->getNode(local_nodes[k].number)).setInContact(true);
-                            (mesh1->getNode(local_nodes[k].number)).contactNodeNum = virt_nodes.size();
-                            (mesh1->getNode(local_nodes[k].number)).contactDirection = m;
-                            virt_nodes.push_back(new_node);
+                            (mesh1->getNodeByGlobalIndex(local_nodes[k].number)).setInContact(true);
+                            (mesh1->getNodeByGlobalIndex(local_nodes[k].number)).contactNodeNum =
+		                            virtNodeStorage.getSize();
+                            (mesh1->getNodeByGlobalIndex(local_nodes[k].number)).contactDirection = m;
+                            virtNodeStorage.addNode(new_node);
                             break;
                         }
                     }
                 }
             }
 
-            LOG_DEBUG("Virt nodes size after processing: " << virt_nodes.size());
+            LOG_DEBUG("Virt nodes size after processing: " << virtNodeStorage.getSize());
 
             // clear
             local_nodes.clear();

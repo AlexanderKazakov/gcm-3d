@@ -45,13 +45,10 @@ namespace gcm {
         Mesh* getMeshes();
         // FIXME merge with method above
         const std::vector<Mesh*>& getMeshesVector();
-        /*
-         * Returns mesh by id.
-         */
-        Mesh* getMesh(std::string id);
-        /*
-         * Attaches new mesh to body.
-         */
+
+	    /*
+		 * Attaches new mesh to body.
+		 */
         void attachMesh(Mesh* mesh);
         /*
          * Returns body id.

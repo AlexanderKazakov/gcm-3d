@@ -355,7 +355,7 @@ void EulerMesh::generateMesh() {
 
     uint nodesNumber = (dimensions.x+1)*(dimensions.y+1)*(dimensions.z+1);
     LOG_DEBUG("Total number of node: " << nodesNumber);
-    nodes.reserve(nodesNumber);
+    nodeStorage.reserve(nodesNumber);
 
     Node node;
     node.setPlacement(true);

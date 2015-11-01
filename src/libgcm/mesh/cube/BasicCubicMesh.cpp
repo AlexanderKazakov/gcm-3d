@@ -43,10 +43,6 @@ BasicCubicMesh::BasicCubicMesh(std::string _type) : Mesh(_type)
 BasicCubicMesh::~BasicCubicMesh()
 {
     LOG_DEBUG("Destroying mesh '" << getId() << "'");
-    // TODO - does it really trigger destructors?
-    // TODO - do we need it here?
-    nodes.clear();
-    new_nodes.clear();
     delete interpolator1;
     delete interpolator2;
     LOG_DEBUG("Mesh destroyed");
@@ -85,7 +81,7 @@ void BasicCubicMesh::logMeshStats()
         return;
     }
 
-    LOG_DEBUG("Number of nodes: " << nodesNumber);
+    LOG_DEBUG("Number of nodes: " << nodeStorage.getSize());
     LOG_DEBUG("Mesh h: " << getMinH());
     LOG_DEBUG("Mesh outline:" << outline);
     LOG_DEBUG("Mesh expanded outline:" << expandedOutline);
@@ -225,12 +221,12 @@ bool BasicCubicMesh::interpolateNode(Node& origin, float dx, float dy, float dz,
     uint secondNeighInd = findNeighbourPoint( origin, -dx, -dy, -dz, debug,
                                     tmpNode.coords, &isInnerPoint );
 
-    //interpolator1->interpolate( targetNode, origin, getNode( neighInd ) );
+    //interpolator1->interpolate( targetNode, origin, getNodeByGlobalIndex( neighInd ) );
     //return true;
     
     if( secondNeighInd == (uint) -1 )
     {
-        interpolator1->interpolate( targetNode, origin, getNode( neighInd ) );
+        interpolator1->interpolate( targetNode, origin, getNodeByGlobalIndex(neighInd) );
     }
     else
     {
@@ -245,7 +241,7 @@ bool BasicCubicMesh::interpolateNode(Node& origin, float dx, float dy, float dz,
             rightInd = secondNeighInd;
             leftInd = neighInd;
         }
-        interpolator2->interpolate( targetNode, getNode( leftInd ), origin, getNode( rightInd ) );
+        interpolator2->interpolate( targetNode, getNodeByGlobalIndex(leftInd), origin, getNodeByGlobalIndex(rightInd) );
     }
     return true;
 };
@@ -304,8 +300,8 @@ void BasicCubicMesh::findNearestsNodes(const vector3r& coords, uint N, vector< p
 		for( uint j = j_min; j <= j_max; j++ )
 			for( uint i = i_min; i <= i_max; i++ )
 	        {
-				num = i * (numY + 1) * (numZ + 1) + j * (numZ + 1) + k + nodes[0].number;
-				Node& node = getNode(num);
+				num = i * (numY + 1) * (numZ + 1) + j * (numZ + 1) + k + getNodeByLocalIndex(0).number;
+				Node& node = getNodeByGlobalIndex(num);
 				result.push_back( make_pair(node.number, (coords - node.coords).length()) );
 	        }
 }
@@ -330,7 +326,7 @@ bool BasicCubicMesh::interpolateBorderNode(real x, real y, real z,
 		sort(result.begin(), result.end(), sort_pred());
 
 		for(uint i = 0; i < result.size(); i++) {
-			Node& node1 = getNode( result[i].first );
+			Node& node1 = getNodeByGlobalIndex(result[i].first);
 			if( node1.isBorder() )
 			{
 				node = node1;

@@ -115,7 +115,7 @@ namespace gcm
         gcm::GCMDispatcher* dispatcher;
 
         CollisionDetector* colDet;
-        std::vector<Node> virtNodes;
+        NodeStorage virtNodeStorage;
 
         //VTKSnapshotWriter* vtkSnapshotWriter;
         //VTK2SnapshotWriter* vtkDumpWriter;
@@ -287,6 +287,9 @@ namespace gcm
 		void scaleScene(float x0, float y0, float z0, 
 				float scaleX, float scaleY, float scaleZ);
 
+	    /**
+	     * @return virtual node from %virtNodeStorage by local index
+	     */
         Node& getVirtNode(unsigned int i);
 
         void setContactThresholdType(unsigned char type);

@@ -24,7 +24,9 @@ else()
     set(CMAKE_CONFIG_ENABLE_LOGGING_ERROR 1)
     set(CMAKE_CONFIG_ENABLE_LOGGING_WARN  1)
     set(CMAKE_CONFIG_ENABLE_LOGGING_INFO  1)
-    set(CMAKE_CONFIG_ENABLE_LOGGING_DEBUG 0)
+#    because all this conditions do not fucking work
+#    set(CMAKE_CONFIG_ENABLE_LOGGING_DEBUG 0)
+    set(CMAKE_CONFIG_ENABLE_LOGGING_DEBUG 1)
     set(CMAKE_CONFIG_ENABLE_LOGGING_TRACE 0)
     set(CMAKE_CONFIG_ENABLE_ASSERTIONS    0)
 endif()
@@ -76,13 +78,15 @@ file(GLOB_RECURSE PERF_TESTS_SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tests/perf/*
 file(GLOB_RECURSE LAUNCHER_UTILS_SOURCES   "${CMAKE_CURRENT_LIST_DIR}/src/launcher/util/*.cpp")
 file(GLOB_RECURSE LAUNCHER_LOADERS_SOURCES   "${CMAKE_CURRENT_LIST_DIR}/src/launcher/loaders/*.cpp")
 
-set(LAUNCHER_COMMON_SOURCES
+set(LAUNCHER_COMMON_SOURCES#if(NOT CMAKE_BUILD_TYPE)
+#    set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: DEBUG, RELEASE" FORCE)
+#endif()
     ${LAUNCHER_UTILS_SOURCES}
     ${LAUNCHER_LOADERS_SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/src/launcher/launcher.cpp
 )
 
-set(CMAKE_CONFIG_SHARE_GCM "${CMAKE_INSTAL_PREFIX}/share/gcm3d")
+set(CMAKE_CONFIG_SHARE_GCM "${CMAKE_INSTALL_PREFIX}/share/gcm3d")
 
 configure_file("${CMAKE_CURRENT_LIST_DIR}/cmake/config.hpp.in" "${CMAKE_CURRENT_BINARY_DIR}/generated_sources/libgcm/config.hpp")
 include_directories("${CMAKE_CURRENT_LIST_DIR}/src/" "${CMAKE_CURRENT_BINARY_DIR}/generated_sources/")
@@ -92,17 +96,17 @@ add_library(gcm SHARED ${LIB_SOURCES})
 add_library(launcher OBJECT ${LAUNCHER_COMMON_SOURCES})
 add_executable(gcm3d ${LAUNCHER_SOURCES})
 
-add_executable(gcm3d_unit_tests ${UNIT_TESTS_SOURCES} $<TARGET_OBJECTS:launcher>)
-add_executable(gcm3d_func_tests ${FUNC_TESTS_SOURCES} $<TARGET_OBJECTS:launcher>)
+#add_executable(gcm3d_unit_tests ${UNIT_TESTS_SOURCES} $<TARGET_OBJECTS:launcher>)
+#add_executable(gcm3d_func_tests ${FUNC_TESTS_SOURCES} $<TARGET_OBJECTS:launcher>)
 
-add_library(perf_test_util OBJECT "${CMAKE_CURRENT_LIST_DIR}/src/tests/perf/util.cpp")
-foreach(perftestsource ${PERF_TESTS_SOURCES})
-    get_filename_component(perftest "${perftestsource}" NAME_WE)
-    if(NOT ("${perftest}" STREQUAL "util"))
-        add_executable("gcm3d_perf_test_${perftest}" "${perftestsource}" $<TARGET_OBJECTS:perf_test_util> $<TARGET_OBJECTS:launcher>)
-        target_link_libraries("gcm3d_perf_test_${perftest}" gcm)
-    endif()
-endforeach()
+#add_library(perf_test_util OBJECT "${CMAKE_CURRENT_LIST_DIR}/src/tests/perf/util.cpp")
+#foreach(perftestsource ${PERF_TESTS_SOURCES})
+#    get_filename_component(perftest "${perftestsource}" NAME_WE)
+#    if(NOT ("${perftest}" STREQUAL "util"))
+#        add_executable("gcm3d_perf_test_${perftest}" "${perftestsource}" $<TARGET_OBJECTS:perf_test_util> $<TARGET_OBJECTS:launcher>)
+#        target_link_libraries("gcm3d_perf_test_${perftest}" gcm)
+#    endif()
+#endforeach()
 
 target_link_libraries(gcm ${MPI_CXX_LIBRARIES})
 target_link_libraries(gcm ${LIBXML2_LIBRARIES})
@@ -114,11 +118,11 @@ target_link_libraries(gcm ${VTK_LIBRARIES})
 
 target_link_libraries(gcm3d gcm)
 
-target_link_libraries(gcm3d_unit_tests gcm)
-target_link_libraries(gcm3d_unit_tests ${GTEST_LIBRARIES})
+#target_link_libraries(gcm3d_unit_tests gcm)
+#target_link_libraries(gcm3d_unit_tests ${GTEST_LIBRARIES})
 
-target_link_libraries(gcm3d_func_tests gcm)
-target_link_libraries(gcm3d_func_tests ${GTEST_LIBRARIES})
+#target_link_libraries(gcm3d_func_tests gcm)
+#target_link_libraries(gcm3d_func_tests ${GTEST_LIBRARIES})
 
 install(
     TARGETS gcm gcm3d

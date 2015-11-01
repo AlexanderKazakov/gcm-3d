@@ -178,10 +178,10 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
         vert[2] = vt->GetPointId(2);
         vert[3] = vt->GetPointId(3);*/
 
-        if( mesh->hasNode(new_tetr.vertices[0])
-                    || mesh->hasNode(new_tetr.vertices[1])
-                    || mesh->hasNode(new_tetr.vertices[2])
-                    || mesh->hasNode(new_tetr.vertices[3]) )
+        if(mesh->hasNodeWithGlobalIndex(new_tetr.vertices[0])
+                    || mesh->hasNodeWithGlobalIndex(new_tetr.vertices[1])
+                    || mesh->hasNodeWithGlobalIndex(new_tetr.vertices[2])
+                    || mesh->hasNodeWithGlobalIndex(new_tetr.vertices[3]) )
                 tetrs->push_back( new TetrahedronSecondOrder( new_tetr.number, new_tetr.vertices, new_tetr.addVerts ) );
     }
 
@@ -195,10 +195,10 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
         TetrahedronSecondOrder* tetr = tetrs->at(i);
         mesh->addTetr2( *tetr );
         for(int j = 0; j < 4; j++)
-            if( ! mesh->hasNode( tetr->vertices[j] ) )
+            if( !mesh->hasNodeWithGlobalIndex(tetr->vertices[j]) )
                 remoteNodes[tetr->vertices[j]] = i;
         for(int j = 0; j < 6; j++)
-            if( ! mesh->hasNode( tetr->addVerts[j] ) )
+            if( !mesh->hasNodeWithGlobalIndex(tetr->addVerts[j]) )
                 remoteNodes[tetr->addVerts[j]] = i;
     }
     for(unsigned int i = 0; i < tetrs->size(); i++)
@@ -259,13 +259,13 @@ void Vtu2TetrFileReader::readFile(string file, TetrMeshSecondOrder* mesh, GCMDis
     {
         TetrahedronSecondOrder& tetr = mesh->getTetr2ByLocalIndex(i);
         for (int j = 0; j < 4; j++)
-            if ( ! mesh->hasNode(tetr.vertices[j]) )
+            if ( !mesh->hasNodeWithGlobalIndex(tetr.vertices[j]) )
             {
                 LOG_ERROR("Can not find node " << tetr.vertices[j] << " required by local tetr " << i);
                 THROW_BAD_MESH("Missed node");
             }
         for (int j = 0; j < 6; j++)
-            if ( ! mesh->hasNode(tetr.addVerts[j]) )
+            if ( !mesh->hasNodeWithGlobalIndex(tetr.addVerts[j]) )
             {
                 LOG_ERROR("Can not find node " << tetr.addVerts[j] << " required by local tetr " << i);
                 THROW_BAD_MESH("Missed node");

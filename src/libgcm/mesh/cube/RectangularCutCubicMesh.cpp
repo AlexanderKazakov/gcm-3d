@@ -68,7 +68,7 @@ void RectangularCutCubicMesh::preProcessGeometry()
 void RectangularCutCubicMesh::findBorderNodeNormal(const Node& node, 
 	float* x, float* y, float* z, bool debug)
 {
-    //Node& node = getNode( border_node_index );
+    //Node& node = getNodeByGlobalIndex( border_node_index );
     assert_true(node.isBorder() );
     float normal[3];
     normal[0] = normal[1] = normal[2] = 0.0;
@@ -155,10 +155,9 @@ void RectangularCutCubicMesh::findNearestsNodes(const vector3r& coords, uint N, 
 	uint num;
 	for( uint k = k_min; k <= k_max; k++ )
 		for( uint j = j_min; j <= j_max; j++ )
-			for( uint i = i_min; i <= i_max; i++ )
-	        {
-				num = i * (numY + 1) * (numZ + 1) + j * (numZ + 1) + k + nodes[0].number;
-				Node& node = getNode(num);
+			for( uint i = i_min; i <= i_max; i++ ) {
+				num = i * (numY + 1) * (numZ + 1) + j * (numZ + 1) + k + getNodeByLocalIndex(0).number;
+				Node& node = getNodeByGlobalIndex(num);
 				result.push_back( make_pair(node.number, (coords - node.coords).length()) );
 	        }
 }
@@ -184,7 +183,7 @@ bool RectangularCutCubicMesh::interpolateBorderNode(real x, real y, real z,
 		sort(result.begin(), result.end(), sort_pred());
 
 		for(uint i = 0; i < result.size(); i++) {
-			Node& node1 = getNode( result[i].first );
+			Node& node1 = getNodeByGlobalIndex(result[i].first);
 			if( node1.isBorder() )
 			{
 				node = node1;

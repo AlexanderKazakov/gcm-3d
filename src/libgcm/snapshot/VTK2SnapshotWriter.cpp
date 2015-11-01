@@ -71,13 +71,13 @@ void VTK2SnapshotWriter::dumpMeshSpecificData(TetrMeshSecondOrder* mesh, vtkSmar
         bool shouldSnapshotTetr = true;
         for( int z = 0; z < 4; z++)
         {
-            Node& node = mesh->getNode( tetr.vertices[z] );
+            Node& node = mesh->getNodeByGlobalIndex(tetr.vertices[z]);
             if(!node.isUsed())
                 shouldSnapshotTetr = false;
         }
         for( int z = 0; z < 6; z++)
         {
-            Node& node = mesh->getNode( tetr.addVerts[z] );
+            Node& node = mesh->getNodeByGlobalIndex(tetr.addVerts[z]);
             if(!node.isUsed())
                 shouldSnapshotTetr = false;
         }

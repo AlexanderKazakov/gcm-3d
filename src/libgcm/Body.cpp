@@ -31,13 +31,6 @@ Mesh* Body::getMeshes() {
     return meshes.size() ?  meshes[0] : NULL;
 }
 
-Mesh* Body::getMesh(string id) {
-    for(auto& mesh: meshes)
-        if (mesh->getId() == id)
-            return mesh;
-    return NULL;
-}
-
 void Body::setInitialState(Area* area, float PDE[9]) {
     for( unsigned int i = 0; i < meshes.size(); i++ )
         meshes[i]->setInitialState(area, PDE);
