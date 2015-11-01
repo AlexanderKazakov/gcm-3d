@@ -51,17 +51,17 @@ BasicCubicMesh::~BasicCubicMesh()
 void BasicCubicMesh::preProcessGeometry()
 {
     LOG_DEBUG("Preprocessing mesh geometry started.");
-	for(uint i = 0; i < getNodesNumber(); i++)
+	for(uint i = 0; i < getNodesNumber(); i++) {
 		getNodeByLocalIndex(i).setBorder(false);
-    for(uint i = 0; i < getNodesNumber(); i++)
-    {
+		getNewNodeByLocalIndex(i).setBorder(false);
+	}
+    for(uint i = 0; i < getNodesNumber(); i++) {
         Node& node = getNodeByLocalIndex(i);
-        for( uint i = 0; i < 3; i ++)
-        {
+        for( uint i = 0; i < 3; i ++) {
             if( ( fabs(node.coords[i] - outline.min_coords[i]) < EQUALITY_TOLERANCE )
-                || ( fabs(node.coords[i] - outline.max_coords[i]) < EQUALITY_TOLERANCE ) )
+             || ( fabs(node.coords[i] - outline.max_coords[i]) < EQUALITY_TOLERANCE ) )
             {
-                node.setBorder(true);
+                node.setBorder(true); getNewNodeByLocalIndex(true);
             }
         }
     }
@@ -163,7 +163,6 @@ void BasicCubicMesh::findBorderNodeNormal(const Node& node, float* x, float* y, 
 uint BasicCubicMesh::findNeighbourPoint(Node& node, float dx, float dy, float dz,
 	bool debug, float* coords, bool* innerPoint)
 {
-    //uint meshSizeX = 1 + (outline.maxX - outline.minX + meshH * 0.1) / meshH;
 	uint meshSizeY = 1 + (outline.maxY - outline.minY + meshH * 0.1) / meshH;
 	uint meshSizeZ = 1 + (outline.maxZ - outline.minZ + meshH * 0.1) / meshH;
 

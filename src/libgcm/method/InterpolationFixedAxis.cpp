@@ -101,11 +101,10 @@ void InterpolationFixedAxis::__doNextPartStep(Node& cur_node, Node& new_node,
         outer_normal[0] = outer_normal[1] = outer_normal[2] = 0;
         outer_normal[stage] = val;
         // If there is no 'outer' omega - it is ok, border node can be inner for some directions
-        if (outer_count == 0)
-        {
+        if (outer_count == 0) {
             // FIXME - hardcoded name
             engine.getVolumeCalculator("SimpleVolumeCalculator")->doCalc(
-                                                                          new_node, cur_node.getRheologyMatrix(), previous_nodes);
+		            new_node, cur_node.getRheologyMatrix(), previous_nodes);
         }
             // If there are 3 'outer' omegas - we should use border or contact algorithm
         else if (outer_count == 3)

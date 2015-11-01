@@ -88,11 +88,17 @@ Engine::Engine()
 	registerContactCalculator( new OpenFractureContactCalculator() );
     LOG_DEBUG("Registering default border condition");
     // Failsafe border condition
-    addBorderCondition( new BorderCondition( NULL, new StepPulseForm(-1, -1), getBorderCalculator("SmoothBorderCalculator") ) );
+    addBorderCondition( new BorderCondition(
+		    NULL, new StepPulseForm(-1, -1), getBorderCalculator("SmoothBorderCalculator") ) );
     // Default border condition
-    addBorderCondition( new BorderCondition( NULL, new StepPulseForm(-1, -1), getBorderCalculator("FreeBorderCalculator") ) );
+	addBorderCondition( new BorderCondition(
+			NULL, new StepPulseForm(-1, -1), getBorderCalculator("SmoothBorderCalculator") ) );
+	// by now, default is smooth calculator
+//    addBorderCondition( new BorderCondition(
+//		    NULL, new StepPulseForm(-1, -1), getBorderCalculator("FreeBorderCalculator") ) );
     LOG_DEBUG("Registering default contact condition");
-    addContactCondition( new ContactCondition( NULL, new StepPulseForm(-1, -1), getContactCalculator("SlidingContactCalculator") ) );
+    addContactCondition( new ContactCondition(
+		    NULL, new StepPulseForm(-1, -1), getContactCalculator("SlidingContactCalculator") ) );
     LOG_DEBUG("Creating dispatcher");
     dispatcher = new DummyDispatcher();
     LOG_DEBUG("Creating data bus");
@@ -815,11 +821,13 @@ void Engine::setRheologyMatrices(function<RheologyMatrixPtr (const Node&)> getMa
 {
     for (auto& b: bodies)
         for (auto& m: b->getMeshesVector())
-            for (uint i = 0; i < m->getNodesNumber(); i++)
-            {
+            for (uint i = 0; i < m->getNodesNumber(); i++) {
                 Node& node = m->getNodeByLocalIndex(i);
                 if (node.isUsed() || node.isLocal(false))
                     node.setRheologyMatrix(getMatrixForNode(node));
+	            Node& newNode = m->getNewNodeByLocalIndex(i);
+	            if (newNode.isUsed() || newNode.isLocal(false))
+		            newNode.setRheologyMatrix(getMatrixForNode(newNode));
             }
 }
 

@@ -28,13 +28,10 @@ Mesh::Mesh(string _type) : type(_type)
 	rheologyModel = NULL;
 }
 
-Mesh::~Mesh()
-{
-	nodeStorage.clear();
-	newNodeStorage.clear();
-}
+Mesh::~Mesh() {}
 
 void Mesh::allocateMemoryForNodalData() {
+	assert_eq(nodeStorage.getSize(), newNodeStorage.getSize());
 	nodeStorage.createMemory();
 	newNodeStorage.createMemory();
 }
@@ -69,7 +66,8 @@ void Mesh::setBodyNum(uchar id)
     for(uint i = 0; i < getNodesNumber(); i++)
     {
         Node& node = getNodeByLocalIndex(i);
-        node.bodyId = id;
+	    Node& newNode = getNewNodeByLocalIndex(i);
+        newNode.bodyId = node.bodyId = id;
     }
 }
 
@@ -106,24 +104,9 @@ const AABB& Mesh::getExpandedOutline() const
     return expandedOutline;
 }
 
-//void Mesh::initNewNodes()
-//{
-//    for(uint i = 0; i < getNodesNumber(); i++)
-//    {
-//        Node& node = getNodeByLocalIndex(i);
-//        Node& newNode = getNewNodeByGlobalIndex( node.number );
-//        newNode.coords = node.coords;
-//        copy(node.PDE, node.PDE + node.getSizeOfPDE(), newNode.PDE);
-//        copy(node.ODE, node.ODE + node.getSizeOfODE(), newNode.ODE);
-//        newNode.setMaterialId(node.getMaterialId());
-//        newNode.setContactConditionId(node.getContactConditionId());
-//    }
-//}
-
 void Mesh::preProcess()
 {
     LOG_DEBUG("Preprocessing mesh started.");
-    //initNewNodes();
     calcMinH();
 	createOutline();
     preProcessGeometry();
@@ -134,8 +117,7 @@ void Mesh::preProcess()
 void Mesh::createOutline()
 {
     int nodesNumber = getNodesNumber();
-    if (nodesNumber > 0)
-    {
+    if (nodesNumber > 0) {
         LOG_DEBUG("Creating outline");
 
         // Create outline
@@ -200,6 +182,9 @@ void Mesh::setBorderCondition(Area* area, uint num)
         Node& node = getNodeByLocalIndex(i);
         if( area->isInArea( node ) )
             node.setBorderConditionId(num);
+	    Node& newnode = getNewNodeByLocalIndex(i);
+	    if( area->isInArea( newnode ) )
+		    newnode.setBorderConditionId(num);
     }
 }
 
@@ -210,6 +195,9 @@ void Mesh::setContactCondition(Area* area, uint num)
         Node& node = getNodeByLocalIndex(i);
         if( area->isInArea( node ) )
             node.setContactConditionId(num);
+	    Node& newnode = getNewNodeByLocalIndex(i);
+	    if( area->isInArea( newnode ) )
+		    newnode.setContactConditionId(num);
     }
 }
 
@@ -220,32 +208,36 @@ RheologyModel* Mesh::getRheologyModel() {
 }
 
 void Mesh::setMaterial(uchar matId) {
-    for(uint i = 0; i < getNodesNumber(); i++)
-    {
-        Node& node = getNodeByLocalIndex(i);
-        node.setMaterialId( matId );
+    for(uint i = 0; i < getNodesNumber(); i++) {
+	    getNodeByLocalIndex(i).setMaterialId( matId );
+	    getNewNodeByLocalIndex(i).setMaterialId( matId );
     }
 }
 
 void Mesh::setMaterial(uchar matId, Area* area) {
-    for(uint i = 0; i < getNodesNumber(); i++)
-    {
+    for(uint i = 0; i < getNodesNumber(); i++) {
         Node& node = getNodeByLocalIndex(i);
-        if( area->isInArea(node) )
-        {
+        if( area->isInArea(node) ) {
             node.setMaterialId( matId );
         }
+	    Node& newnode = getNewNodeByLocalIndex(i);
+	    if( area->isInArea(newnode) ) {
+		    newnode.setMaterialId( matId );
+	    }
     }
 }
 
 void Mesh::transfer(float x, float y, float z)
 {
-    for(uint i = 0; i < getNodesNumber(); i++)
-    {
+    for(uint i = 0; i < getNodesNumber(); i++) {
         Node& node = getNodeByLocalIndex(i);
         node.coords[0] += x;
         node.coords[1] += y;
         node.coords[2] += z;
+	    Node& newnode = getNewNodeByLocalIndex(i);
+	    newnode.coords[0] += x;
+	    newnode.coords[1] += y;
+	    newnode.coords[2] += z;
     }
     if( !isinf(outline.minX) )
     {
@@ -269,14 +261,16 @@ void Mesh::transfer(float x, float y, float z)
 }
 
 void Mesh::scale(float x0, float y0, float z0, 
-		float scaleX, float scaleY, float scaleZ)
-{
-    for(uint i = 0; i < getNodesNumber(); i++)
-    {
+		float scaleX, float scaleY, float scaleZ) {
+    for(uint i = 0; i < getNodesNumber(); i++) {
         Node& node = getNodeByLocalIndex(i);
         node.coords[0] = (node.coords[0] - x0)*scaleX + x0;
         node.coords[1] = (node.coords[1] - y0)*scaleY + y0;
         node.coords[2] = (node.coords[2] - z0)*scaleZ + z0;
+	    Node& newnode = getNewNodeByLocalIndex(i);
+	    newnode.coords[0] = (newnode.coords[0] - x0)*scaleX + x0;
+	    newnode.coords[1] = (newnode.coords[1] - y0)*scaleY + y0;
+	    newnode.coords[2] = (newnode.coords[2] - z0)*scaleZ + z0;
     }
     if( !isinf(outline.minX) )
     {
@@ -309,21 +303,25 @@ void Mesh::applyRheology(RheologyCalculator* rc)
 
 void Mesh::clearNodesState()
 {
-    for(uint i = 0; i < getNodesNumber(); i++)
-    {
+    for(uint i = 0; i < getNodesNumber(); i++) {
         Node& node = getNodeByLocalIndex(i);
         if( node.isLocal() )
             node.clearErrorFlags();
+	    Node& newnode = getNewNodeByLocalIndex(i);
+	    if( newnode.isLocal() )
+		    newnode.clearErrorFlags();
     }
 };
 
 void Mesh::clearContactState()
 {
-    for(uint i = 0; i < getNodesNumber(); i++)
-    {
+    for(uint i = 0; i < getNodesNumber(); i++) {
         Node& node = getNodeByLocalIndex(i);
         if( node.isLocal() )
                         node.setInContact(false);
+	    Node& newnode = getNewNodeByLocalIndex(i);
+	    if( newnode.isLocal() )
+		    newnode.setInContact(false);
     }
 }
 
@@ -355,33 +353,35 @@ void Mesh::applyCorrectors()
 
 void Mesh::moveCoords(float tau)
 {
-    LOG_DEBUG("Moving mesh coords");
-    for(uint i = 0; i < getNodesNumber(); i++)
-    {
-        Node& node = getNodeByLocalIndex(i);
-        if( node.isLocal() && node.isFirstOrder() )
-        {
-            Node& newNode = getNewNodeByGlobalIndex(node.number);
-            for(int j = 0; j < 3; j++)
-            {
-                // Move node
-                node.coords[j] += node.PDE[j]*tau;
-                newNode.coords[j] = node.coords[j];
-                // Move mesh outline if necessary
-                // TODO - this does not 'clean' outline areas where there is no nodes anymore
-                if(node.coords[j] > outline.max_coords[j])
-                    outline.max_coords[j] = node.coords[j];
-                if(node.coords[j] < outline.min_coords[j])
-                    outline.min_coords[j] = node.coords[j];
-                if(node.coords[j] > expandedOutline.max_coords[j])
-                    expandedOutline.max_coords[j] = node.coords[j];
-                if(node.coords[j] < expandedOutline.min_coords[j])
-                    expandedOutline.min_coords[j] = node.coords[j];
-            }
-        }
-    }
-    calcMinH();
-    LOG_DEBUG("New outline: " << outline);
+	// TODO@next - with nodeStorages it needs to be implemented another
+	THROW_UNSUPPORTED("not implemented");
+//    LOG_DEBUG("Moving mesh coords");
+//    for(uint i = 0; i < getNodesNumber(); i++)
+//    {
+//        Node& node = getNodeByLocalIndex(i);
+//        if( node.isLocal() && node.isFirstOrder() )
+//        {
+//            Node& newNode = getNewNodeByGlobalIndex(node.number);
+//            for(int j = 0; j < 3; j++)
+//            {
+//                // Move node
+//                node.coords[j] += node.PDE[j]*tau;
+//                newNode.coords[j] = node.coords[j];
+//                // Move mesh outline if necessary
+//                // TODO - this does not 'clean' outline areas where there is no nodes anymore
+//                if(node.coords[j] > outline.max_coords[j])
+//                    outline.max_coords[j] = node.coords[j];
+//                if(node.coords[j] < outline.min_coords[j])
+//                    outline.min_coords[j] = node.coords[j];
+//                if(node.coords[j] > expandedOutline.max_coords[j])
+//                    expandedOutline.max_coords[j] = node.coords[j];
+//                if(node.coords[j] < expandedOutline.min_coords[j])
+//                    expandedOutline.min_coords[j] = node.coords[j];
+//            }
+//        }
+//    }
+//    calcMinH();
+//    LOG_DEBUG("New outline: " << outline);
 };
 
 float Mesh::getMaxEigenvalue()
@@ -522,5 +522,17 @@ void Mesh::defaultNextPartStep(float tau, int stage)
 
 void Mesh::copyValues() {
 	LOG_DEBUG("Copying values");
-	std::swap(nodeStorage, newNodeStorage);
+	// TODO@next - how to make it beautiful?
+//	std::swap(nodeStorage, newNodeStorage);
+
+	uchar sizeOfPDE = getNodeByLocalIndex(0).getSizeOfPDE();
+	uchar sizeOfODE = getNodeByLocalIndex(0).getSizeOfODE();
+	for(uint i = 0; i < getNodesNumber(); i++) {
+		for(uchar j = 0; j < sizeOfPDE; j++) {
+			getNodeByLocalIndex(i).PDE[j] = getNewNodeByLocalIndex(i).PDE[j];
+		}
+		for(uchar j = 0; j < sizeOfODE; j++) {
+			getNodeByLocalIndex(i).ODE[j] = getNewNodeByLocalIndex(i).ODE[j];
+		}
+	}
 }

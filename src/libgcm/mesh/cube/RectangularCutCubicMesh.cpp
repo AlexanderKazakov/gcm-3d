@@ -33,6 +33,13 @@ void RectangularCutCubicMesh::preProcessGeometry()
 			node.setCustomFlag(1, true);
 			node.setUsed(false);
 		}
+		Node& newnode = getNewNodeByLocalIndex(i);
+		newnode.setBorder(false);
+		newnode.setCustomFlag(1, false);
+		if( !cutArea.isOutAABB(newnode) ) {
+			newnode.setCustomFlag(1, true);
+			newnode.setUsed(false);
+		}
 	}
 	
     // for usual AABB outline
@@ -44,7 +51,7 @@ void RectangularCutCubicMesh::preProcessGeometry()
             if( ( fabs(node.coords[i] - outline.min_coords[i]) < EQUALITY_TOLERANCE )
                 || ( fabs(node.coords[i] - outline.max_coords[i]) < EQUALITY_TOLERANCE ) )
             {
-                node.setBorder(true); break;
+                node.setBorder(true); getNewNodeByLocalIndex(i).setBorder(true); break;
             }
         }
     }
@@ -57,7 +64,7 @@ void RectangularCutCubicMesh::preProcessGeometry()
 				if( ( fabs(node.coords[i] - cutArea.min_coords[i]) < EQUALITY_TOLERANCE )
 					|| ( fabs(node.coords[i] - cutArea.max_coords[i]) < EQUALITY_TOLERANCE ) )
 				{
-					node.setBorder(true); break;
+					node.setBorder(true); getNewNodeByLocalIndex(i).setBorder(true); break;
 				}
 		}
 	}
@@ -68,7 +75,6 @@ void RectangularCutCubicMesh::preProcessGeometry()
 void RectangularCutCubicMesh::findBorderNodeNormal(const Node& node, 
 	float* x, float* y, float* z, bool debug)
 {
-    //Node& node = getNodeByGlobalIndex( border_node_index );
     assert_true(node.isBorder() );
     float normal[3];
     normal[0] = normal[1] = normal[2] = 0.0;
@@ -102,7 +108,6 @@ void RectangularCutCubicMesh::findBorderNodeNormal(const Node& node,
 uint RectangularCutCubicMesh::findNeighbourPoint(Node& node, float dx, float dy, float dz,
 	bool debug, float* coords, bool* innerPoint)
 {
-    //uint meshSizeX = 1 + (outline.maxX - outline.minX + meshH * 0.1) / meshH;
 	uint meshSizeY = 1 + (outline.maxY - outline.minY + meshH * 0.1) / meshH;
 	uint meshSizeZ = 1 + (outline.maxZ - outline.minZ + meshH * 0.1) / meshH;
 
@@ -197,12 +202,15 @@ bool RectangularCutCubicMesh::interpolateBorderNode(real x, real y, real z,
 
 
 void RectangularCutCubicMesh::transfer(float x, float y, float z) {
-	for(uint i = 0; i < getNodesNumber(); i++)
-    {
+	for(uint i = 0; i < getNodesNumber(); i++) {
         Node& node = getNodeByLocalIndex(i);
         node.coords[0] += x;
         node.coords[1] += y;
         node.coords[2] += z;
+		Node& newnode = getNewNodeByLocalIndex(i);
+		newnode.coords[0] += x;
+		newnode.coords[1] += y;
+		newnode.coords[2] += z;
     }
     if( !isinf(outline.minX) )
     {
